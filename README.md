@@ -42,6 +42,8 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [ ] **Frontend Changes**
 - [ ] **Catalyst Closeout Video**
 
+All documentation for the roadmap will be in the [docs folder](./docs/).
+
 ## Goals
 
 The main goals of the Proof-of-Human (PoH) system for smart contracts are:
@@ -51,3 +53,7 @@ The main goals of the Proof-of-Human (PoH) system for smart contracts are:
 2. **Promoting User Confidence**: By introducing an additional layer of security through the PoH system, we aim to boost user confidence in the Cardano ecosystem, paving the way for wider adoption.
 
 3. **Preserving User Privacy**: As we implement the PoH system, our utmost priority is to comply with privacy standards and regulations. This not only safeguards users' rights but also fortifies the trust they place in our system.
+
+## Contact
+
+For questions, suggestions, or concerns, please reach out to the main developer at logical.mechanism@protonmail.com.
