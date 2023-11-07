@@ -30,7 +30,25 @@ The current methods available in Plutus include` ECDSA-SECP256k1`, `Ed25519`, `S
 
 A significant constraint arises with on-chain data availability and the tradability of native assets on the Cardano blockchain. A proof of humanity must be non-tradable, necessitating its residence within a smart contract. While the perpetual locking of an asset is trivial from a development standpoint, it does demand that the lock contract be a hyper-structure beyond anyone's control. Should this exist within a contract, any service requiring verification would need access to the latest on-chain information. Although new technologies are continually emerging to optimize the management of specific data, making the process increasingly feasible, it still represents a considerable overhead for those wishing to utilize this system on Cardano.
 
-### References
+### Implementing Proof Generation and Validation
+
+Getting something to prove humanity on Cardano will take some novel solutions in its current state. Due to the nature of proof of humanity systems, a Cardano PoH will need to be interacting, signature base, or boolean logic based. Potentially, new primatives can be created that are time-based and one-time use thus allowing the proof system to use more advance techniques but at the sacrafice of security within some given time window. The general flow leads us towards an advanced CAPTCHA system that can be mapped directly into a proof that can be verified on-chain in an interacting way. 
+
+For instance, a user seeking to acquire a 'token of humanity'—an NFT serving as verified proof of humanity—would need to initiate the contract for a CAPTCHA state, then calculate the proof and submit it for verification within a specified time frame. A potential source of centralization lies in the state prompt provided to the user, which would be the CAPTCHA manifested as a UTxO with a unique datum. After solving the CAPTCHA, the user must send their verification through a smart contract transaction. If the proof contained within the redeemer of the verification request is validated within the allotted time for the CAPTCHA, the user is acknowledged as human; otherwise, the funds in the certification UTxO are forfeited.
+
+This method integrates various elements of other systems, including time-based, one-time-use, CAPTCHAs, monetary stake, and the verification culminating in the minting of the token of humanity. Simultaneously, the system maintains privacy owing to the decentralized nature of the validation.
+
+## Summary
+
+The concept of PoH has evolved significantly over time, from simple CAPTCHA systems to more complex, multi-faceted solutions that can include human interaction and on-chain technologies. For Cardano, a blockchain known for its decentralized ethos, the ideal PoH system would leverage advanced forms of CAPTCHAs and maintain user privacy without relying on KYC processes.
+
+Cardano's architecture supports various cryptographic methods suitable for on-chain validation, but faces limitations in terms of transaction size and computational resources. Despite these constraints, it is possible to create non-tradable proofs of humanity within smart contracts on Cardano. These proofs would be represented by NFTs.
+
+The envisioned PoH system on Cardano would be Plutus-centric, utilizing existing cryptographic primitives. It would probably have to involve a user interacting with a smart contract to solve a CAPTCHA within a certain timeframe, with successful completion resulting in the minting of a "token of humanity" NFT, while failure would mean the forfeiture of funds.
+
+This method incorporates time-based and one-time-use elements, a monetary stake, and preserves privacy through decentralized validation. Although there are challenges, such as ensuring the system is tamper-proof and managing on-chain data requirements, the potential for PoH on Cardano is bolstered by ongoing technological advances that optimize data management and reduce the overhead for users.
+
+## References
 
 1. Luis von Ahn, Manuel Blum, Nicholas J. Hopper, and John Langford (2003). *CAPTCHA: Using Hard AI Problems for Security*. E. Biham (Ed.): EUROCRYPT 2003, LNCS 2656, pp. 294–311, 2003
 
