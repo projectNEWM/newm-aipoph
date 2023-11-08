@@ -42,11 +42,11 @@ This method integrates various elements of other systems, including time-based, 
 
 ## Summary
 
-The concept of PoH has evolved significantly over time, from simple CAPTCHA systems to more complex, multi-faceted solutions that can include human interaction and on-chain technologies. For Cardano, a blockchain known for its decentralized ethos, the ideal PoH system would leverage advanced forms of CAPTCHAs and maintain user privacy without relying on KYC processes.
+The concept of PoH has evolved significantly over time, from simple CAPTCHA systems to more complex, multi-faceted solutions that can include human interaction and on-chain technologies. For Cardano, a blockchain known for its decentralized ethos, the ideal PoH system would leverage advanced forms of CAPTCHAs and maintain user privacy without relying on centralized KYC processes.
 
-Cardano's architecture supports various cryptographic methods suitable for on-chain validation, but faces limitations in terms of transaction size and computational resources. Despite these constraints, it is possible to create non-tradable proofs of humanity within smart contracts on Cardano. These proofs would be represented by NFTs.
+Cardano's architecture supports various cryptographic methods suitable for on-chain validation, but faces limitations in terms of transaction size and computational resources. Despite these constraints, it is possible to create non-tradable proofs of humanity within smart contracts on Cardano. These humanity proofs would be represented by NFTs stored in a smart contract.
 
-The envisioned PoH system on Cardano would be Plutus-centric, utilizing existing cryptographic primitives. It would probably have to involve a user interacting with a smart contract to solve a CAPTCHA within a certain timeframe, with successful completion resulting in the minting of a “token of humanity” NFT, while failure would mean the forfeiture of funds.
+The envisioned ideal PoH system on Cardano would be Plutus-centric, utilizing novel and existing cryptographic primitives. The system will be a user interacting with a smart contract to solve a CAPTCHA within a certain timeframe, with successful completion resulting in the minting of a “token of humanity” NFT, while failure would mean the forfeiture of funds.
 
 This method incorporates time-based and one-time-use elements, a monetary stake, and preserves privacy through decentralized validation. Although there are challenges, such as ensuring the system is tamper-proof and managing on-chain data requirements, the potential for PoH on Cardano is bolstered by ongoing technological advances that optimize data management and reduce the overhead for users.
 
