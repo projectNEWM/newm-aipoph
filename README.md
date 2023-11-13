@@ -56,11 +56,11 @@ The main goals of the Proof-of-Human (PoH) system for smart contracts are:
 
 ## Contact
 
-For questions, suggestions, or concerns, please reach out to the main developer at logical.mechanism@protonmail.com.
+For questions, suggestions, or concerns, please reach out to logical.mechanism@protonmail.com.
 
 ### MD2PDF
 
 ```bash
-# requires pandoc and texlive
+# requires pandoc and texlive to work
 pandoc markdown-file.md -o markdown-as-pdf.pdf
 ```
