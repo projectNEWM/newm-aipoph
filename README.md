@@ -21,7 +21,7 @@ This research project has been funded as a proposal under the Catalyst program, 
 
 The research roadmap will align with the Catalyst milestones provided in the proposal.
 
-- [ ] **Technology Feasibility Research**
+- [x] **Technology Feasibility Research**
   - [x] **review of the existing Proof-of-Human (PoH) solutions**
   - [x] **explore different methods of user verification**
   - [x] **study the feasibility of integrating them into Cardano**
