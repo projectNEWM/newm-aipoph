@@ -29,12 +29,14 @@ pub type Petition {
 }
 
 // general dict data type for the DAO
-pub type DAODatum =
-  Dict<ByteArray, Data>
+pub type DAODatum {
+  data: Dict<ByteArray, Data>,
+  version: Int,
+}
 
 // find a data structure by a title inside the DAOData dictionary.
 pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
-  when dict.get(data, key) is {
+  when dict.get(data.data, key) is {
     Some(thing) -> thing
     None -> fail @"Data Structure Not Found"
   }

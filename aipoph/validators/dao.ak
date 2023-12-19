@@ -55,15 +55,15 @@ validator(
           values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= petition_threshold
         and {
           // send back to script but a change in the lovelace
-          payout.exact(this_addr, cont_value, tx.outputs),
+          payout.exact(this_addr, cont_value, tx.outputs)?,
           // single script input
           count.inputs_by_addr(tx.inputs, this_addr, 1),
           // single script output
           count.outputs_by_addr(tx.outputs, this_addr, 1),
           // holding the pointer token
-          pointer_token_check,
+          pointer_token_check?,
           // holding enough dao token
-          enough_for_threshold,
+          enough_for_threshold?,
         }
       }
       // anything else fails
