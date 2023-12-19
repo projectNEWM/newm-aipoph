@@ -41,10 +41,10 @@ validator(
           find.output_datum_by_addr(tx.outputs, this_addr)
         // get reference utxo
         expect dao_hash: ValidatorHash = dao_hash_data
-        let dao_addr = credential.from_script(dao_hash)
-        let dao_input = find.input_by_addr(tx.reference_inputs, dao_addr)
+        let dao_addr: Address = credential.from_script(dao_hash)
+        let dao_input: Input = find.input_by_addr(tx.reference_inputs, dao_addr)
         // check if the ref input has the correct starter token
-        let pointer_token_check =
+        let pointer_token_check: Bool =
           values.prove_exact_nft(
             pointer_pid,
             pointer_tkn,
@@ -62,6 +62,7 @@ validator(
         // how much they have inside the tx
         let enough_for_threshold: Bool =
           values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= oracle_threshold
+        // the random data must change when an oracle is used
         and {
           // send back to script but a change in the lovelace
           payout.exact(this_addr, this_value, tx.outputs)?,

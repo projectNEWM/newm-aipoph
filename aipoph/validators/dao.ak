@@ -53,6 +53,7 @@ validator(
         // how much they have inside the tx
         let enough_for_threshold: Bool =
           values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= petition_threshold
+        // check if correct pointer and enough threshold with an exact payment going back
         and {
           // send back to script but a change in the lovelace
           payout.exact(this_addr, cont_value, tx.outputs)?,

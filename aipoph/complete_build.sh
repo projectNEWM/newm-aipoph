@@ -17,6 +17,7 @@ aiken build --keep-traces
 # the locking token information
 tx_id_hash=$(jq -r '.tx_id_hash' start_info.json)
 tx_id_idx=$(jq -r '.tx_id_idx' start_info.json)
+
 # one liner for correct cbor
 # requires cbor2
 tx_id_hash_cbor=$(python3 -c "import cbor2;hex_string='${tx_id_hash}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
@@ -62,6 +63,23 @@ aiken blueprint convert -v dao.params > contracts/dao_contract.plutus
 # requires cardano-cli
 cardano-cli transaction policyid --script-file contracts/dao_contract.plutus > hashes/dao.hash
 echo -e "\033[1;33m DAO Contract Hash: $(cat hashes/dao.hash) \033[0m"
+
+echo -e "\033[1;33m Building Oracle Contract \033[0m"
+
+dao_hash=$(cat hashes/dao.hash)
+dao_hash_cbor=$(python3 -c "import cbor2;hex_string='${dao_hash}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
+
+aiken blueprint apply -o plutus.json -v oracle.params "${pointer_pid_cbor}"
+aiken blueprint apply -o plutus.json -v oracle.params "${pointer_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v oracle.params "${dao_pid_cbor}"
+aiken blueprint apply -o plutus.json -v oracle.params "${dao_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v oracle.params "${dao_hash_cbor}"
+aiken blueprint convert -v oracle.params > contracts/oracle_contract.plutus
+
+# store the script hash
+# requires cardano-cli
+cardano-cli transaction policyid --script-file contracts/oracle_contract.plutus > hashes/oracle.hash
+echo -e "\033[1;33m Oracle Contract Hash: $(cat hashes/oracle.hash) \033[0m"
 
 # end of build
 echo -e "\033[1;32m Building Complete! \033[0m"
