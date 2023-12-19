@@ -21,11 +21,11 @@ This research project has been funded as a proposal under the Catalyst program, 
 
 The research roadmap will align with the Catalyst milestones provided in the proposal.
 
-- [ ] **Technology Feasibility Research**
-  - [ ] **review of the existing Proof-of-Human (PoH) solutions**
-  - [ ] **explore different methods of user verification**
-  - [ ] **study the feasibility of integrating them into Cardano**
-  - [ ] **research cryptographic proof generation and validation methods**
+- [x] **Technology Feasibility Research**
+  - [x] **review of the existing Proof-of-Human (PoH) solutions**
+  - [x] **explore different methods of user verification**
+  - [x] **study the feasibility of integrating them into Cardano**
+  - [x] **research cryptographic proof generation and validation methods**
 - [ ] **Back-End Implementation**
   - [ ] **developing the proof of humanity system**
   - [ ] **coding the user verification module**
@@ -56,4 +56,11 @@ The main goals of the Proof-of-Human (PoH) system for smart contracts are:
 
 ## Contact
 
-For questions, suggestions, or concerns, please reach out to the main developer at logical.mechanism@protonmail.com.
+For questions, suggestions, or concerns, please reach out to logical.mechanism@protonmail.com.
+
+### MD2PDF
+
+```bash
+# requires pandoc and texlive to work
+pandoc markdown-file.md -o markdown-as-pdf.pdf
+```

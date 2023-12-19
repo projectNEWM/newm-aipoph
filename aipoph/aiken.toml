@@ -1,0 +1,19 @@
+name = "newm/aipoph"
+version = "0.0.1"
+license = "Apache-2.0"
+description = "Aiken contracts for project 'newm/aipoph'"
+
+[repository]
+user = "newm"
+project = "aipoph"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "1.7.0"
+source = "github"
+
+[[dependencies]]
+name = "logicalmechanism/assist"
+version = "main"
+source = "github"
