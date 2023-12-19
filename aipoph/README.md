@@ -18,3 +18,5 @@ The smart contract implementation for `aipoph`.
 - end is goal is a happy path that demestrates the minting of a ceritificate of humanity using the proof of humanity protocol
 - the certificate nft name should be "Congratulations! You're a human." its actually 32 characters
 This should be an attempt at a hyperstructure proof of humanity using Aiken.
+
+Use the `complete_build.sh` script to build project.

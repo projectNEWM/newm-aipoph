@@ -19,12 +19,9 @@ pub type PublicKeyHash =
 pub type ValidatorHash =
   Hash<Blake2b_224, Script>
 
-// only can remove or update
-pub type DAORedeemer {
-  // petition the dao to change the datum
-  Petition { lovelace: Int }
-  // just for testing
-  Debug
+// Petition may change the required lovelace on the utxo
+pub type Petition {
+  lovelace: Int,
 }
 
 // general dict data type for the DAO
