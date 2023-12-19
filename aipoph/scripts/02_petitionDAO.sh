@@ -47,7 +47,6 @@ if [ "$difference" -eq "0" ]; then
 elif [ "$difference" -lt "0" ]; then
     positive=$(( -1 * ${difference}))
     echo "Minimum ADA Decreasing by" ${positive}
-    difference=$positive
 else
     echo "Minimum ADA Increasing by" ${difference}
 fi
