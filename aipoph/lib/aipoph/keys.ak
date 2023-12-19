@@ -1,6 +1,3 @@
-// _aipoph_
-pub const prefix: ByteArray = #"5f6169706f70685f"
-
 // contracts
 pub const contracts: ByteArray = #"636f6e747261637473"
 

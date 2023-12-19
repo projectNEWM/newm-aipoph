@@ -3,7 +3,7 @@
 use aiken/hash.{Blake2b_256, Hash}
 use aiken/transaction.{Mint, ScriptContext, Transaction}
 use aiken/transaction/value.{AssetName, PolicyId}
-use aipoph/keys
+use aipoph/types
 use assist/minting
 use assist/values
 
@@ -19,7 +19,7 @@ validator(tx_id_hash: Hash<Blake2b_256, Transaction>, tx_id_idx: Int) {
             |> value.from_minted_value()
             |> value.flatten()
         let token_name: AssetName =
-          values.unique_token_name(tx_id_hash, tx_id_idx, keys.prefix)
+          values.unique_token_name(tx_id_hash, tx_id_idx, types.prefix)
         minting.exact(mint, currency_symbol, token_name, 1)
       }
       // Minting Only

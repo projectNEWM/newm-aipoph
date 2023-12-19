@@ -7,7 +7,11 @@ use aiken/transaction/credential.{Script, VerificationKey}
 
 // Constants
 
-pub const certificate_of_humanity =
+// _aipoph_
+pub const prefix: ByteArray = #"5f6169706f70685f"
+
+// Congratulations! You're a human.
+pub const certificate_of_humanity: ByteArray =
   #"436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e"
 
 // General Types

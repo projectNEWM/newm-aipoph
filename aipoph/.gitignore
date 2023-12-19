@@ -6,3 +6,5 @@ build/
 docs/
 aiken.lock
 plutus.json
+contracts/
+hashes/
