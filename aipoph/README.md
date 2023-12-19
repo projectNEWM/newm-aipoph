@@ -8,6 +8,7 @@ The smart contract implementation for `aipoph`.
 - pure threshold-based dao using an already existing and distributed token
 - the dao datum is a general type similar to cip68 metadatum
 - an oracle for randomness must exist
+- distributed reps must exists to simply the transactions
 - users interact with large holders of the token to start the process
 - the process is timed
 - users have an unlimited tries to attempt the solution until the time runs out
