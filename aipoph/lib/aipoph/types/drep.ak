@@ -6,7 +6,8 @@ pub type DRepDatum {
 
 pub type DRepLockRedeemer {
   LockTokens
-  Voting
+  Represent
+  Retire
 }
 
 pub type DRepMintRedeemer {

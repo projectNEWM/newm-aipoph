@@ -20,7 +20,7 @@ validator(
   // the dao token for voting
   dao_pid: PolicyId,
   dao_tkn: AssetName,
-  // the dao script hash
+  // the dao contract hash
   dao_hash_data: Data,
 ) {
   fn params(
