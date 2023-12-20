@@ -12,6 +12,10 @@ dao_script_address=$(${cli} address build --payment-script-file ${dao_script_pat
 oracle_script_path="../contracts/oracle_contract.plutus"
 oracle_script_address=$(${cli} address build --payment-script-file ${oracle_script_path} ${network})
 
+# drep lock script
+drep_lock_script_path="../contracts/drep_lock_contract.plutus"
+drep_lock_script_address=$(${cli} address build --payment-script-file ${drep_lock_script_path} ${network})
+
 # get current parameters
 mkdir -p ./tmp
 ${cli} query protocol-parameters ${network} --out-file ./tmp/protocol.json
@@ -28,6 +32,12 @@ echo -e "\033[1;35m Oracle Contract Address: \033[0m"
 echo -e "\n \033[1;35m ${oracle_script_address} \033[0m \n";
 ${cli} query utxo --address ${oracle_script_address} ${network}
 ${cli} query utxo --address ${oracle_script_address} ${network} --out-file ./tmp/current_oracle.utxo
+
+# drep lock
+echo -e "\033[1;35m dRep Lock Contract Address: \033[0m" 
+echo -e "\n \033[1;35m ${drep_lock_script_address} \033[0m \n";
+${cli} query utxo --address ${drep_lock_script_address} ${network}
+${cli} query utxo --address ${drep_lock_script_address} ${network} --out-file ./tmp/current_drep.utxo
 
 # Loop through each -wallet folder
 for wallet_folder in wallets/*-wallet; do
