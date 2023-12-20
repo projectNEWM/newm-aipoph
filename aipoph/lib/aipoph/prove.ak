@@ -7,6 +7,6 @@
 ///
 /// prove.you_are_a_human()
 ///
-pub fn you_are_a_human() -> Bool {
+pub fn you_are_a_human(_question: Data, _answer: Data) -> Bool {
   True
 }

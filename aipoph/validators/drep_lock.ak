@@ -12,7 +12,7 @@ use assist/minting
 use assist/payout
 use assist/signing
 
-validator(mirror_pid: ByteArray) {
+validator(mirror_pid: PolicyId) {
   fn params(
     this_datum: DRepDatum,
     redeemer: DRepLockRedeemer,
