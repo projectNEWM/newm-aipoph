@@ -2,7 +2,7 @@
   "constructor": 0,
   "fields": [
     {
-      "int": 123
+      "int": 123456789
     }
   ]
 }
