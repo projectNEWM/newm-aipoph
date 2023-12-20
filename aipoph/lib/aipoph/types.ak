@@ -25,3 +25,8 @@ pub type PublicKeyHash =
 // script hash
 pub type ValidatorHash =
   Hash<Blake2b_224, Script>
+
+pub type OwnerInfo {
+  pkh: PublicKeyHash,
+  sc: PublicKeyHash,
+}
