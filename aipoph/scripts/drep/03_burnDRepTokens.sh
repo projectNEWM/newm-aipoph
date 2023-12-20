@@ -82,7 +82,6 @@ drep_lock_value=$(jq -r --arg policy_id "$dao_pid" --arg token_name "$dao_tkn" '
 
 if [ "$drep_lock_value" = "null" ]; then
   drep_lock_value=0
-  echo "here"
   exit
 else
   echo "Current dRep Amount:" ${drep_lock_value}
