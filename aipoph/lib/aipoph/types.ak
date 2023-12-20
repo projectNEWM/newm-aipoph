@@ -6,6 +6,10 @@ use aiken/transaction/credential.{Script, VerificationKey}
 
 // Constants
 
+// dRep Contribution Token
+pub const drep_token_name: ByteArray =
+  #"6452657020436f6e747269627574696f6e20546f6b656e"
+
 // _aipoph_
 pub const prefix: ByteArray = #"5f6169706f70685f"
 
