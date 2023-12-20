@@ -8,16 +8,26 @@ source .env
 dao_script_path="../contracts/dao_contract.plutus"
 dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
 
+# oracle script
+oracle_script_path="../contracts/oracle_contract.plutus"
+oracle_script_address=$(${cli} address build --payment-script-file ${oracle_script_path} ${network})
+
 # get current parameters
 mkdir -p ./tmp
 ${cli} query protocol-parameters ${network} --out-file ./tmp/protocol.json
 ${cli} query tip ${network} | jq
 
-# metadatum
+# dao
 echo -e "\033[1;35m DAO Contract Address: \033[0m" 
 echo -e "\n \033[1;35m ${dao_script_address} \033[0m \n";
 ${cli} query utxo --address ${dao_script_address} ${network}
 ${cli} query utxo --address ${dao_script_address} ${network} --out-file ./tmp/current_dao.utxo
+
+# oracle
+echo -e "\033[1;35m Oracle Contract Address: \033[0m" 
+echo -e "\n \033[1;35m ${oracle_script_address} \033[0m \n";
+${cli} query utxo --address ${oracle_script_address} ${network}
+${cli} query utxo --address ${oracle_script_address} ${network} --out-file ./tmp/current_oracle.utxo
 
 # Loop through each -wallet folder
 for wallet_folder in wallets/*-wallet; do
