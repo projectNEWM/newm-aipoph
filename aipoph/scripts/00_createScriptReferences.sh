@@ -11,6 +11,8 @@ ${cli} query protocol-parameters ${network} --out-file ./tmp/protocol.json
 dao_script_path="../contracts/dao_contract.plutus"
 genesis_script_path="../contracts/genesis_contract.plutus"
 oracle_script_path="../contracts/oracle_contract.plutus"
+drep_mint_script_path="../contracts/drep_mint_contract.plutus"
+drep_lock_script_path="../contracts/drep_lock_contract.plutus"
 
 # Addresses
 reference_address=$(cat ./wallets/reference-wallet/payment.addr)
@@ -45,9 +47,34 @@ oracle_min_utxo=$(${cli} transaction calculate-min-required-utxo \
 
 oracle_value=$((${oracle_min_utxo}))
 oracle_script_reference_utxo="${script_reference_address} + ${oracle_value}"
+
+# drep mint
+drep_mint_min_utxo=$(${cli} transaction calculate-min-required-utxo \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --tx-out-reference-script-file ${drep_mint_script_path} \
+    --tx-out="${script_reference_address} + 1000000" | tr -dc '0-9')
+
+drep_mint_value=$((${drep_mint_min_utxo}))
+drep_mint_script_reference_utxo="${script_reference_address} + ${drep_mint_value}"
+
+
+# drep lock
+drep_lock_min_utxo=$(${cli} transaction calculate-min-required-utxo \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --tx-out-reference-script-file ${drep_lock_script_path} \
+    --tx-out="${script_reference_address} + 1000000" | tr -dc '0-9')
+
+drep_lock_value=$((${drep_lock_min_utxo}))
+drep_lock_script_reference_utxo="${script_reference_address} + ${drep_lock_value}"
+
+# print them out
 echo -e "\nCreating DAO Script:\n" ${dao_script_reference_utxo}
 echo -e "\nCreating Genesis Script:\n" ${genesis_script_reference_utxo}
 echo -e "\nCreating Oracle Script:\n" ${oracle_script_reference_utxo}
+echo -e "\nCreating dRep Mint Script:\n" ${drep_mint_script_reference_utxo}
+echo -e "\nCreating dRep Lock Script:\n" ${drep_lock_script_reference_utxo}
 #
 # exit
 #
@@ -186,6 +213,82 @@ ${cli} transaction sign \
     ${network}
 ###############################################################################
 
+nextUTxO=$(${cli} transaction txid --tx-body-file ./tmp/tx.draft)
+echo "Third in the tx chain" $nextUTxO
+
+echo -e "\033[0;36m Building Tx \033[0m"
+${cli} transaction build-raw \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --out-file ./tmp/tx.draft \
+    --tx-in="${nextUTxO}#0" \
+    --tx-out="${reference_address} + ${thirdReturn}" \
+    --tx-out="${drep_mint_script_reference_utxo}" \
+    --tx-out-reference-script-file ${drep_mint_script_path} \
+    --fee 900000
+
+FEE=$(${cli} transaction calculate-min-fee --tx-body-file ./tmp/tx.draft ${network} --protocol-params-file ./tmp/protocol.json --tx-in-count 1 --tx-out-count 2 --witness-count 1)
+# echo $FEE
+fee=$(echo $FEE | rev | cut -c 9- | rev)
+
+fourthReturn=$((${thirdReturn} - ${drep_mint_value} - ${fee}))
+
+${cli} transaction build-raw \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --out-file ./tmp/tx.draft \
+    --tx-in="${nextUTxO}#0" \
+    --tx-out="${reference_address} + ${fourthReturn}" \
+    --tx-out="${drep_mint_script_reference_utxo}" \
+    --tx-out-reference-script-file ${drep_mint_script_path} \
+    --fee ${fee}
+
+echo -e "\033[0;36m Signing \033[0m"
+${cli} transaction sign \
+    --signing-key-file ./wallets/reference-wallet/payment.skey \
+    --tx-body-file ./tmp/tx.draft \
+    --out-file ./tmp/tx-4.signed \
+    ${network}
+###############################################################################
+
+nextUTxO=$(${cli} transaction txid --tx-body-file ./tmp/tx.draft)
+echo "Fourth in the tx chain" $nextUTxO
+
+echo -e "\033[0;36m Building Tx \033[0m"
+${cli} transaction build-raw \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --out-file ./tmp/tx.draft \
+    --tx-in="${nextUTxO}#0" \
+    --tx-out="${reference_address} + ${fourthReturn}" \
+    --tx-out="${drep_lock_script_reference_utxo}" \
+    --tx-out-reference-script-file ${drep_lock_script_path} \
+    --fee 900000
+
+FEE=$(${cli} transaction calculate-min-fee --tx-body-file ./tmp/tx.draft ${network} --protocol-params-file ./tmp/protocol.json --tx-in-count 1 --tx-out-count 2 --witness-count 1)
+# echo $FEE
+fee=$(echo $FEE | rev | cut -c 9- | rev)
+
+fifthReturn=$((${fourthReturn} - ${drep_lock_value} - ${fee}))
+
+${cli} transaction build-raw \
+    --babbage-era \
+    --protocol-params-file ./tmp/protocol.json \
+    --out-file ./tmp/tx.draft \
+    --tx-in="${nextUTxO}#0" \
+    --tx-out="${reference_address} + ${fifthReturn}" \
+    --tx-out="${drep_lock_script_reference_utxo}" \
+    --tx-out-reference-script-file ${drep_lock_script_path} \
+    --fee ${fee}
+
+echo -e "\033[0;36m Signing \033[0m"
+${cli} transaction sign \
+    --signing-key-file ./wallets/reference-wallet/payment.skey \
+    --tx-body-file ./tmp/tx.draft \
+    --out-file ./tmp/tx-5.signed \
+    ${network}
+###############################################################################
+
 #
 # exit
 #
@@ -201,10 +304,20 @@ ${cli} transaction submit \
 ${cli} transaction submit \
     ${network} \
     --tx-file ./tmp/tx-3.signed
+
+${cli} transaction submit \
+    ${network} \
+    --tx-file ./tmp/tx-4.signed
+
+${cli} transaction submit \
+    ${network} \
+    --tx-file ./tmp/tx-5.signed
 ###############################################################################
 
 cp ./tmp/tx-1.signed ./tmp/dao-reference-utxo.signed
 cp ./tmp/tx-2.signed ./tmp/genesis-reference-utxo.signed
 cp ./tmp/tx-3.signed ./tmp/oracle-reference-utxo.signed
+cp ./tmp/tx-4.signed ./tmp/drep-mint-reference-utxo.signed
+cp ./tmp/tx-5.signed ./tmp/drep-lock-reference-utxo.signed
 
 echo -e "\033[0;32m\nDone!\033[0m"

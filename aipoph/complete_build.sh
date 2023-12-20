@@ -10,7 +10,7 @@ rm contracts/* || true
 rm hashes/* || true
 
 # build out the entire script
-echo -e "\033[1;34m Building Contracts \033[0m"
+echo -e "\033[1;34m\nBuilding Contracts \033[0m"
 # aiken build
 aiken build --keep-traces
 
@@ -23,7 +23,7 @@ tx_id_idx=$(jq -r '.tx_id_idx' start_info.json)
 tx_id_hash_cbor=$(python3 -c "import cbor2;hex_string='${tx_id_hash}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
 tx_id_idx_cbor=$(python3 -c "import cbor2;encoded=cbor2.dumps(${tx_id_idx});print(encoded.hex())")
 
-echo -e "\033[1;33m Building Genesis Contract \033[0m"
+echo -e "\033[1;33m\nBuilding Genesis Contract \033[0m"
 aiken blueprint apply -o plutus.json -v genesis.params "${tx_id_hash_cbor}"
 aiken blueprint apply -o plutus.json -v genesis.params "${tx_id_idx_cbor}"
 aiken blueprint convert -v genesis.params > contracts/genesis_contract.plutus
@@ -52,7 +52,7 @@ dao_tkn=$(jq -r '.dao_tkn' start_info.json)
 dao_pid_cbor=$(python3 -c "import cbor2;hex_string='${dao_pid}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
 dao_tkn_cbor=$(python3 -c "import cbor2;hex_string='${dao_tkn}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
 
-echo -e "\033[1;33m Building DAO Contract \033[0m"
+echo -e "\033[1;33m\nBuilding DAO Contract \033[0m"
 aiken blueprint apply -o plutus.json -v dao.params "${pointer_pid_cbor}"
 aiken blueprint apply -o plutus.json -v dao.params "${pointer_tkn_cbor}"
 aiken blueprint apply -o plutus.json -v dao.params "${dao_pid_cbor}"
@@ -64,7 +64,7 @@ aiken blueprint convert -v dao.params > contracts/dao_contract.plutus
 cardano-cli transaction policyid --script-file contracts/dao_contract.plutus > hashes/dao.hash
 echo -e "\033[1;33m DAO Contract Hash: $(cat hashes/dao.hash) \033[0m"
 
-echo -e "\033[1;33m Building Oracle Contract \033[0m"
+echo -e "\033[1;33m\nBuilding Oracle Contract \033[0m"
 
 dao_hash=$(cat hashes/dao.hash)
 dao_hash_cbor=$(python3 -c "import cbor2;hex_string='${dao_hash}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
@@ -81,5 +81,30 @@ aiken blueprint convert -v oracle.params > contracts/oracle_contract.plutus
 cardano-cli transaction policyid --script-file contracts/oracle_contract.plutus > hashes/oracle.hash
 echo -e "\033[1;33m Oracle Contract Hash: $(cat hashes/oracle.hash) \033[0m"
 
+echo -e "\033[1;33m\nBuilding dRep Contract \033[0m"
+
+aiken blueprint apply -o plutus.json -v drep_mint.params "${pointer_pid_cbor}"
+aiken blueprint apply -o plutus.json -v drep_mint.params "${pointer_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v drep_mint.params "${dao_pid_cbor}"
+aiken blueprint apply -o plutus.json -v drep_mint.params "${dao_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v drep_mint.params "${dao_hash_cbor}"
+aiken blueprint convert -v drep_mint.params > contracts/drep_mint_contract.plutus
+
+
+# store the script hash
+# requires cardano-cli
+cardano-cli transaction policyid --script-file contracts/drep_mint_contract.plutus > hashes/drep_mint.hash
+echo -e "\033[1;33m dRep Mint Contract Hash: $(cat hashes/drep_mint.hash) \033[0m"
+
+# the pointer token
+drep_pid=$(cat hashes/drep_mint.hash)
+drep_pid_cbor=$(python3 -c "import cbor2;hex_string='${drep_pid}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
+
+aiken blueprint apply -o plutus.json -v drep_lock.params "${drep_pid_cbor}"
+aiken blueprint convert -v drep_lock.params > contracts/drep_lock_contract.plutus
+
+cardano-cli transaction policyid --script-file contracts/drep_lock_contract.plutus > hashes/drep_lock.hash
+echo -e "\033[1;33m dRep Lock Contract Hash: $(cat hashes/drep_lock.hash) \033[0m"
+
 # end of build
-echo -e "\033[1;32m Building Complete! \033[0m"
+echo -e "\033[1;32m\nBuilding Complete! \033[0m"
