@@ -1,6 +1,7 @@
 //// this controls the locking of the poh pointer token and contains all of the
 //// poh test logic. a successful test will issue a certificate of humanity
 
+use aiken/interval
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
@@ -74,7 +75,6 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               poh.start_test_datum_validation(this_datum, that_datum),
             }
           }
-
           // this will end the test and mint a stage 0 coh token
           EndTest { proof } -> {
             let this_value: Value = this_input.output.value
@@ -119,6 +119,16 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               count.inputs_by_addr(tx.inputs, this_addr, 1),
               // single script output
               count.outputs_by_addr(tx.outputs, this_addr, 1),
+              // the test is over
+              interval.is_entirely_before(
+                tx.validity_range,
+                this_datum.test_data.validity_range.start,
+              ) == True,
+              // prove you are a human
+              prove.you_are_a_human(
+                this_datum.test_data.question,
+                this_datum.test_data.answer,
+              ),
             }
           }
 
