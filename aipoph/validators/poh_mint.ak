@@ -9,8 +9,10 @@ use aipoph/reference
 use aipoph/types.{ValidatorHash}
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{
-  BurnToken, MintToken, PoHLockRedeemer, PoHMintRedeemer, Quit, StartTest,
+  BurnToken, MintToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
+  StartTest,
 }
+use assist/data
 use assist/find
 use assist/minting
 use assist/payout
@@ -109,11 +111,34 @@ validator(
                 // anything else fail
                 _ -> fail @"Not Quitting Test"
               }
-            let cont_lock_value: Value =
-              value.add(lock_value, dao_pid, dao_tkn, -1)
+            expect datum: PoHDatum = data.input_datum(lock_input)
+            let lose_deposit_check: Bool =
+              if datum.test_data.cur_stage == 1 {
+                True
+              } else {
+                // search the contracts for the vault
+                expect contract_data: Contracts =
+                  dao.find_data(dao_datum, keys.contracts)
+                let vault_hash: ValidatorHash =
+                  dao.find_contract(contract_data, keys.vault_contract)
+                // build the vault address
+                let vault_addr: Address = credential.from_script(vault_hash)
+                // find the input being spent from it
+                let vault_input: Input =
+                  find.input_by_addr(tx.inputs, vault_addr)
+                let vault_value: Value = vault_input.output.value
+                let cont_vault_value: Value =
+                  value.add(
+                    vault_value,
+                    datum.deposit.pid,
+                    datum.deposit.tkn,
+                    datum.deposit.amt,
+                  )
+                payout.at_least(vault_addr, cont_vault_value, tx.outputs)
+              }
             and {
-              // make sure the bank lock is being spent from
-              payout.exact(lock_addr, cont_lock_value, tx.outputs),
+              // lose deposit to vault if fail
+              lose_deposit_check,
               // must mint 1 reference token
               minting.exact(
                 mint,

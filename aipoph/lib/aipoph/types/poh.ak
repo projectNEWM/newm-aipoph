@@ -57,6 +57,7 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   and {
     a.owner == b.owner,
     a.deposit == b.deposit,
+    a.deposit.amt > 0,
     a.test_data.validity_range != b.test_data.validity_range,
     logical_time_data(b.test_data.validity_range),
     b.test_data.cur_stage == 0,

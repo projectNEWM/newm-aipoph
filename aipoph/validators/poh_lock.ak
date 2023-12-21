@@ -28,6 +28,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
         let tx: Transaction = context.transaction
         let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
+        let this_value: Value = this_input.output.value
         // something will be burned 
         let mint: List<(PolicyId, AssetName, Int)> =
           tx.mint
@@ -40,6 +41,8 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(tx.outputs, this_addr)
             and {
+              // must not have poh token
+              !values.prove_exact_nft(poh_pid, types.poh_token_name, this_value),
               // something is being minted
               minting.is_occurring(mint, poh_pid, types.poh_token_name),
               // single script input
@@ -52,7 +55,6 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
           }
           // this will end the test and mint a stage 0 coh token
           EndTest { proof } -> {
-            let this_value: Value = this_input.output.value
             // the datum cont must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(tx.outputs, this_addr)
@@ -88,7 +90,6 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                 this_datum.owner.pkh,
                 this_datum.owner.sc,
               )
-            let this_value: Value = this_input.output.value
             // make sure there isnt poh token here else burn it
             let empty_test_start_check: Bool =
               value.quantity_of(this_value, poh_pid, types.poh_token_name) == 0
@@ -136,7 +137,8 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                   }
                 } else {
                   // middle of test
-                  True
+                  // Maybe no quiting a live test?
+                  False
                 }
               }
             and {
