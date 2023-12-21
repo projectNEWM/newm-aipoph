@@ -8,7 +8,7 @@ use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
 use aipoph/types
 use aipoph/types/poh.{
-  Advance, EndTest, PoHDatum, PoHRedeemer, Quit, StartTest, Withdraw,
+  Advance, EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, Withdraw,
 }
 use assist/addresses
 use assist/count
@@ -21,7 +21,7 @@ use assist/values
 validator(poh_pid: PolicyId, coh_pid: PolicyId) {
   fn params(
     this_datum: PoHDatum,
-    redeemer: PoHRedeemer,
+    redeemer: PoHLockRedeemer,
     context: ScriptContext,
   ) -> Bool {
     when context.purpose is {
@@ -30,29 +30,6 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
         let tx: Transaction = context.transaction
         let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
-        // // get reference utxo
-        // expect dao_hash: ValidatorHash = dao_hash_data
-        // let dao_addr: Address = credential.from_script(dao_hash)
-        // let dao_input: Input = find.input_by_addr(tx.reference_inputs, dao_addr)
-        // // check if the ref input has the correct starter token
-        // let pointer_token_check: Bool =
-        //   values.prove_exact_nft(
-        //     pointer_pid,
-        //     pointer_tkn,
-        //     dao_input.output.value,
-        //   )
-        // // get the reference datum
-        // expect dao_datum: DAODatum = data.input_datum(dao_input)
-        // // this will fail if it doesn't exist
-        // expect threshold_data: Thresholds =
-        //   dao.find_data(dao_datum, keys.thresholds)
-        // // the threshold to change data
-        // // this will fail if it doesn't exist
-        // let start_poh_test_threshold: Int =
-        //   dao.find_threshold(threshold_data, keys.start_poh_test_threshold)
-        // // how much they have inside the tx
-        // let enough_for_threshold: Bool =
-        //   values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= start_poh_test_threshold
         // something will be burned 
         let mint: List<(PolicyId, AssetName, Int)> =
           tx.mint

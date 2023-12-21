@@ -1,4 +1,4 @@
-//// This handles tokens for the casino
+//// This handles tokens for the drep
 
 use aiken/dict
 use aiken/list
@@ -6,10 +6,10 @@ use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
+use aipoph/reference
 use aipoph/types.{ValidatorHash}
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/drep.{BurnTokens, DRepMintRedeemer, MintTokens}
-use assist/data
 use assist/find
 use assist/minting
 use assist/payout
@@ -58,9 +58,9 @@ validator(
       Mint(own_currency_symbol) -> {
         // the transaction being validated
         let tx: Transaction = context.transaction
-        expect dao_hash: ValidatorHash = dao_hash_data
-        let dao_addr: Address = credential.from_script(dao_hash)
-        let dao_input: Input = find.input_by_addr(tx.reference_inputs, dao_addr)
+        // get reference utxo
+        let (dao_datum, dao_input): (DAODatum, Input) =
+          reference.get_data(tx.reference_inputs, dao_hash_data)
         // check if the ref input has the correct starter token
         let dao_value_check: Bool =
           values.prove_exact_nft(
@@ -68,8 +68,6 @@ validator(
             pointer_tkn,
             dao_input.output.value,
           )
-        // get the reference datum
-        expect dao_datum: DAODatum = data.input_datum(dao_input)
         // search the contracts for the drep lock
         expect contract_data: Contracts =
           dao.find_data(dao_datum, keys.contracts)

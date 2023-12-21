@@ -86,10 +86,15 @@ pub type ProofData {
   answer: Data,
 }
 
-pub type PoHRedeemer {
+pub type PoHLockRedeemer {
   StartTest
   EndTest { proof: ProofData }
   Advance
   Withdraw
   Quit
+}
+
+pub type PoHMintRedeemer {
+  MintToken
+  BurnToken
 }

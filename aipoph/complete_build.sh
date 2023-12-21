@@ -11,8 +11,8 @@ rm hashes/* || true
 
 # build out the entire script
 echo -e "\033[1;34m\nBuilding Contracts \033[0m"
-# aiken build
-aiken build --keep-traces
+aiken build
+# aiken build --keep-traces
 
 # the locking token information
 tx_id_hash=$(jq -r '.tx_id_hash' start_info.json)

@@ -8,7 +8,6 @@ use aipoph/types/dao.{DAODatum, Petition}
 use assist/count
 use assist/find
 use assist/payout
-// use assist/signing
 use assist/values
 
 validator(
@@ -26,16 +25,18 @@ validator(
         let Petition(lovelace) = redeemer
         // tx being validated
         let tx: Transaction = context.transaction
+        // the input being spent
         let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
-        // this value
+        // this value being spent
         let this_value: Value = this_input.output.value
+        // this address being spent from
         let this_addr: Address = this_input.output.address
         // the datum cont must be correct structure
         expect _: DAODatum = find.output_datum_by_addr(tx.outputs, this_addr)
         // utxo must have pointer token
         let pointer_token_check: Bool =
           values.prove_exact_nft(pointer_pid, pointer_tkn, this_value)
-        // set a direction for add and remove
+        // add or subtract from the required lovelace if necessary
         let cont_value: Value =
           value.add(
             this_value,
@@ -51,15 +52,15 @@ validator(
         // check if correct pointer and enough threshold with an exact payment going back
         and {
           // send back to script but a change in the lovelace
-          payout.exact(this_addr, cont_value, tx.outputs)?,
+          payout.exact(this_addr, cont_value, tx.outputs),
           // single script input
           count.inputs_by_addr(tx.inputs, this_addr, 1),
           // single script output
           count.outputs_by_addr(tx.outputs, this_addr, 1),
           // holding the pointer token
-          pointer_token_check?,
+          pointer_token_check,
           // holding enough dao token
-          enough_for_threshold?,
+          enough_for_threshold,
         }
       }
       // anything else fails

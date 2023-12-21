@@ -11,6 +11,9 @@ pub const dao_contract: ByteArray = #"64616f5f636f6e7472616374"
 // oracle_contract
 pub const oracle_contract: ByteArray = #"6f7261636c655f636f6e7472616374"
 
+// poh_lock_contract
+pub const poh_lock_contract: ByteArray = #""
+
 // thresholds
 pub const thresholds: ByteArray = #"7468726573686f6c6473"
 
