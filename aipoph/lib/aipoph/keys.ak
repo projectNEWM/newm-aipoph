@@ -20,3 +20,7 @@ pub const petition_threshold: ByteArray =
 
 // oracle_threshold
 pub const oracle_threshold: ByteArray = #"6f7261636c655f7468726573686f6c64"
+
+// start_poh_test_threshold
+pub const start_poh_test_threshold: ByteArray =
+  #"73746172745f706f685f746573745f7468726573686f6c64"

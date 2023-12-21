@@ -3,7 +3,7 @@
 
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction/credential.{Script, VerificationKey}
-use aiken/transaction/value.{AssetName, PolicyId}
+use aiken/transaction/value.{AssetName, PolicyId, Value}
 
 // Constants
 
@@ -15,7 +15,7 @@ pub const drep_token_name: AssetName =
 pub const prefix: ByteArray = #"5f6169706f70685f"
 
 // Congratulations! You're a human.
-pub const certificate_of_humanity: AssetName =
+pub const coh_token_name: AssetName =
   #"436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e"
 
 // Begin The Proof Of Humanity Test
@@ -40,4 +40,9 @@ pub type TokenInfo {
   pid: PolicyId,
   tkn: AssetName,
   amt: Int,
+}
+
+/// Convert a TokenInfo type into a Value type.
+pub fn to_value(v: TokenInfo) -> Value {
+  value.from_asset(v.pid, v.tkn, v.amt)
 }
