@@ -2,8 +2,9 @@
 //// This stores profit for the casino
 //// This handles locking ada for the casino
 
-use aiken/transaction.{Input, ScriptContext, Spend}
-use aiken/transaction/value.{AssetName, PolicyId}
+use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
+use aiken/transaction/credential.{Address}
+use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/reference
 use aipoph/types/dao.{DAODatum}
 use aipoph/types/vault.{AddToVault, SubFromVault, VaultRedeemer}
@@ -30,20 +31,20 @@ validator(
     when context.purpose is {
       Spend(output_reference) -> {
         // tx being validated
-        let tx = context.transaction
-        let this_input = find.input_by_ref(tx.inputs, output_reference)
-        let this_value = this_input.output.value
-        let this_addr = this_input.output.address
+        let tx: Transaction = context.transaction
+        let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
+        let this_value: Value = this_input.output.value
+        let this_addr: Address = this_input.output.address
         // the datum going back to the vault
         expect _: Void = find.output_datum_by_addr(tx.outputs, this_addr)
         when redeemer is {
           AddToVault { incoming } -> {
-            let cont_value =
+            let cont_value: Value =
               value.add(this_value, incoming.pid, incoming.tkn, incoming.amt)
             and {
               incoming.amt > 0,
-              // add ada to the utxo
-              payout.exact(this_addr, cont_value, tx.outputs),
+              // at least the value so the min ada can be increased
+              payout.at_least(this_addr, cont_value, tx.outputs),
               // single script input
               count.inputs_by_addr(tx.inputs, this_addr, 1),
               // single script output
@@ -52,7 +53,7 @@ validator(
           }
 
           SubFromVault { outgoing } -> {
-            let cont_value =
+            let cont_value: Value =
               value.add(this_value, outgoing.pid, outgoing.tkn, outgoing.amt)
             // get reference utxo
             let (dao_datum, dao_input): (DAODatum, Input) =
