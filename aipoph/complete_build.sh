@@ -106,5 +106,19 @@ aiken blueprint convert -v drep_lock.params > contracts/drep_lock_contract.plutu
 cardano-cli transaction policyid --script-file contracts/drep_lock_contract.plutus > hashes/drep_lock.hash
 echo -e "\033[1;33m dRep Lock Contract Hash: $(cat hashes/drep_lock.hash) \033[0m"
 
+echo -e "\033[1;33m\nBuilding Vault Contract \033[0m"
+
+aiken blueprint apply -o plutus.json -v vault.params "${pointer_pid_cbor}"
+aiken blueprint apply -o plutus.json -v vault.params "${pointer_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v vault.params "${dao_pid_cbor}"
+aiken blueprint apply -o plutus.json -v vault.params "${dao_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v vault.params "${dao_hash_cbor}"
+aiken blueprint convert -v vault.params > contracts/vault_contract.plutus
+
+# store the script hash
+# requires cardano-cli
+cardano-cli transaction policyid --script-file contracts/vault_contract.plutus > hashes/vault.hash
+echo -e "\033[1;33m Vault Contract Hash: $(cat hashes/vault.hash) \033[0m"
+
 # end of build
 echo -e "\033[1;32m\nBuilding Complete! \033[0m"
