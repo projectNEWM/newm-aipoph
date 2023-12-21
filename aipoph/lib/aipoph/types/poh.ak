@@ -45,7 +45,6 @@ pub type TestData {
   question: Data,
   answer: Data,
   cur_stage: Int,
-  tar_stage: Int,
 }
 
 pub type PoHDatum {
@@ -61,7 +60,6 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
     a.test_data.validity_range != b.test_data.validity_range,
     logical_time_data(b.test_data.validity_range),
     b.test_data.cur_stage == 0,
-    b.test_data.tar_stage > 0,
   }
 }
 
@@ -76,8 +74,6 @@ pub fn end_test_datum_validation(
     a.test_data.validity_range == b.test_data.validity_range,
     a.test_data.cur_stage == 0,
     b.test_data.cur_stage == 1,
-    a.test_data.tar_stage == b.test_data.tar_stage,
-    a.test_data.tar_stage > 0,
     b.test_data.answer == proof.answer,
   }
 }
@@ -89,8 +85,6 @@ pub type ProofData {
 pub type PoHLockRedeemer {
   StartTest
   EndTest { proof: ProofData }
-  Advance
-  Withdraw
   Quit
 }
 

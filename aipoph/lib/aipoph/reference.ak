@@ -38,3 +38,14 @@ pub fn get_oracle_threshold(dao_datum: DAODatum) -> Int {
     dao.find_threshold(threshold_data, keys.oracle_threshold)
   oracle_threshold
 }
+
+/// get the start poh test threshold or fail
+pub fn get_poh_test_threshold(dao_datum: DAODatum) -> Int {
+  // this will fail if it doesn't exist
+  expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
+  // the threshold to change data
+  // this will fail if it doesn't exist
+  let start_poh_test_threshold: Int =
+    dao.find_threshold(threshold_data, keys.start_poh_test_threshold)
+  start_poh_test_threshold
+}

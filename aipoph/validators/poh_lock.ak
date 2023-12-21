@@ -6,10 +6,8 @@ use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
-use aipoph/types
-use aipoph/types/poh.{
-  Advance, EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, Withdraw,
-}
+use aipoph/types.{TokenInfo}
+use aipoph/types/poh.{EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest}
 use assist/addresses
 use assist/count
 use assist/find
@@ -82,61 +80,72 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               prove.you_are_a_human(this_datum.test_data.question, proof.answer),
             }
           }
-          // this will perform additional logic that can advance a test, The datum must contain the proof
-          // the idea here is to have a pure off chain validation method that can be used to update an existing coh
-          Advance -> {
-            let this_value: Value = this_input.output.value
-            and {
-              // something is being minted  and burned
-              !minting.is_occurring(mint, poh_pid, types.poh_token_name),
-              // something is being minted  and burned
-              !minting.is_occurring(mint, coh_pid, types.coh_token_name),
-              // must go back
-              payout.exact(this_addr, this_value, tx.outputs),
-              // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
-              // single script output
-              count.outputs_by_addr(tx.outputs, this_addr, 1),
-              // the test is over
-              interval.is_entirely_before(
-                tx.validity_range,
-                this_datum.test_data.validity_range.start,
-              ) == True,
-              // prove you are a human
-              prove.you_are_a_human(
-                this_datum.test_data.question,
-                this_datum.test_data.answer,
-              ),
-            }
-          }
-
-          // withdraws a deposit from a failed test
-          Withdraw -> True
           // this quits if the test hasnt started or the user ends teh test successfully
           Quit -> {
-            let this_value: Value = this_input.output.value
-            // make sure there isnt dao tokens here
-            let empty_drep_check: Bool =
-              value.quantity_of(this_value, poh_pid, types.poh_token_name) == 0
             // the drep owner address
             let owner_address: Address =
               addresses.create_address(
                 this_datum.owner.pkh,
                 this_datum.owner.sc,
               )
+            let this_value: Value = this_input.output.value
+            // make sure there isnt poh token here else burn it
+            let empty_test_start_check: Bool =
+              value.quantity_of(this_value, poh_pid, types.poh_token_name) == 0
+            let does_test_start_burn: Bool =
+              // is the user holding the poh test token
+              if empty_test_start_check {
+                // no token, test did not start, send everything back with a signature
+                and {
+                  payout.exact(owner_address, this_value, tx.outputs),
+                  signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
+                }
+              } else {
+                // the poh token is on the utxo
+                // check if the test has ended
+                if
+                interval.is_entirely_after(
+                  tx.validity_range,
+                  this_datum.test_data.validity_range.end,
+                ){
+                
+                  // the test has ended
+                  // did the user finish?
+                  if this_datum.test_data.cur_stage == 1 {
+                    // user passed
+                    // burn the poh token and return deposit
+                    let owner_value: Value =
+                      value.add(this_value, poh_pid, types.poh_token_name, -1)
+                    // anyone can do this, typically the user
+                    and {
+                      minting.is_occurring(mint, poh_pid, types.poh_token_name),
+                      payout.exact(owner_address, owner_value, tx.outputs),
+                    }
+                  } else {
+                    // user failed
+                    // send deposit to the vault
+                    let deposit: TokenInfo = this_datum.deposit
+                    let owner_value: Value =
+                      value.add(this_value, poh_pid, types.poh_token_name, -1)
+                        |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
+                    and {
+                      // this needs to send the deposit to the vault contract
+                      minting.is_occurring(mint, poh_pid, types.poh_token_name),
+                      payout.exact(owner_address, owner_value, tx.outputs),
+                    }
+                  }
+                } else {
+                  // middle of test
+                  True
+                }
+              }
             and {
-              // cant be retiring with someones dao token.
-              empty_drep_check,
-              // something is being burned
-              minting.is_occurring(mint, poh_pid, types.poh_token_name),
+              // check if you have to burn
+              does_test_start_burn,
               // single script input
               count.inputs_by_addr(tx.inputs, this_addr, 1),
               // zero script output
               count.outputs_by_addr(tx.outputs, this_addr, 0),
-              // must go back
-              payout.exact(owner_address, this_value, tx.outputs),
-              // owner must sign it
-              signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
             }
           }
         }

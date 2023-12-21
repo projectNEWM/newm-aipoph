@@ -8,7 +8,9 @@ use aipoph/keys
 use aipoph/reference
 use aipoph/types.{ValidatorHash}
 use aipoph/types/dao.{Contracts, DAODatum}
-use aipoph/types/poh.{BurnToken, MintToken, PoHMintRedeemer}
+use aipoph/types/poh.{
+  BurnToken, MintToken, PoHLockRedeemer, PoHMintRedeemer, Quit, StartTest,
+}
 use assist/find
 use assist/minting
 use assist/payout
@@ -58,23 +60,55 @@ validator(
             |> value.flatten()
         when redeemer is {
           MintToken -> {
+            // this is endpoint specific so check for the correct redeemer
+            expect that_redeemer: PoHLockRedeemer =
+              find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
+            let correct_redeemer: Bool =
+              when that_redeemer is {
+                // the token can only be minted when the test starts
+                StartTest -> True
+                // anything else fail
+                _ -> fail @"Not Starting Test"
+              }
+            // adjust the value
             let cont_lock_value: Value =
               value.add(
                 lock_value,
                 own_currency_symbol,
-                types.drep_token_name,
+                types.poh_token_name,
                 1,
               )
+            // check if threshold meets requirements
+            // the threshold to change data
+            let start_poh_test_threshold: Int =
+              reference.get_poh_test_threshold(dao_datum)
+            // how much they have inside the tx
+            let enough_for_threshold: Bool =
+              values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= start_poh_test_threshold
             and {
               // make sure the bank lock is being spent from
               payout.exact(lock_addr, cont_lock_value, tx.outputs),
               // must mint 1 reference token
-              minting.exact(mint, own_currency_symbol, types.drep_token_name, 1),
+              minting.exact(mint, own_currency_symbol, types.poh_token_name, 1),
               // data reference must be holding correct token
               dao_value_check,
+              // only can run this if using start test
+              correct_redeemer,
+              // do the tx meet the threshold
+              enough_for_threshold,
             }
           }
           BurnToken -> {
+            // this is endpoint specific so check for the correct redeemer
+            expect that_redeemer: PoHLockRedeemer =
+              find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
+            let correct_redeemer: Bool =
+              when that_redeemer is {
+                // the user must be quitting the test
+                Quit -> True
+                // anything else fail
+                _ -> fail @"Not Quitting Test"
+              }
             let cont_lock_value: Value =
               value.add(lock_value, dao_pid, dao_tkn, -1)
             and {
@@ -89,6 +123,8 @@ validator(
               ),
               // data reference must be holding correct token
               dao_value_check,
+              // must be quiting when applicable
+              correct_redeemer,
             }
           }
         }
