@@ -3,12 +3,10 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/keys
-use aipoph/types.{ValidatorHash}
-use aipoph/types/dao.{DAODatum, Thresholds}
+use aipoph/reference
+use aipoph/types/dao.{DAODatum}
 use aipoph/types/oracle.{OracleDatum}
 use assist/count
-use assist/data
 use assist/find
 use assist/payout
 use assist/values
@@ -40,25 +38,16 @@ validator(
         expect that_datum: OracleDatum =
           find.output_datum_by_addr(tx.outputs, this_addr)
         // get reference utxo
-        expect dao_hash: ValidatorHash = dao_hash_data
-        let dao_addr: Address = credential.from_script(dao_hash)
-        let dao_input: Input = find.input_by_addr(tx.reference_inputs, dao_addr)
-        // check if the ref input has the correct starter token
+        let (dao_datum, dao_input): (DAODatum, Input) =
+          reference.get_data(tx.reference_inputs, dao_hash_data)
         let pointer_token_check: Bool =
           values.prove_exact_nft(
             pointer_pid,
             pointer_tkn,
             dao_input.output.value,
           )
-        // get the reference datum
-        expect dao_datum: DAODatum = data.input_datum(dao_input)
-        // this will fail if it doesn't exist
-        expect threshold_data: Thresholds =
-          dao.find_data(dao_datum, keys.thresholds)
         // the threshold to change data
-        // this will fail if it doesn't exist
-        let oracle_threshold: Int =
-          dao.find_threshold(threshold_data, keys.oracle_threshold)
+        let oracle_threshold: Int = reference.get_oracle_threshold(dao_datum)
         // how much they have inside the tx
         let enough_for_threshold: Bool =
           values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= oracle_threshold

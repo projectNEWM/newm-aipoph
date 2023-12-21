@@ -106,6 +106,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
             }
           }
           // this will perform additional logic that can advance a test, The datum must contain the proof
+          // the idea here is to have a pure off chain validation method that can be used to update an existing coh
           Advance -> {
             let this_value: Value = this_input.output.value
             and {

@@ -3,8 +3,8 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/keys
-use aipoph/types/dao.{DAODatum, Petition, Thresholds}
+use aipoph/reference
+use aipoph/types/dao.{DAODatum, Petition}
 use assist/count
 use assist/find
 use assist/payout
@@ -43,13 +43,8 @@ validator(
             value.ada_asset_name,
             lovelace,
           )
-        // this will fail if it doesn't exist
-        expect threshold_data: Thresholds =
-          dao.find_data(datum, keys.thresholds)
         // the threshold to change data
-        // this will fail if it doesn't exist
-        let petition_threshold: Int =
-          dao.find_threshold(threshold_data, keys.petition_threshold)
+        let petition_threshold: Int = reference.get_petition_threshold(datum)
         // how much they have inside the tx
         let enough_for_threshold: Bool =
           values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= petition_threshold
