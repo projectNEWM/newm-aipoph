@@ -14,6 +14,9 @@ pub const oracle_contract: ByteArray = #"6f7261636c655f636f6e7472616374"
 // poh_lock_contract
 pub const poh_lock_contract: ByteArray = #"706f685f6c6f636b5f636f6e7472616374"
 
+// coh_lock_contract
+pub const coh_lock_contract: ByteArray = #"636f685f6c6f636b5f636f6e7472616374"
+
 // vault_contract
 pub const vault_contract: ByteArray = #"7661756c745f636f6e7472616374"
 
@@ -30,6 +33,14 @@ pub const oracle_threshold: ByteArray = #"6f7261636c655f7468726573686f6c64"
 // start_poh_test_threshold
 pub const start_poh_test_threshold: ByteArray =
   #"73746172745f706f685f746573745f7468726573686f6c64"
+
+// mint_coh_threshold
+pub const mint_coh_threshold: ByteArray =
+  #"6d696e745f636f685f7468726573686f6c64"
+
+// revoke_coh_threshold
+pub const revoke_coh_threshold: ByteArray =
+  #"7265766f6b655f636f685f7468726573686f6c64"
 
 // extract_vault_threshold
 pub const extract_vault_threshold: ByteArray =

@@ -11,6 +11,6 @@ pub type DRepLockRedeemer {
 }
 
 pub type DRepMintRedeemer {
-  MintTokens { mint_amt: Int }
-  BurnTokens { burn_amt: Int }
+  MintRepTokens { mint_amt: Int }
+  BurnRepTokens { burn_amt: Int }
 }

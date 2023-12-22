@@ -9,7 +9,7 @@ use aipoph/reference
 use aipoph/types.{ValidatorHash}
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{
-  BurnToken, MintToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
+  BurnPoHToken, MintPohToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
   StartTest,
 }
 use assist/data
@@ -61,7 +61,7 @@ validator(
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
-          MintToken -> {
+          MintPohToken -> {
             // this is endpoint specific so check for the correct redeemer
             expect that_redeemer: PoHLockRedeemer =
               find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
@@ -100,7 +100,7 @@ validator(
               enough_for_threshold,
             }
           }
-          BurnToken -> {
+          BurnPoHToken -> {
             // this is endpoint specific so check for the correct redeemer
             expect that_redeemer: PoHLockRedeemer =
               find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
@@ -112,13 +112,13 @@ validator(
                 _ -> fail @"Not Quitting Test"
               }
             expect datum: PoHDatum = data.input_datum(lock_input)
+            // need to make sure the user passed the test or not
             let lose_deposit_check: Bool =
               if datum.test_data.cur_stage == 1 {
+                // no deposit is lost here
                 True
               } else {
-                // search the contracts for the vault
-                expect contract_data: Contracts =
-                  dao.find_data(dao_datum, keys.contracts)
+                // the user failed the test and lost the deposit
                 let vault_hash: ValidatorHash =
                   dao.find_contract(contract_data, keys.vault_contract)
                 // build the vault address

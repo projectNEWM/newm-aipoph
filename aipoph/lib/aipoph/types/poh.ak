@@ -90,6 +90,6 @@ pub type PoHLockRedeemer {
 }
 
 pub type PoHMintRedeemer {
-  MintToken
-  BurnToken
+  MintPohToken
+  BurnPoHToken
 }

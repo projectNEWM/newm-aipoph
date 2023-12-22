@@ -73,6 +73,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               payout.exact(this_addr, this_value, tx.outputs),
               // datums must change a specific way
               poh.end_test_datum_validation(this_datum, that_datum, proof),
+              // the coh datum needs to be based from the poh datum
               // test must still be valid
               poh.valid_test_entry(
                 this_datum.test_data.validity_range,
@@ -136,9 +137,14 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                     }
                   }
                 } else {
-                  // middle of test
-                  // Maybe no quiting a live test?
-                  False
+                  // The test has begun.
+                  // this can be removed if quiting after a test begins but before it ends
+                  // behaves as if you failed the test then the deposit will be removed
+                  // and the value is sent back to the owner
+                  // this as a fail means no leaving during a test, 
+                  // ie they paided for it so they have to take it. 
+                  // They can choose to not do it but they still gotta wait
+                  fail @"No Leaving During A Test"
                 }
               }
             and {

@@ -3,7 +3,7 @@
 
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/transaction/credential.{Script, VerificationKey}
-use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aiken/transaction/value.{AssetName, PolicyId}
 
 // Constants
 
@@ -40,9 +40,4 @@ pub type TokenInfo {
   pid: PolicyId,
   tkn: AssetName,
   amt: Int,
-}
-
-/// Convert a TokenInfo type into a Value type.
-pub fn to_value(v: TokenInfo) -> Value {
-  value.from_asset(v.pid, v.tkn, v.amt)
 }
