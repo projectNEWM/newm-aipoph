@@ -6,7 +6,8 @@ use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
-use aipoph/types.{TokenInfo}
+use aipoph/token_names
+use assist/types.{Token}
 use aipoph/types/poh.{EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest}
 use assist/addresses
 use assist/count
@@ -24,14 +25,15 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
   ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
-        // tx being validated
-        let tx: Transaction = context.transaction
-        let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
+        // this_tx being validated
+        let this_tx: Transaction = context.transaction
+        let this_input: Input =
+          find.input_by_ref(this_tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
         let this_value: Value = this_input.output.value
         // something will be burned 
         let mint: List<(PolicyId, AssetName, Int)> =
-          tx.mint
+          this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
@@ -39,16 +41,16 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
           StartTest -> {
             // the datum cont must be correct structure
             expect that_datum: PoHDatum =
-              find.output_datum_by_addr(tx.outputs, this_addr)
+              find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // must not have poh token
-              !values.prove_exact_nft(poh_pid, types.poh_token_name, this_value),
+              !values.prove_exact_nft(poh_pid, token_names.poh_token_name, this_value),
               // something is being minted
-              minting.is_occurring(mint, poh_pid, types.poh_token_name),
+              minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
-              count.outputs_by_addr(tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // datums must change a specific way
               poh.start_test_datum_validation(this_datum, that_datum),
             }
@@ -57,27 +59,30 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
           EndTest { proof } -> {
             // the datum cont must be correct structure
             expect that_datum: PoHDatum =
-              find.output_datum_by_addr(tx.outputs, this_addr)
+              find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // must have poh token
-              values.prove_exact_nft(poh_pid, types.poh_token_name, this_value),
+              values.prove_exact_nft(poh_pid, token_names.poh_token_name, this_value),
               // something is being minted  and burned
-              minting.is_occurring(mint, coh_pid, types.coh_token_name),
+              minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
-              count.outputs_by_addr(tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // owner must sign it
-              signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
+              signing.verify_sig(
+                this_tx.extra_signatories,
+                this_datum.owner.pkh,
+              ),
               // must go back
-              payout.exact(this_addr, this_value, tx.outputs),
+              payout.exact(this_addr, this_value, this_tx.outputs),
               // datums must change a specific way
               poh.end_test_datum_validation(this_datum, that_datum, proof),
               // the coh datum needs to be based from the poh datum
               // test must still be valid
               poh.valid_test_entry(
                 this_datum.test_data.validity_range,
-                tx.validity_range,
+                this_tx.validity_range,
               ),
               // prove you are a human
               prove.you_are_a_human(this_datum.test_data.question, proof.answer),
@@ -93,21 +98,24 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               )
             // make sure there isnt poh token here else burn it
             let empty_test_start_check: Bool =
-              value.quantity_of(this_value, poh_pid, types.poh_token_name) == 0
+              value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0
             let does_test_start_burn: Bool =
               // is the user holding the poh test token
               if empty_test_start_check {
                 // no token, test did not start, send everything back with a signature
                 and {
-                  payout.exact(owner_address, this_value, tx.outputs),
-                  signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
+                  payout.exact(owner_address, this_value, this_tx.outputs),
+                  signing.verify_sig(
+                    this_tx.extra_signatories,
+                    this_datum.owner.pkh,
+                  ),
                 }
               } else {
                 // the poh token is on the utxo
                 // check if the test has ended
                 if
                 interval.is_entirely_after(
-                  tx.validity_range,
+                  this_tx.validity_range,
                   this_datum.test_data.validity_range.end,
                 ){
                 
@@ -117,23 +125,23 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                     // user passed
                     // burn the poh token and return deposit
                     let owner_value: Value =
-                      value.add(this_value, poh_pid, types.poh_token_name, -1)
+                      value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                     // anyone can do this, typically the user
                     and {
-                      minting.is_occurring(mint, poh_pid, types.poh_token_name),
-                      payout.exact(owner_address, owner_value, tx.outputs),
+                      minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                      payout.exact(owner_address, owner_value, this_tx.outputs),
                     }
                   } else {
                     // user failed
                     // send deposit to the vault
-                    let deposit: TokenInfo = this_datum.deposit
+                    let deposit: Token = this_datum.deposit
                     let owner_value: Value =
-                      value.add(this_value, poh_pid, types.poh_token_name, -1)
+                      value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                         |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                     and {
                       // this needs to send the deposit to the vault contract
-                      minting.is_occurring(mint, poh_pid, types.poh_token_name),
-                      payout.exact(owner_address, owner_value, tx.outputs),
+                      minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                      payout.exact(owner_address, owner_value, this_tx.outputs),
                     }
                   }
                 } else {
@@ -151,9 +159,9 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               // check if you have to burn
               does_test_start_burn,
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // zero script output
-              count.outputs_by_addr(tx.outputs, this_addr, 0),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 0),
             }
           }
         }

@@ -1,7 +1,7 @@
-use aipoph/types.{OwnerInfo}
+use assist/types.{Wallet}
 
 pub type DRepDatum {
-  owner: OwnerInfo,
+  owner: Wallet,
 }
 
 pub type DRepLockRedeemer {

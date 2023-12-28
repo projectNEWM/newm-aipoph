@@ -6,7 +6,8 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
 use aipoph/reference
-use aipoph/types.{ValidatorHash}
+use aipoph/token_names
+use assist/types.{ValidatorHash}
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{
   BurnPoHToken, MintPohToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
@@ -16,6 +17,7 @@ use assist/data
 use assist/find
 use assist/minting
 use assist/payout
+use assist/tx
 use assist/values
 
 validator(
@@ -33,10 +35,10 @@ validator(
       // Mint 1 to 1 tokens
       Mint(own_currency_symbol) -> {
         // the transaction being validated
-        let tx: Transaction = context.transaction
+        let this_tx: Transaction = context.transaction
         // get reference utxo
         let (dao_datum, dao_input): (DAODatum, Input) =
-          reference.get_data(tx.reference_inputs, dao_hash_data)
+          reference.get_data(this_tx.reference_inputs, dao_hash_data)
         // check if the ref input has the correct starter token
         let dao_value_check: Bool =
           values.prove_exact_nft(
@@ -53,18 +55,21 @@ validator(
         // build the lock address
         let lock_addr: Address = credential.from_script(lock_hash)
         // find the input being spent from it
-        let lock_input: Input = find.input_by_addr(tx.inputs, lock_addr)
+        let lock_input: Input = find.input_by_addr(this_tx.inputs, lock_addr)
         let lock_value: Value = lock_input.output.value
         // what is being minted or burned in this transaction
         let mint: List<(PolicyId, AssetName, Int)> =
-          tx.mint
+          this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
           MintPohToken -> {
             // this is endpoint specific so check for the correct redeemer
             expect that_redeemer: PoHLockRedeemer =
-              find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
+              find.redeemer_by_ref(
+                this_tx.redeemers,
+                lock_input.output_reference,
+              )
             let correct_redeemer: Bool =
               when that_redeemer is {
                 // the token can only be minted when the test starts
@@ -77,7 +82,7 @@ validator(
               value.add(
                 lock_value,
                 own_currency_symbol,
-                types.poh_token_name,
+                token_names.poh_token_name,
                 1,
               )
             // check if threshold meets requirements
@@ -86,24 +91,32 @@ validator(
               reference.get_poh_test_threshold(dao_datum)
             // how much they have inside the tx
             let enough_for_threshold: Bool =
-              values.total_token_amount(tx.inputs, dao_pid, dao_tkn, 0) >= start_poh_test_threshold
+              tx.total_token_amount(
+                this_tx.inputs,
+                dao_pid,
+                dao_tkn,
+                start_poh_test_threshold,
+              )
             and {
               // make sure the bank lock is being spent from
-              payout.exact(lock_addr, cont_lock_value, tx.outputs),
+              payout.exact(lock_addr, cont_lock_value, this_tx.outputs),
               // must mint 1 reference token
-              minting.exact(mint, own_currency_symbol, types.poh_token_name, 1),
+              minting.exact(mint, own_currency_symbol, token_names.poh_token_name, 1),
               // data reference must be holding correct token
               dao_value_check,
               // only can run this if using start test
               correct_redeemer,
-              // do the tx meet the threshold
+              // do the this_tx meet the threshold
               enough_for_threshold,
             }
           }
           BurnPoHToken -> {
             // this is endpoint specific so check for the correct redeemer
             expect that_redeemer: PoHLockRedeemer =
-              find.redeemer_by_ref(tx.redeemers, lock_input.output_reference)
+              find.redeemer_by_ref(
+                this_tx.redeemers,
+                lock_input.output_reference,
+              )
             let correct_redeemer: Bool =
               when that_redeemer is {
                 // the user must be quitting the test
@@ -125,7 +138,7 @@ validator(
                 let vault_addr: Address = credential.from_script(vault_hash)
                 // find the input being spent from it
                 let vault_input: Input =
-                  find.input_by_addr(tx.inputs, vault_addr)
+                  find.input_by_addr(this_tx.inputs, vault_addr)
                 let vault_value: Value = vault_input.output.value
                 let cont_vault_value: Value =
                   value.add(
@@ -134,7 +147,7 @@ validator(
                     datum.deposit.tkn,
                     datum.deposit.amt,
                   )
-                payout.at_least(vault_addr, cont_vault_value, tx.outputs)
+                payout.at_least(vault_addr, cont_vault_value, this_tx.outputs)
               }
             and {
               // lose deposit to vault if fail
@@ -143,7 +156,7 @@ validator(
               minting.exact(
                 mint,
                 own_currency_symbol,
-                types.drep_token_name,
+                token_names.drep_token_name,
                 -1,
               ),
               // data reference must be holding correct token

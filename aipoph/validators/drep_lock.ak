@@ -1,7 +1,7 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/types
+use aipoph/token_names
 use aipoph/types/drep.{
   DRepDatum, DRepLockRedeemer, LockTokens, Represent, Retire,
 }
@@ -20,12 +20,13 @@ validator(mirror_pid: PolicyId) {
   ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
-        // tx being validated
-        let tx: Transaction = context.transaction
-        let this_input: Input = find.input_by_ref(tx.inputs, output_reference)
+        // this_tx being validated
+        let this_tx: Transaction = context.transaction
+        let this_input: Input =
+          find.input_by_ref(this_tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
         let mint: List<(PolicyId, AssetName, Int)> =
-          tx.mint
+          this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
@@ -34,14 +35,14 @@ validator(mirror_pid: PolicyId) {
           LockTokens -> {
             // the datum cont must be correct structure
             expect that_datum: DRepDatum =
-              find.output_datum_by_addr(tx.outputs, this_addr)
+              find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // something must be minting or burning
-              minting.is_occurring(mint, mirror_pid, types.drep_token_name),
+              minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
-              count.outputs_by_addr(tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // datums can't change
               this_datum == that_datum,
             }
@@ -51,18 +52,21 @@ validator(mirror_pid: PolicyId) {
             let this_value: Value = this_input.output.value
             // the datum cont must be correct structure
             expect that_datum: DRepDatum =
-              find.output_datum_by_addr(tx.outputs, this_addr)
+              find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // nothing can be minting or burning
-              !minting.is_occurring(mint, mirror_pid, types.drep_token_name),
+              !minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
-              count.outputs_by_addr(tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // owner must sign it
-              signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
+              signing.verify_sig(
+                this_tx.extra_signatories,
+                this_datum.owner.pkh,
+              ),
               // must go back
-              payout.exact(this_addr, this_value, tx.outputs),
+              payout.exact(this_addr, this_value, this_tx.outputs),
               // datums can't change
               this_datum == that_datum,
             }
@@ -72,7 +76,7 @@ validator(mirror_pid: PolicyId) {
             let this_value: Value = this_input.output.value
             // make sure there isnt dao tokens here
             let empty_drep_check: Bool =
-              value.quantity_of(this_value, mirror_pid, types.drep_token_name) == 0
+              value.quantity_of(this_value, mirror_pid, token_names.drep_token_name) == 0
             // the drep owner address
             let owner_address: Address =
               addresses.create_address(
@@ -83,15 +87,18 @@ validator(mirror_pid: PolicyId) {
               // cant be retiring with someones dao token.
               empty_drep_check,
               // nothing can be minting or burning
-              !minting.is_occurring(mint, mirror_pid, types.drep_token_name),
+              !minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
               // single script input
-              count.inputs_by_addr(tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // zero script output
-              count.outputs_by_addr(tx.outputs, this_addr, 0),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 0),
               // must go back
-              payout.exact(owner_address, this_value, tx.outputs),
+              payout.exact(owner_address, this_value, this_tx.outputs),
               // owner must sign it
-              signing.verify_sig(tx.extra_signatories, this_datum.owner.pkh),
+              signing.verify_sig(
+                this_tx.extra_signatories,
+                this_datum.owner.pkh,
+              ),
             }
           }
         }

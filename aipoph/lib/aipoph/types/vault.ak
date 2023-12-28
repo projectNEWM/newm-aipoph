@@ -1,6 +1,6 @@
-use aipoph/types.{TokenInfo}
+use assist/types.{Token}
 
 pub type VaultRedeemer {
-  AddToVault { incoming: TokenInfo }
-  SubFromVault { outgoing: TokenInfo }
+  AddToVault { incoming: Token }
+  SubFromVault { outgoing: Token }
 }

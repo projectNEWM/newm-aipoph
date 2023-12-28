@@ -1,4 +1,4 @@
-use aipoph/types.{OwnerInfo}
+use assist/types.{Wallet}
 
 pub type VerificationData {
   question: Data,
@@ -6,7 +6,7 @@ pub type VerificationData {
 }
 
 pub type CoHDatum {
-  owner: OwnerInfo,
+  owner: Wallet,
   verification: VerificationData,
 }
 

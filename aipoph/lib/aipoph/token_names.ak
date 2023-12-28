@@ -1,9 +1,7 @@
 //// Constants and general data types for `aipoph`.
 ////
 
-use aiken/hash.{Blake2b_224, Hash}
-use aiken/transaction/credential.{Script, VerificationKey}
-use aiken/transaction/value.{AssetName, PolicyId}
+use aiken/transaction/value.{AssetName}
 
 // Constants
 
@@ -21,23 +19,3 @@ pub const coh_token_name: AssetName =
 // Begin The Proof Of Humanity Test
 pub const poh_token_name: AssetName =
   #"426567696e205468652050726f6f66204f662048756d616e6974792054657374"
-
-// General Types
-
-pub type PublicKeyHash =
-  Hash<Blake2b_224, VerificationKey>
-
-// script hash
-pub type ValidatorHash =
-  Hash<Blake2b_224, Script>
-
-pub type OwnerInfo {
-  pkh: PublicKeyHash,
-  sc: PublicKeyHash,
-}
-
-pub type TokenInfo {
-  pid: PolicyId,
-  tkn: AssetName,
-  amt: Int,
-}

@@ -2,7 +2,7 @@
 ////
 
 use aiken/dict.{Dict}
-use aipoph/types.{ValidatorHash}
+use assist/types.{ValidatorHash}
 
 // Petition may change the required lovelace on the utxo
 pub type Petition {

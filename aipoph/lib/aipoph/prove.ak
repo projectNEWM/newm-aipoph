@@ -3,7 +3,7 @@
 use aiken/list
 use aiken/transaction.{Input}
 use aiken/transaction/credential
-use aipoph/types.{ValidatorHash}
+use assist/types.{ValidatorHash}
 
 /// This will be the core function for proof of humanity. The inputs
 /// should be the datum of the test, the verify redeemer data, and

@@ -1,6 +1,6 @@
 use aiken/interval.{Finite, NegativeInfinity, PositiveInfinity}
 use aiken/transaction.{ValidityRange}
-use aipoph/types.{OwnerInfo, TokenInfo}
+use assist/types.{Token, Wallet}
 
 pub type TimeData {
   start: Int,
@@ -48,8 +48,8 @@ pub type TestData {
 }
 
 pub type PoHDatum {
-  owner: OwnerInfo,
-  deposit: TokenInfo,
+  owner: Wallet,
+  deposit: Token,
   test_data: TestData,
 }
 
