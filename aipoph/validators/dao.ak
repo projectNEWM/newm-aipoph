@@ -19,7 +19,11 @@ validator(
   dao_pid: PolicyId,
   dao_tkn: AssetName,
 ) {
-  fn params(datum: DAODatum, redeemer: Petition, context: ScriptContext) -> Bool {
+  fn params(
+    this_datum: DAODatum,
+    redeemer: Petition,
+    context: ScriptContext,
+  ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
         // This brings `lovelace` into scope.
@@ -37,13 +41,13 @@ validator(
         expect that_datum: DAODatum =
           find.output_datum_by_addr(this_tx.outputs, this_addr)
         // the datum continuing needs to have the petition threshold
-        let petition_threshold_must_exist: Bool =
+        let petition_threshold_must_exist_in_that_datum: Bool =
           reference.does_petition_threshold_exist(that_datum)
         // utxo must have pointer token
-        let pointer_token_check: Bool =
+        let dao_utxo_must_have_pointer_token: Bool =
           values.prove_exact_nft(pointer_pid, pointer_tkn, this_value)
         // add or subtract from the required lovelace if necessary
-        let cont_value: Value =
+        let that_value: Value =
           value.add(
             this_value,
             value.ada_policy_id,
@@ -51,9 +55,10 @@ validator(
             lovelace,
           )
         // the threshold to change data
-        let petition_threshold: Int = reference.get_petition_threshold(datum)
+        let petition_threshold: Int =
+          reference.get_petition_threshold(this_datum)
         // how much they have inside the tx
-        let enough_for_threshold: Bool =
+        let must_have_enough_tokens_for_threshold: Bool =
           tx.total_token_amount(
             this_tx.inputs,
             dao_pid,
@@ -63,13 +68,13 @@ validator(
         // check if correct pointer and enough threshold with an exact payment going back
         and {
           // the petition threshold has to exist and be positive
-          petition_threshold_must_exist,
+          petition_threshold_must_exist_in_that_datum,
           // holding the pointer token
-          pointer_token_check,
+          dao_utxo_must_have_pointer_token,
           // holding enough dao token
-          enough_for_threshold,
+          must_have_enough_tokens_for_threshold,
           // send back to script but a change in the lovelace
-          payout.exact(this_addr, cont_value, this_tx.outputs),
+          payout.exact(this_addr, that_value, this_tx.outputs),
           // single script input
           count.inputs_by_addr(this_tx.inputs, this_addr, 1),
           // single script output

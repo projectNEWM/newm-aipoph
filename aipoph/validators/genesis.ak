@@ -1,4 +1,4 @@
-//// Mint an nft
+//// A single shot nft minting script
 
 use aiken/transaction.{Mint, OutputReference, ScriptContext, Transaction}
 use aiken/transaction/value.{AssetName, PolicyId}
@@ -31,9 +31,13 @@ validator(
             |> value.flatten()
         // generate the name from the compiled data
         let token_name: AssetName =
-          values.unique_token_name(tx_id_hash, tx_id_idx, token_names.prefix)
+          values.unique_token_name(
+            tx_id_hash,
+            tx_id_idx,
+            token_names.pointer_prefix,
+          )
         // this output reference must be spent
-        let this_out_ref: OutputReference = std.out_ref(tx_id_hash, tx_id_idx)
+        let that_out_ref: OutputReference = std.out_ref(tx_id_hash, tx_id_idx)
         // the continuing datum must have the correct data structure
         expect datum: DAODatum = find.first_output_datum(this_tx.outputs)
         // check if the dao threshold exists
@@ -43,7 +47,7 @@ validator(
           // petition must exist and be positive
           petition_threshold_must_exist,
           // must be spending the utxo
-          tx.is_spending_input(this_tx.inputs, this_out_ref),
+          tx.is_spending_input(this_tx.inputs, that_out_ref),
           // mint exactly 1 token
           minting.exact(mint, currency_symbol, token_name, 1),
         }

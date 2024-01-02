@@ -1,4 +1,4 @@
-//// This handles the oracle random data
+//// This handles the oracle for random data
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
@@ -43,7 +43,7 @@ validator(
         let (dao_datum, dao_input): (DAODatum, Input) =
           reference.get_data(this_tx.reference_inputs, dao_hash_data)
         // check that its holding the correct dao datum utxo
-        let pointer_token_check: Bool =
+        let dao_utxo_must_have_pointer_token: Bool =
           values.prove_exact_nft(
             pointer_pid,
             pointer_tkn,
@@ -52,7 +52,7 @@ validator(
         // the threshold to change data
         let oracle_threshold: Int = reference.get_oracle_threshold(dao_datum)
         // how much they have inside the this_tx
-        let enough_for_threshold: Bool =
+        let must_have_enough_tokens_for_threshold: Bool =
           tx.total_token_amount(
             this_tx.inputs,
             dao_pid,
@@ -61,17 +61,17 @@ validator(
           )
         // the random data must change when an oracle is used
         and {
-          // send back to script but a change in the lovelace
+          // send back to script without any change to the value
           payout.exact(this_addr, this_value, this_tx.outputs),
           // single script input
           count.inputs_by_addr(this_tx.inputs, this_addr, 1),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
           // holding the pointer token
-          pointer_token_check,
+          dao_utxo_must_have_pointer_token,
           // holding enough dao token
-          enough_for_threshold,
-          // datums must not equal
+          must_have_enough_tokens_for_threshold,
+          // datums must not equal, something has to change
           this_datum != that_datum,
         }
       }

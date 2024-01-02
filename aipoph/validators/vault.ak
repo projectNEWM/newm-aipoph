@@ -1,6 +1,4 @@
 //// this will control where the lost deposits go
-//// This stores profit for the casino
-//// This handles locking ada for the casino
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
@@ -38,29 +36,33 @@ validator(
         let this_value: Value = this_input.output.value
         let this_addr: Address = this_input.output.address
         // the datum going back to the vault
+        // implicit data validation
         expect _: Void = find.output_datum_by_addr(this_tx.outputs, this_addr)
         when redeemer is {
+          // anyone can add funds to the vault
           AddToVault { incoming } -> {
-            let cont_value: Value =
+            // add the incoming token data to this value
+            let that_value: Value =
               value.add(this_value, incoming.pid, incoming.tkn, incoming.amt)
             and {
+              // can only add here
               incoming.amt > 0,
-              // at least the value so the min ada can be increased
-              payout.at_least(this_addr, cont_value, this_tx.outputs),
+              // use at least here so the min ada can be increased
+              payout.at_least(this_addr, that_value, this_tx.outputs),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
             }
           }
-
+          // only those with enough dao tokens may subtract from the vault
           SubFromVault { outgoing } -> {
-            let cont_value: Value =
+            let that_value: Value =
               value.add(this_value, outgoing.pid, outgoing.tkn, outgoing.amt)
             // get reference utxo
             let (dao_datum, dao_input): (DAODatum, Input) =
               reference.get_data(this_tx.reference_inputs, dao_hash_data)
-            let pointer_token_check: Bool =
+            let dao_utxo_must_have_pointer_token: Bool =
               values.prove_exact_nft(
                 pointer_pid,
                 pointer_tkn,
@@ -70,7 +72,7 @@ validator(
             let extract_vault_threshold: Int =
               reference.get_extract_vault_threshold(dao_datum)
             // how much they have inside the tx
-            let enough_for_threshold: Bool =
+            let must_have_enough_tokens_for_threshold: Bool =
               tx.total_token_amount(
                 this_tx.inputs,
                 dao_pid,
@@ -78,13 +80,14 @@ validator(
                 extract_vault_threshold,
               )
             and {
+              // can only subtract here
               outgoing.amt < 0,
               // hold right token
-              pointer_token_check,
+              dao_utxo_must_have_pointer_token,
               // has enough token to do this action
-              enough_for_threshold,
-              // add ada to the utxo
-              payout.exact(this_addr, cont_value, this_tx.outputs),
+              must_have_enough_tokens_for_threshold,
+              // removing a token will keep the min ada so use exact here
+              payout.exact(this_addr, that_value, this_tx.outputs),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
