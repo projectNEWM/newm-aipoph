@@ -25,6 +25,7 @@ validator(mirror_pid: PolicyId) {
         let this_input: Input =
           find.input_by_ref(this_tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
+        // this is used in all the redeemers
         let mint: List<(PolicyId, AssetName, Int)> =
           this_tx.mint
             |> value.from_minted_value()
@@ -38,7 +39,11 @@ validator(mirror_pid: PolicyId) {
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // something must be minting or burning
-              minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
+              minting.is_occurring(
+                mint,
+                mirror_pid,
+                token_names.drep_token_name,
+              ),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
@@ -55,7 +60,11 @@ validator(mirror_pid: PolicyId) {
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // nothing can be minting or burning
-              !minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
+              !minting.is_occurring(
+                mint,
+                mirror_pid,
+                token_names.drep_token_name,
+              ),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
@@ -75,19 +84,23 @@ validator(mirror_pid: PolicyId) {
           Retire -> {
             let this_value: Value = this_input.output.value
             // make sure there isnt dao tokens here
-            let empty_drep_check: Bool =
-              value.quantity_of(this_value, mirror_pid, token_names.drep_token_name) == 0
+            let must_not_hold_drep_tokens: Bool =
+              value.quantity_of(
+                this_value,
+                mirror_pid,
+                token_names.drep_token_name,
+              ) == 0
             // the drep owner address
-            let owner_address: Address =
-              addresses.create_address(
-                this_datum.owner.pkh,
-                this_datum.owner.sc,
-              )
+            let owner_address: Address = addresses.from_wallet(this_datum.owner)
             and {
               // cant be retiring with someones dao token.
-              empty_drep_check,
+              must_not_hold_drep_tokens,
               // nothing can be minting or burning
-              !minting.is_occurring(mint, mirror_pid, token_names.drep_token_name),
+              !minting.is_occurring(
+                mint,
+                mirror_pid,
+                token_names.drep_token_name,
+              ),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // zero script output
