@@ -31,7 +31,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
           find.input_by_ref(this_tx.inputs, output_reference)
         let this_addr: Address = this_input.output.address
         let this_value: Value = this_input.output.value
-        // something will be burned 
+        // something will be minted burned 
         let mint: List<(PolicyId, AssetName, Int)> =
           this_tx.mint
             |> value.from_minted_value()
