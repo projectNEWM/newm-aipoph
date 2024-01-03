@@ -57,6 +57,11 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // datums must change a specific way
               poh.start_test_datum_validation(this_datum, that_datum),
+              // owner must sign it
+              signing.verify_sig(
+                this_tx.extra_signatories,
+                this_datum.owner.pkh,
+              ),
             }
           }
           // this will end the test and mint a stage 0 coh token
@@ -105,11 +110,11 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                 this_datum.owner.sc,
               )
             // make sure there isnt poh token here else burn it
-            let empty_test_start_check: Bool =
+            let utxo_is_missing_poh_token: Bool =
               value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0
             let does_test_start_burn: Bool =
-              // is the user holding the poh test token
-              if empty_test_start_check {
+              // Is the UTxO holding the poh test token?
+              if utxo_is_missing_poh_token {
                 // no token, test did not start, send everything back with a signature
                 and {
                   payout.exact(owner_address, this_value, this_tx.outputs),
@@ -120,7 +125,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                 }
               } else {
                 // the poh token is on the utxo
-                // check if the test has ended
+                // Is the test currently live?
                 if
                 interval.is_entirely_after(
                   this_tx.validity_range,
@@ -128,7 +133,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                 ){
                 
                   // the test has ended
-                  // did the user finish?
+                  // Did the user pass the test?
                   if this_datum.test_data.cur_stage == 1 {
                     // user passed
                     // burn the poh token and return deposit

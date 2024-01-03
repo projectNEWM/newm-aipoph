@@ -67,10 +67,9 @@ def get_dao_data() -> dict:
     current_script_path = pathlib.Path(__file__).parent
 
     # Navigate to the parent directory (project folder)
-    parent_directory = current_script_path.parent
-
+    parent_directory = current_script_path.parent.parent
     # Construct the path to the file in the data folder
-    data_file_path = parent_directory / 'data' / 'dao' / 'dao-data.json'
+    data_file_path = parent_directory / 'dao_data.json'
 
     dao_data = read_json_file(data_file_path)
     return dao_data
