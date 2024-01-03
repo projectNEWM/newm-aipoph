@@ -7,7 +7,6 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
 use aipoph/token_names
-use assist/types.{Token}
 use aipoph/types/poh.{EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest}
 use assist/addresses
 use assist/count
@@ -15,6 +14,7 @@ use assist/find
 use assist/minting
 use assist/payout
 use assist/signing
+use assist/types.{Token}
 use assist/values
 
 validator(poh_pid: PolicyId, coh_pid: PolicyId) {
@@ -44,7 +44,11 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // must not have poh token
-              !values.prove_exact_nft(poh_pid, token_names.poh_token_name, this_value),
+              !values.prove_exact_nft(
+                poh_pid,
+                token_names.poh_token_name,
+                this_value,
+              ),
               // something is being minted
               minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
               // single script input
@@ -62,7 +66,11 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             and {
               // must have poh token
-              values.prove_exact_nft(poh_pid, token_names.poh_token_name, this_value),
+              values.prove_exact_nft(
+                poh_pid,
+                token_names.poh_token_name,
+                this_value,
+              ),
               // something is being minted  and burned
               minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
               // single script input
@@ -125,10 +133,19 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                     // user passed
                     // burn the poh token and return deposit
                     let owner_value: Value =
-                      value.add(this_value, poh_pid, token_names.poh_token_name, -1)
+                      value.add(
+                        this_value,
+                        poh_pid,
+                        token_names.poh_token_name,
+                        -1,
+                      )
                     // anyone can do this, typically the user
                     and {
-                      minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                      minting.is_occurring(
+                        mint,
+                        poh_pid,
+                        token_names.poh_token_name,
+                      ),
                       payout.exact(owner_address, owner_value, this_tx.outputs),
                     }
                   } else {
@@ -136,11 +153,20 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                     // send deposit to the vault
                     let deposit: Token = this_datum.deposit
                     let owner_value: Value =
-                      value.add(this_value, poh_pid, token_names.poh_token_name, -1)
+                      value.add(
+                        this_value,
+                        poh_pid,
+                        token_names.poh_token_name,
+                        -1,
+                      )
                         |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                     and {
                       // this needs to send the deposit to the vault contract
-                      minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                      minting.is_occurring(
+                        mint,
+                        poh_pid,
+                        token_names.poh_token_name,
+                      ),
                       payout.exact(owner_address, owner_value, this_tx.outputs),
                     }
                   }
@@ -150,7 +176,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
                   // behaves as if you failed the test then the deposit will be removed
                   // and the value is sent back to the owner
                   // this as a fail means no leaving during a test, 
-                  // ie they paided for it so they have to take it. 
+                  // ie they paid for the test so they have to take it. 
                   // They can choose to not do it but they still gotta wait
                   fail @"No Leaving During A Test"
                 }

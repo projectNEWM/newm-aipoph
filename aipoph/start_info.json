@@ -1,6 +1,6 @@
 {
     "__comment1__": "The transaction id hash for the pointer token",
-    "tx_id_hash": "4312e9a7d9ae5cd25fc069fed28acdf276149f37d2eafc0e0fd81a39707a2e24",
+    "tx_id_hash": "3a9167d965c388032f6c8ba4e6f16137ecb05dde94441b2a819a6821241924dd",
     "__comment2__": "The transaction id index for the pointer token",
     "tx_id_idx": 0,
     "__comment3__": "This will be the dao token for voting",

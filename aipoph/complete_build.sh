@@ -8,6 +8,7 @@ mkdir -p hashes
 # remove old files
 rm contracts/* || true
 rm hashes/* || true
+rm -fr build/ || true
 
 # build out the entire script
 echo -e "\033[1;34m\nBuilding Contracts \033[0m"

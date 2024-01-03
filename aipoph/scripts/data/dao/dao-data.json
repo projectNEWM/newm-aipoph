@@ -1,0 +1,18 @@
+{
+    "thresholds" : {
+        "petition_threshold": 150000000,
+        "oracle_threshold": 150000000,
+        "start_poh_test_threshold": 250000000,
+        "mint_coh_threshold": 250000000,
+        "revoke_coh_threshold": 500000000,
+        "extract_vault_threshold": 200000000
+    },
+    "contracts": {
+        "drep_lock_contract": "",
+        "dao_contract": "",
+        "oracle_contract": "",
+        "poh_lock_contract": "",
+        "coh_lock_contract": "",
+        "vault_contract": ""
+    }
+}
