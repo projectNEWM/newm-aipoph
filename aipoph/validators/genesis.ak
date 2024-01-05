@@ -1,26 +1,49 @@
-//// A single shot nft minting script
+//// This create an output utxo that contains a dao pointer token and the dao
+//// datum and it only can be used once.
 
-use aiken/transaction.{Mint, OutputReference, ScriptContext, Transaction}
+use aiken/transaction.{
+  InlineDatum, Mint, Output, OutputReference, ScriptContext, Transaction,
+}
 use aiken/transaction/value.{AssetName, PolicyId}
 use aipoph/reference
 use aipoph/token_names
 use aipoph/types/dao.{DAODatum}
-use assist/find
 use assist/minting
 use assist/std
 use assist/tx
 use assist/types.{TxHash}
 use assist/values
 
+/// Find the datum that is on an output with a specific nft.
+fn output_datum_by_nft(
+  outputs: List<Output>,
+  pid: PolicyId,
+  tkn: AssetName,
+) -> Data {
+  when outputs is {
+    [output, ..rest] ->
+      when output.datum is {
+        // inline and holding the nft
+        InlineDatum(outbound_datum) ->
+          if values.prove_exact_nft(pid, tkn, output.value) {
+            outbound_datum
+          } else {
+            fail @"No Datum Found By NFT"
+          }
+        _ -> output_datum_by_nft(rest, pid, tkn)
+      }
+    [] -> fail @"No Datum Found In Outputs"
+  }
+}
+
 validator(
   // transaction id hash
   tx_id_hash: TxHash,
-  // the transaction id index
+  // transaction id index
   tx_id_idx: Int,
 ) {
   fn params(_redeemer: Void, context: ScriptContext) -> Bool {
     when context.purpose is {
-      // Mint 1 to 1 tokens, no burning
       Mint(currency_symbol) -> {
         // the transaction being validated
         let this_tx: Transaction = context.transaction
@@ -34,25 +57,29 @@ validator(
           values.unique_token_name(
             tx_id_hash,
             tx_id_idx,
+            // _aipoph_
             token_names.pointer_prefix,
           )
         // this output reference must be spent
-        let that_out_ref: OutputReference = std.out_ref(tx_id_hash, tx_id_idx)
-        // the continuing datum must have the correct data structure
-        expect datum: DAODatum = find.first_output_datum(this_tx.outputs)
-        // check if the dao threshold exists
-        let petition_threshold_must_exist: Bool =
-          reference.does_petition_threshold_exist(datum)
+        let this_out_ref: OutputReference = std.out_ref(tx_id_hash, tx_id_idx)
+        // that datum must have the correct data structure, and it must
+        // exist on an output that has a the pointer token.
+        expect that_datum: DAODatum =
+          output_datum_by_nft(this_tx.outputs, currency_symbol, token_name)
+        //
+        // check if the petition threshold exists, prove that the txid is actually
+        // being spent, and mint exactly one pointer.
+        //
         and {
           // petition must exist and be positive
-          petition_threshold_must_exist,
-          // must be spending the utxo
-          tx.is_spending_input(this_tx.inputs, that_out_ref),
-          // mint exactly 1 token
+          reference.does_petition_threshold_exist(that_datum),
+          // this input must be spending this output reference
+          tx.is_spending_input(this_tx.inputs, this_out_ref),
+          // mint exactly 1 pointer token
           minting.exact(mint, currency_symbol, token_name, 1),
         }
       }
-      // Minting Only
+      // anything else fails
       _ -> False
     }
   }

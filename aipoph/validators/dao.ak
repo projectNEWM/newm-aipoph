@@ -1,4 +1,4 @@
-//// This handles the dao data
+//// This is a threshold-based data script for a dao.
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
@@ -12,10 +12,10 @@ use assist/tx
 use assist/values
 
 validator(
-  // the pointer token for pointing at
+  // the dao pointer token
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao token for voting
+  // the dao vote token
   dao_pid: PolicyId,
   dao_tkn: AssetName,
 ) {
@@ -40,12 +40,6 @@ validator(
         // the continuing datum must have the correct data structure
         expect that_datum: DAODatum =
           find.output_datum_by_addr(this_tx.outputs, this_addr)
-        // the datum continuing needs to have the petition threshold
-        let petition_threshold_must_exist_in_that_datum: Bool =
-          reference.does_petition_threshold_exist(that_datum)
-        // utxo must have pointer token
-        let dao_utxo_must_have_pointer_token: Bool =
-          values.prove_exact_nft(pointer_pid, pointer_tkn, this_value)
         // add or subtract from the required lovelace if necessary
         let that_value: Value =
           value.add(
@@ -57,23 +51,24 @@ validator(
         // the threshold to change data
         let petition_threshold: Int =
           reference.get_petition_threshold(this_datum)
-        // how much they have inside the tx
-        let must_have_enough_tokens_for_threshold: Bool =
+        //
+        // check if the utxo is has the correct datum and that the petition threshold exists,
+        // it must be holding the correct pointer token, the inputs must contain enough threshold,
+        // and the dao utxo must be paid exactly back to the contract.
+        // 
+        and {
+          // the petition threshold has to exist and be positive
+          reference.does_petition_threshold_exist(that_datum),
+          // this value must be holding the pointer token
+          values.prove_exact_nft(pointer_pid, pointer_tkn, this_value),
+          // must be spending enough of the dao vote token
           tx.total_token_amount(
             this_tx.inputs,
             dao_pid,
             dao_tkn,
             petition_threshold,
-          )
-        // check if correct pointer and enough threshold with an exact payment going back
-        and {
-          // the petition threshold has to exist and be positive
-          petition_threshold_must_exist_in_that_datum,
-          // holding the pointer token
-          dao_utxo_must_have_pointer_token,
-          // holding enough dao token
-          must_have_enough_tokens_for_threshold,
-          // send back to script but a change in the lovelace
+          ),
+          // send that value exactly back to this address.
           payout.exact(this_addr, that_value, this_tx.outputs),
           // single script input
           count.inputs_by_addr(this_tx.inputs, this_addr, 1),

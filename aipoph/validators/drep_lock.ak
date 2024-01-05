@@ -1,3 +1,7 @@
+//// This allows many holders of the dao vote token to combine their voting
+//// powers by temporarily locking them into a UTxO that can be used on their
+//// behalf to vote on dao matters. 
+
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}

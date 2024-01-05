@@ -112,7 +112,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
             // make sure there isnt poh token here else burn it
             let utxo_is_missing_poh_token: Bool =
               value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0
-            let does_test_start_burn: Bool =
+            let did_the_test_start: Bool =
               // Is the UTxO holding the poh test token?
               if utxo_is_missing_poh_token {
                 // no token, test did not start, send everything back with a signature
@@ -188,7 +188,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               }
             and {
               // check if you have to burn
-              does_test_start_burn,
+              did_the_test_start,
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // zero script output
