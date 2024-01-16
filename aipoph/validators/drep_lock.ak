@@ -24,23 +24,27 @@ validator(mirror_pid: PolicyId) {
   ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
-        // this_tx being validated
+        // this tx being validated
         let this_tx: Transaction = context.transaction
+        // the input being spent
         let this_input: Input =
           find.input_by_ref(this_tx.inputs, output_reference)
+        // this address being spent from
         let this_addr: Address = this_input.output.address
-        // this is used in all the redeemers
+        // we need to mint the dao mirror token
         let mint: List<(PolicyId, AssetName, Int)> =
           this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
-          // the majority of the validation logic is in the minting contract
-          // make sure we spend one thing and a mint occurs
           LockTokens -> {
-            // the datum cont must be correct structure
+            // that datum must have the correct data structure
             expect that_datum: DRepDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
+            //
+            // Mint the mirror tokens 1 to 1 with the dao vote token and make
+            // sure that the datum doesn't change.
+            //
             and {
               // something must be minting or burning
               minting.is_occurring(
@@ -56,12 +60,16 @@ validator(mirror_pid: PolicyId) {
               this_datum == that_datum,
             }
           }
-          // this is just a simple spend that continues the drep back to itself.
           Represent -> {
+            // this value being spent
             let this_value: Value = this_input.output.value
             // the datum cont must be correct structure
             expect that_datum: DRepDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
+            //
+            // Nothing can be minting or burning during a represent. The 
+            // representative will sign the tx and send the value exactly back
+            // to the contract.
             and {
               // nothing can be minting or burning
               !minting.is_occurring(
@@ -78,9 +86,9 @@ validator(mirror_pid: PolicyId) {
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,
               ),
-              // must go back
+              // must send this value back to this address
               payout.exact(this_addr, this_value, this_tx.outputs),
-              // datums can't change
+              // the owner must remain constant
               this_datum == that_datum,
             }
           }

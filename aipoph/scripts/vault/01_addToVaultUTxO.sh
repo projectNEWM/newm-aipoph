@@ -38,7 +38,6 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --tx-out="${vault_script_address} + 5000000" | tr -dc '0-9')
 
 vault_script_out="${vault_script_address} + ${min_utxo}"
-echo "Vault OUTPUT: "${vault_script_out}
 #
 # exit
 #

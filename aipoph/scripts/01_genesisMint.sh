@@ -10,6 +10,11 @@ ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 # genesis contract
 dao_script_path="../contracts/dao_contract.plutus"
 dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
+dao_hash=$(cat ../hashes/dao.hash)
+
+drep_script_path="../contracts/drep_lock_contract.plutus"
+drep_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
+drep_hash=$(cat ../hashes/drep_lock.hash)
 
 # bundle sale contract
 genesis_script_path="../contracts/genesis_contract.plutus"
@@ -44,6 +49,17 @@ TXIN=$(jq -r --arg alltxin "" 'keys[] | . + $alltxin + " --tx-in"' tmp/genesis_u
 genesis_tx_in=${TXIN::-8}
 
 echo "Genesis UTxO:" $genesis_tx_in
+
+# this is set in the dao data
+petition_amount=$(jq -r '.thresholds.petition_threshold' ../dao_data.json)
+jq --argjson petition_amount "$petition_amount" '.fields[0].map[0].v.map[0].v.int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
+
+jq --arg dao_hash "$dao_hash" '.fields[0].map[1].v.map[0].v.bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
+
+jq --arg drep_hash "$drep_hash" '.fields[0].map[1].v.map[1].v.bytes=$drep_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
 # the pointer token
 # the locking token information
@@ -106,7 +122,7 @@ IFS=' ' read -ra FEE <<< "${VALUE[1]}"
 FEE=${FEE[1]}
 echo -e "\033[1;32m Fee: \033[0m" $FEE
 #
-# exit
+exit
 #
 echo -e "\033[0;36m Signing \033[0m"
 ${cli} transaction sign \

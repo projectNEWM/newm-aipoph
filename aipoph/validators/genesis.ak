@@ -4,14 +4,17 @@
 use aiken/transaction.{
   InlineDatum, Mint, Output, OutputReference, ScriptContext, Transaction,
 }
+use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId}
+use aipoph/keys
 use aipoph/reference
 use aipoph/token_names
-use aipoph/types/dao.{DAODatum}
+use aipoph/types/dao.{Contracts, DAODatum}
 use assist/minting
+use assist/payout
 use assist/std
 use assist/tx
-use assist/types.{TxHash}
+use assist/types.{TxHash, ValidatorHash}
 use assist/values
 
 /// Find the datum that is on an output with a specific nft.
@@ -62,21 +65,35 @@ validator(
           )
         // this output reference must be spent
         let this_out_ref: OutputReference = std.out_ref(tx_id_hash, tx_id_idx)
-        // that datum must have the correct data structure, and it must
+        // that datum must have the DAODatum data structure, and it must
         // exist on an output that has a the pointer token.
         expect that_datum: DAODatum =
           output_datum_by_nft(this_tx.outputs, currency_symbol, token_name)
+        // get the contract data from that datum
+        expect contract_data: Contracts =
+          dao.find_data(that_datum, keys.contracts)
+        // this must exist inside of that datum
+        let dao_hash: ValidatorHash =
+          dao.find_contract(contract_data, keys.dao_contract)
+        // build the dao address
+        let dao_addr: Address = credential.from_script(dao_hash)
         //
-        // check if the petition threshold exists, prove that the txid is actually
+        // check if the intial conditions exist, prove that the txid is actually
         // being spent, and mint exactly one pointer.
         //
         and {
           // petition must exist and be positive
-          reference.does_petition_threshold_exist(that_datum),
-          // this input must be spending this output reference
+          reference.does_the_intial_state_exist(dao_addr, that_datum),
+          // these inputs must be spending this output reference
           tx.is_spending_input(this_tx.inputs, this_out_ref),
           // mint exactly 1 pointer token
           minting.exact(mint, currency_symbol, token_name, 1),
+          // must send the dao address at least the pointer token
+          payout.at_least(
+            dao_addr,
+            value.from_asset(currency_symbol, token_name, 1),
+            this_tx.outputs,
+          ),
         }
       }
       // anything else fails

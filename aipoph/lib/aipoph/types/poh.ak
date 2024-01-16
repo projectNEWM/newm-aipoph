@@ -86,6 +86,7 @@ pub type ProofData {
 pub type PoHLockRedeemer {
   StartTest
   EndTest { proof: ProofData }
+  VerifyTest
   Quit
 }
 

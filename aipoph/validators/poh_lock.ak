@@ -7,7 +7,9 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
 use aipoph/token_names
-use aipoph/types/poh.{EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest}
+use aipoph/types/poh.{
+  EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
+}
 use assist/addresses
 use assist/count
 use assist/find
@@ -17,7 +19,12 @@ use assist/signing
 use assist/types.{Token}
 use assist/values
 
-validator(poh_pid: PolicyId, coh_pid: PolicyId) {
+validator(
+  // the proof of humanity pid
+  poh_pid: PolicyId,
+  // the certificate of humanity pid
+  coh_pid: PolicyId,
+) {
   fn params(
     this_datum: PoHDatum,
     redeemer: PoHLockRedeemer,
@@ -57,7 +64,7 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // datums must change a specific way
               poh.start_test_datum_validation(this_datum, that_datum),
-              // owner must sign it
+              // owner must sign it to prevent miss starts
               signing.verify_sig(
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,
@@ -101,6 +108,8 @@ validator(poh_pid: PolicyId, coh_pid: PolicyId) {
               prove.you_are_a_human(this_datum.test_data.question, proof.answer),
             }
           }
+          // some user with enough threshold will verify the test
+          VerifyTest -> True
           // this quits if the test hasnt started or the user ends teh test successfully
           Quit -> {
             // the drep owner address

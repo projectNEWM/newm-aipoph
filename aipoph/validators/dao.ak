@@ -1,6 +1,8 @@
 //// This is a threshold-based data script for a dao.
 
-use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
+use aiken/transaction.{
+  DatumHash, InlineDatum, Input, ScriptContext, Spend, Transaction,
+}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/reference
@@ -10,6 +12,49 @@ use assist/find
 use assist/payout
 use assist/tx
 use assist/values
+
+fn specific_inputs_only(
+  inputs: List<Input>,
+  this_addr: Address,
+  drep_addr: Address,
+) -> Bool {
+  do_inputs_by_datum_type(inputs, 0, this_addr, drep_addr)
+}
+
+// Internal only
+fn do_inputs_by_datum_type(
+  inputs: List<Input>,
+  counter: Int,
+  this_addr: Address,
+  drep_addr: Address,
+) -> Bool {
+  when inputs is {
+    [input, ..rest] ->
+      when input.output.datum is {
+        // the actual datum value isn't important here
+        InlineDatum(_) ->
+          if input.output.address == this_addr {
+            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
+          } else if input.output.address == drep_addr {
+            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+          } else {
+            fail @"Not An Allowed Address"
+          }
+        // the actual datum hash isn't important here
+        DatumHash(_) ->
+          if input.output.address == this_addr {
+            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
+          } else if input.output.address == drep_addr {
+            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+          } else {
+            fail @"Not An Allowed Address"
+          }
+        _ -> do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+      }
+    // there can be only 1 dao contract and any amount of dreps but nothing else
+    [] -> counter == 1
+  }
+}
 
 validator(
   // the dao pointer token
@@ -28,7 +73,7 @@ validator(
       Spend(output_reference) -> {
         // This brings `lovelace` into scope.
         let Petition(lovelace) = redeemer
-        // this_tx being validated
+        // this tx being validated
         let this_tx: Transaction = context.transaction
         // the input being spent
         let this_input: Input =
@@ -51,14 +96,16 @@ validator(
         // the threshold to change data
         let petition_threshold: Int =
           reference.get_petition_threshold(this_datum)
+        // the drep address to allow dreps to participate in the dao
+        let drep_addr: Address = reference.get_drep_lock_contract(this_datum)
         //
         // check if the utxo is has the correct datum and that the petition threshold exists,
         // it must be holding the correct pointer token, the inputs must contain enough threshold,
         // and the dao utxo must be paid exactly back to the contract.
         // 
         and {
-          // the petition threshold has to exist and be positive
-          reference.does_petition_threshold_exist(that_datum),
+          // at least the initial state has to exist
+          reference.does_the_intial_state_exist(this_addr, that_datum),
           // this value must be holding the pointer token
           values.prove_exact_nft(pointer_pid, pointer_tkn, this_value),
           // must be spending enough of the dao vote token
@@ -70,8 +117,8 @@ validator(
           ),
           // send that value exactly back to this address.
           payout.exact(this_addr, that_value, this_tx.outputs),
-          // single script input
-          count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+          // single script input + many dreps
+          specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
         }

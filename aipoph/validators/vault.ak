@@ -29,7 +29,7 @@ validator(
   ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
-        // this_tx being validated
+        // this tx being validated
         let this_tx: Transaction = context.transaction
         // the input being spent
         let this_input: Input =
