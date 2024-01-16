@@ -43,16 +43,17 @@ validator(
             pointer_tkn,
             dao_input.output.value,
           )
-        // search the contracts for the drep lock
+        // get the contract data
         expect contract_data: Contracts =
           dao.find_data(dao_datum, keys.contracts)
         // the lock script must be spent from
         let lock_hash: ValidatorHash =
           dao.find_contract(contract_data, keys.drep_lock_contract)
         // we need to make sure nothing else officially is getting spent
+        // so remove the lock hash since we need to spend that one here
         let all_validator_hashes: List<ValidatorHash> =
           dict.values(contract_data) |> list.delete(lock_hash)
-        // is anything being spent that shouldn't be spent
+        // now is anything being spent that shouldn't be spent
         let must_not_be_spending_from: Bool =
           tx.not_being_spent_from(all_validator_hashes, this_tx.inputs)
         // build the lock address

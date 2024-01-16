@@ -1,10 +1,9 @@
 //// This is a threshold-based data script for a dao.
 
-use aiken/transaction.{
-  DatumHash, InlineDatum, Input, ScriptContext, Spend, Transaction,
-}
+use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aipoph/catch
 use aipoph/reference
 use aipoph/types/dao.{DAODatum, Petition}
 use assist/count
@@ -12,49 +11,6 @@ use assist/find
 use assist/payout
 use assist/tx
 use assist/values
-
-fn specific_inputs_only(
-  inputs: List<Input>,
-  this_addr: Address,
-  drep_addr: Address,
-) -> Bool {
-  do_inputs_by_datum_type(inputs, 0, this_addr, drep_addr)
-}
-
-// Internal only
-fn do_inputs_by_datum_type(
-  inputs: List<Input>,
-  counter: Int,
-  this_addr: Address,
-  drep_addr: Address,
-) -> Bool {
-  when inputs is {
-    [input, ..rest] ->
-      when input.output.datum is {
-        // the actual datum value isn't important here
-        InlineDatum(_) ->
-          if input.output.address == this_addr {
-            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
-          } else if input.output.address == drep_addr {
-            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
-          } else {
-            fail @"Not An Allowed Address"
-          }
-        // the actual datum hash isn't important here
-        DatumHash(_) ->
-          if input.output.address == this_addr {
-            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
-          } else if input.output.address == drep_addr {
-            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
-          } else {
-            fail @"Not An Allowed Address"
-          }
-        _ -> do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
-      }
-    // there can be only 1 dao contract and any amount of dreps but nothing else
-    [] -> counter == 1
-  }
-}
 
 validator(
   // the dao pointer token
@@ -118,7 +74,7 @@ validator(
           // send that value exactly back to this address.
           payout.exact(this_addr, that_value, this_tx.outputs),
           // single script input + many dreps
-          specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
+          catch.specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
         }

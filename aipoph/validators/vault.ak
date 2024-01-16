@@ -3,6 +3,7 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aipoph/catch
 use aipoph/reference
 use aipoph/types/dao.{DAODatum}
 use aipoph/types/vault.{AddToVault, SubFromVault, VaultRedeemer}
@@ -74,6 +75,8 @@ validator(
             // the threshold to change data
             let extract_vault_threshold: Int =
               reference.get_extract_vault_threshold(dao_datum)
+            // the drep address that can be spent from
+            let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
             //
             // Tokens can only be subtracted from the UTxO if and only if there
             // is enough of the dao vote token being spent inside the transaction.
@@ -98,8 +101,8 @@ validator(
               ),
               // send that value to this address
               payout.exact(this_addr, that_value, this_tx.outputs),
-              // single script input
-              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+              // single script input + many dreps
+              catch.specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
             }

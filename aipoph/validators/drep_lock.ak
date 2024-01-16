@@ -71,7 +71,7 @@ validator(mirror_pid: PolicyId) {
             // representative will sign the tx and send the value exactly back
             // to the contract.
             and {
-              // nothing can be minting or burning
+              // nothing can be minting or burning from the mirror pid
               !minting.is_occurring(
                 mint,
                 mirror_pid,
