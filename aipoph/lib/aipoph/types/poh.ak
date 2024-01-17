@@ -52,15 +52,19 @@ pub type TestData {
 pub type PoHDatum {
   owner: Wallet,
   deposit: Token,
+  incentive: Token,
   test_data: TestData,
 }
 
 pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
+  // the test_data.question is left to change into whatever here
   and {
     // owner cant change
     a.owner == b.owner,
     // deposit cant change
     a.deposit == b.deposit,
+    // incentive cant change
+    a.incentive == b.incentive,
     // must have non zero amount
     a.deposit.amt > 0,
     // the validity must change
@@ -75,31 +79,35 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
 pub fn end_test_datum_validation(
   a: PoHDatum,
   b: PoHDatum,
-  proof: ProofData,
+  answer: AnswerData,
 ) -> Bool {
   and {
     // owner cant change
     a.owner == b.owner,
     // deposit cant change
     a.deposit == b.deposit,
+    // incentive cant change
+    a.incentive == b.incentive,
     // the validitiy range cant change
     a.test_data.validity_range == b.test_data.validity_range,
     // the current stage is zeroth
     a.test_data.cur_stage == 0,
     // the next stage is first
     b.test_data.cur_stage == 1,
+    // question cant change
+    a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
-    b.test_data.answer == proof.answer,
+    b.test_data.answer == answer.answer,
   }
 }
 
-pub type ProofData {
+pub type AnswerData {
   answer: Data,
 }
 
 pub type PoHLockRedeemer {
   StartTest
-  EndTest { proof: ProofData }
+  EndTest { answer: AnswerData }
   VerifyTest
   Quit
 }

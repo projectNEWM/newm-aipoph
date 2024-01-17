@@ -64,200 +64,197 @@ validator(
         let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
         when redeemer is {
           // mint the poh token
-          MintPohToken -> {
+          MintPohToken ->
             // that redeemer must be the start test redeemer
-            let must_use_correct_redeemer: Bool =
-              when that_redeemer is {
-                // the token can only be minted when the test starts
-                StartTest -> True
-                // anything else fail
-                _ -> fail @"Not Starting Test"
+            when that_redeemer is {
+              // the token can only be minted when the test starts
+              StartTest -> {
+                // adjust the value to include the poh token
+                let cont_lock_value: Value =
+                  value.add(
+                    lock_value,
+                    own_currency_symbol,
+                    token_names.poh_token_name,
+                    1,
+                  )
+                // the threshold to start the test
+                let start_poh_test_threshold: Int =
+                  reference.get_poh_test_threshold(dao_datum)
+                //
+                // Mint a poh token to a UTxO if the threshold is met inside the
+                // transaction. Only the lock contract and dreps can be spent along
+                // this mint action.
+                //
+                and {
+                  // single script input + many dreps
+                  catch.specific_inputs_only(
+                    this_tx.inputs,
+                    lock_addr,
+                    drep_addr,
+                  ),
+                  // the continuing value must be sent to the lock address
+                  payout.exact(lock_addr, cont_lock_value, this_tx.outputs),
+                  // must mint 1 poh token
+                  minting.exact(
+                    mint,
+                    own_currency_symbol,
+                    token_names.poh_token_name,
+                    1,
+                  ),
+                  // data reference must be holding correct pointer token
+                  values.prove_exact_nft(
+                    pointer_pid,
+                    pointer_tkn,
+                    dao_input.output.value,
+                  ),
+                  // do the this_tx meet the threshold
+                  tx.total_token_amount(
+                    this_tx.inputs,
+                    dao_pid,
+                    dao_tkn,
+                    start_poh_test_threshold,
+                  ),
+                }
               }
-            // adjust the value to include the poh token
-            let cont_lock_value: Value =
-              value.add(
-                lock_value,
-                own_currency_symbol,
-                token_names.poh_token_name,
-                1,
-              )
-            // the threshold to start the test
-            let start_poh_test_threshold: Int =
-              reference.get_poh_test_threshold(dao_datum)
-            //
-            // Mint a poh token to a UTxO if the threshold is met inside the
-            // transaction. Only the lock contract and dreps can be spent along
-            // this mint action.
-            //
-            and {
-              // single script input + many dreps
-              catch.specific_inputs_only(this_tx.inputs, lock_addr, drep_addr),
-              // the continuing value must be sent to the lock address
-              payout.exact(lock_addr, cont_lock_value, this_tx.outputs),
-              // must mint 1 poh token
-              minting.exact(
-                mint,
-                own_currency_symbol,
-                token_names.poh_token_name,
-                1,
-              ),
-              // data reference must be holding correct pointer token
-              values.prove_exact_nft(
-                pointer_pid,
-                pointer_tkn,
-                dao_input.output.value,
-              ),
-              // only can run this if using start test
-              must_use_correct_redeemer,
-              // do the this_tx meet the threshold
-              tx.total_token_amount(
-                this_tx.inputs,
-                dao_pid,
-                dao_tkn,
-                start_poh_test_threshold,
-              ),
+              // anything else fail
+              _ -> fail @"Not Starting Test"
             }
-          }
           // burn the poh token
           BurnPoHToken -> {
             // get the datum from the lock utxo
             expect this_datum: PoHDatum = data.input_datum(lock_input)
-            let must_use_correct_redeemer: Bool =
-              when that_redeemer is {
-                // the test is being verified
-                VerifyTest ->
-                  if and {
-                    // prove you are a human
-                    prove.you_are_a_human(
-                      this_datum.test_data.question,
-                      this_datum.test_data.answer,
+            when that_redeemer is {
+              // the test is being verified
+              VerifyTest ->
+                if and {
+                  // prove you are a human
+                  prove.you_are_a_human(
+                    this_datum.test_data.question,
+                    this_datum.test_data.answer,
+                  ),
+                  // test must have ended
+                  this_datum.test_data.cur_stage == 1,
+                } {
+                  let max_success_fee: Int =
+                    reference.get_poh_verify_success_fee(dao_datum)
+                  //
+                  // they passed as a human and finished the test
+                  // so burn the poh token
+                  //
+                  and {
+                    // fee must be less then max fee
+                    dao.is_valid_fee(this_tx.fee, max_success_fee),
+                    // must mint 1 reference token,
+                    minting.exact(
+                      mint,
+                      own_currency_symbol,
+                      token_names.poh_token_name,
+                      -1,
                     ),
-                    // test must have ended
-                    this_datum.test_data.cur_stage == 1,
-                  } {
-                    let max_success_fee: Int =
-                      reference.get_poh_verify_success_fee(dao_datum)
-                    //
-                    // they passed as a human and finished the test
-                    // so burn the poh token
-                    //
-                    and {
-                      // fee must be less then max fee
-                      dao.is_valid_fee(this_tx.fee, max_success_fee),
-                      // must mint 1 reference token,
-                      minting.exact(
-                        mint,
-                        own_currency_symbol,
-                        token_names.drep_token_name,
-                        -1,
-                      ),
-                      // data reference must be holding correct token
-                      values.prove_exact_nft(
-                        pointer_pid,
-                        pointer_tkn,
-                        dao_input.output.value,
-                      ),
-                    }
-                  } else {
-                    // they failed the test or didnt finish the test
-                    // the user will lose the deposit
-                    let vault_hash: ValidatorHash =
-                      dao.find_contract(contract_data, keys.vault_contract)
-                    // build the vault address
-                    let vault_addr: Address = credential.from_script(vault_hash)
-                    // find the input being spent from it
-                    let vault_input: Input =
-                      find.input_by_addr(this_tx.inputs, vault_addr)
-                    let vault_value: Value = vault_input.output.value
-                    let cont_vault_value: Value =
-                      value.add(
-                        vault_value,
-                        this_datum.deposit.pid,
-                        this_datum.deposit.tkn,
-                        this_datum.deposit.amt,
-                      )
-                    let max_fail_fee: Int =
-                      reference.get_poh_verify_fail_fee(dao_datum)
-                    //
-                    // the user will lose the deposit to the vault while
-                    // burning the poh token.
-                    //
-                    and {
-                      // fee must be less then max fee
-                      dao.is_valid_fee(this_tx.fee, max_fail_fee),
-                      // the deposit is sent to the vault
-                      payout.at_least(
-                        vault_addr,
-                        cont_vault_value,
-                        this_tx.outputs,
-                      ),
-                      // must mint 1 reference token
-                      minting.exact(
-                        mint,
-                        own_currency_symbol,
-                        token_names.drep_token_name,
-                        -1,
-                      ),
-                      // data reference must be holding correct token
-                      values.prove_exact_nft(
-                        pointer_pid,
-                        pointer_tkn,
-                        dao_input.output.value,
-                      ),
-                    }
+                    // data reference must be holding correct token
+                    values.prove_exact_nft(
+                      pointer_pid,
+                      pointer_tkn,
+                      dao_input.output.value,
+                    ),
                   }
-                // the user is quitting the test
-                Quit -> True
-                // anything else fail
-                _ -> fail @"Incorrect PoH Redeemer"
+                } else {
+                  // they failed the test or didnt finish the test
+                  // the user will lose the deposit
+                  let vault_hash: ValidatorHash =
+                    dao.find_contract(contract_data, keys.vault_contract)
+                  // build the vault address
+                  let vault_addr: Address = credential.from_script(vault_hash)
+                  // find the input being spent from it
+                  let vault_input: Input =
+                    find.input_by_addr(this_tx.inputs, vault_addr)
+                  let vault_value: Value = vault_input.output.value
+                  let cont_vault_value: Value =
+                    value.add(
+                      vault_value,
+                      this_datum.deposit.pid,
+                      this_datum.deposit.tkn,
+                      this_datum.deposit.amt,
+                    )
+                  let max_fail_fee: Int =
+                    reference.get_poh_verify_fail_fee(dao_datum)
+                  //
+                  // the user will lose the deposit to the vault while
+                  // burning the poh token.
+                  //
+                  and {
+                    // fee must be less then max fee
+                    dao.is_valid_fee(this_tx.fee, max_fail_fee),
+                    // the deposit is sent to the vault
+                    payout.at_least(
+                      vault_addr,
+                      cont_vault_value,
+                      this_tx.outputs,
+                    ),
+                    // must mint 1 reference token
+                    minting.exact(
+                      mint,
+                      own_currency_symbol,
+                      token_names.poh_token_name,
+                      -1,
+                    ),
+                    // data reference must be holding correct token
+                    values.prove_exact_nft(
+                      pointer_pid,
+                      pointer_tkn,
+                      dao_input.output.value,
+                    ),
+                  }
+                }
+              // the user is quitting the test
+              Quit -> {
+                // get the datum from the lock utxo
+                expect datum: PoHDatum = data.input_datum(lock_input)
+                if datum.test_data.cur_stage == 1 {
+                  // The user must wait for their test to be verified
+                  fail @"No Leaving During Verification"
+                } else {
+                  // the user failed the test and lost the deposit
+                  let vault_hash: ValidatorHash =
+                    dao.find_contract(contract_data, keys.vault_contract)
+                  // build the vault address
+                  let vault_addr: Address = credential.from_script(vault_hash)
+                  // find the input being spent from it
+                  let vault_input: Input =
+                    find.input_by_addr(this_tx.inputs, vault_addr)
+                  let vault_value: Value = vault_input.output.value
+                  let cont_vault_value: Value =
+                    value.add(
+                      vault_value,
+                      datum.deposit.pid,
+                      datum.deposit.tkn,
+                      datum.deposit.amt,
+                    )
+                  and {
+                    // must mint 1 reference token
+                    minting.exact(
+                      mint,
+                      own_currency_symbol,
+                      token_names.drep_token_name,
+                      -1,
+                    ),
+                    // data reference must be holding correct token
+                    values.prove_exact_nft(
+                      pointer_pid,
+                      pointer_tkn,
+                      dao_input.output.value,
+                    ),
+                    // the deposit is sent to the vault
+                    payout.at_least(
+                      vault_addr,
+                      cont_vault_value,
+                      this_tx.outputs,
+                    ),
+                  }
+                }
               }
-            // get the datum from the lock utxo
-            expect datum: PoHDatum = data.input_datum(lock_input)
-            // need to make sure the user passed the test or not
-            let is_deposit_lost: Bool =
-              if datum.test_data.cur_stage == 1 {
-                // test is over and the user
-                // no deposit is lost here
-                True
-              } else {
-                // the user failed the test and lost the deposit
-                let vault_hash: ValidatorHash =
-                  dao.find_contract(contract_data, keys.vault_contract)
-                // build the vault address
-                let vault_addr: Address = credential.from_script(vault_hash)
-                // find the input being spent from it
-                let vault_input: Input =
-                  find.input_by_addr(this_tx.inputs, vault_addr)
-                let vault_value: Value = vault_input.output.value
-                let cont_vault_value: Value =
-                  value.add(
-                    vault_value,
-                    datum.deposit.pid,
-                    datum.deposit.tkn,
-                    datum.deposit.amt,
-                  )
-                // the deposit is sent to the vault
-                payout.at_least(vault_addr, cont_vault_value, this_tx.outputs)
-              }
-            and {
-              // lose deposit to vault if fail
-              is_deposit_lost,
-              // must mint 1 reference token
-              minting.exact(
-                mint,
-                own_currency_symbol,
-                token_names.drep_token_name,
-                -1,
-              ),
-              // data reference must be holding correct token
-              // data reference must be holding correct token
-              values.prove_exact_nft(
-                pointer_pid,
-                pointer_tkn,
-                dao_input.output.value,
-              ),
-              // must be quiting when applicable
-              must_use_correct_redeemer,
+              // anything else fail
+              _ -> fail @"Incorrect PoH Redeemer"
             }
           }
         }

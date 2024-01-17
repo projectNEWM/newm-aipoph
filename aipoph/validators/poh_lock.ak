@@ -77,13 +77,13 @@ validator(
               ),
             }
           }
-          // this will end a test with the user submitting a proof
-          EndTest { proof } -> {
+          // this will end a test with the user submitting an answer
+          EndTest { answer } -> {
             // that datum cont must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             //
-            // The user submits what they think the proof is.
+            // The user submits what they think the answer is.
             //
             and {
               // the test must have been started via minting the poh token
@@ -104,7 +104,7 @@ validator(
               // this value must go back to this address
               payout.exact(this_addr, this_value, this_tx.outputs),
               // the datum must change into the end test state
-              poh.end_test_datum_validation(this_datum, that_datum, proof),
+              poh.end_test_datum_validation(this_datum, that_datum, answer),
               // test period must still be valid
               poh.valid_test_entry(
                 this_datum.test_data.validity_range,
@@ -136,15 +136,23 @@ validator(
               // test must have ended
               this_datum.test_data.cur_stage == 1,
             } {
+              // subtract the burn token, the fee, and the incentive
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.merge(value.negate(this_tx.fee))
+                  |> value.add(
+                       this_datum.incentive.pid,
+                       this_datum.incentive.tkn,
+                       -this_datum.incentive.amt,
+                     )
               //
               // You are a human so burn the poh token and mint the coh token.
               // The deposit is not taken here and the test utxo goes back to
-              // the owner automatically.
+              // the owner automatically. The incentive is left open for the taking.
               //
               and {
+                // an incentive must exist
+                this_datum.incentive.amt > 0,
                 // single script input
                 count.inputs_by_addr(this_tx.inputs, this_addr, 1),
                 // single script output
@@ -155,6 +163,11 @@ validator(
                 minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
                 // owner gets success test utxo back
                 payout.exact(owner_address, owner_value, this_tx.outputs),
+                // test needs to be over
+                interval.is_entirely_after(
+                  this_tx.validity_range,
+                  this_datum.test_data.validity_range.end,
+                ),
               }
             } else {
               // you have failed the test. take the deposit, burn the poh token
@@ -164,12 +177,19 @@ validator(
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                   |> value.merge(value.negate(this_tx.fee))
+                  |> value.add(
+                       this_datum.incentive.pid,
+                       this_datum.incentive.tkn,
+                       -this_datum.incentive.amt,
+                     )
               //
-              // You are not a human so burn the poh token and no not mint a coh token.
+              // You are not a human so burn the poh token and do not mint a coh token.
               // The deposit is taken here and sent to the vault. The test utxo goes back
               // to the owner automatically.
               //
               and {
+                // an incentive must exist
+                this_datum.incentive.amt > 0,
                 // single script input
                 count.inputs_by_addr(this_tx.inputs, this_addr, 1),
                 // single script output
@@ -180,6 +200,11 @@ validator(
                 minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
                 // owner gets success test utxo back
                 payout.exact(owner_address, owner_value, this_tx.outputs),
+                // test needs to be over
+                interval.is_entirely_after(
+                  this_tx.validity_range,
+                  this_datum.test_data.validity_range.end,
+                ),
               }
             }
           }
@@ -192,10 +217,10 @@ validator(
                 this_datum.owner.sc,
               )
             // make sure there isnt poh token here else burn it
-            let utxo_is_missing_poh_token: Bool =
-              value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0
             // Is the UTxO holding the poh test token?
-            if utxo_is_missing_poh_token {
+            if
+            value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0{
+            
               // no poh token found so the test didnt start
               // send everything back to the owner with a sig
               and {
