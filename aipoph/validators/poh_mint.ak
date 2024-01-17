@@ -6,12 +6,13 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/catch
 use aipoph/keys
+use aipoph/prove
 use aipoph/reference
 use aipoph/token_names
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{
   BurnPoHToken, MintPohToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
-  StartTest,
+  StartTest, VerifyTest,
 }
 use assist/data
 use assist/find
@@ -117,20 +118,105 @@ validator(
               ),
             }
           }
-          // burning can only occur if the quit endpoint is called during the lock
+          // burn the poh token
           BurnPoHToken -> {
+            // get the datum from the lock utxo
+            expect this_datum: PoHDatum = data.input_datum(lock_input)
             let must_use_correct_redeemer: Bool =
               when that_redeemer is {
-                // the user must be quitting the test
+                // the test is being verified
+                VerifyTest ->
+                  if and {
+                    // prove you are a human
+                    prove.you_are_a_human(
+                      this_datum.test_data.question,
+                      this_datum.test_data.answer,
+                    ),
+                    // test must have ended
+                    this_datum.test_data.cur_stage == 1,
+                  } {
+                    let max_success_fee: Int =
+                      reference.get_poh_verify_success_fee(dao_datum)
+                    //
+                    // they passed as a human and finished the test
+                    // so burn the poh token
+                    //
+                    and {
+                      // fee must be less then max fee
+                      dao.is_valid_fee(this_tx.fee, max_success_fee),
+                      // must mint 1 reference token,
+                      minting.exact(
+                        mint,
+                        own_currency_symbol,
+                        token_names.drep_token_name,
+                        -1,
+                      ),
+                      // data reference must be holding correct token
+                      values.prove_exact_nft(
+                        pointer_pid,
+                        pointer_tkn,
+                        dao_input.output.value,
+                      ),
+                    }
+                  } else {
+                    // they failed the test or didnt finish the test
+                    // the user will lose the deposit
+                    let vault_hash: ValidatorHash =
+                      dao.find_contract(contract_data, keys.vault_contract)
+                    // build the vault address
+                    let vault_addr: Address = credential.from_script(vault_hash)
+                    // find the input being spent from it
+                    let vault_input: Input =
+                      find.input_by_addr(this_tx.inputs, vault_addr)
+                    let vault_value: Value = vault_input.output.value
+                    let cont_vault_value: Value =
+                      value.add(
+                        vault_value,
+                        this_datum.deposit.pid,
+                        this_datum.deposit.tkn,
+                        this_datum.deposit.amt,
+                      )
+                    let max_fail_fee: Int =
+                      reference.get_poh_verify_fail_fee(dao_datum)
+                    //
+                    // the user will lose the deposit to the vault while
+                    // burning the poh token.
+                    //
+                    and {
+                      // fee must be less then max fee
+                      dao.is_valid_fee(this_tx.fee, max_fail_fee),
+                      // the deposit is sent to the vault
+                      payout.at_least(
+                        vault_addr,
+                        cont_vault_value,
+                        this_tx.outputs,
+                      ),
+                      // must mint 1 reference token
+                      minting.exact(
+                        mint,
+                        own_currency_symbol,
+                        token_names.drep_token_name,
+                        -1,
+                      ),
+                      // data reference must be holding correct token
+                      values.prove_exact_nft(
+                        pointer_pid,
+                        pointer_tkn,
+                        dao_input.output.value,
+                      ),
+                    }
+                  }
+                // the user is quitting the test
                 Quit -> True
                 // anything else fail
-                _ -> fail @"Not Quitting Test"
+                _ -> fail @"Incorrect PoH Redeemer"
               }
             // get the datum from the lock utxo
             expect datum: PoHDatum = data.input_datum(lock_input)
             // need to make sure the user passed the test or not
             let is_deposit_lost: Bool =
               if datum.test_data.cur_stage == 1 {
+                // test is over and the user
                 // no deposit is lost here
                 True
               } else {

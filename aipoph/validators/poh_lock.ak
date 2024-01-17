@@ -120,6 +120,7 @@ validator(
                 this_datum.owner.pkh,
                 this_datum.owner.sc,
               )
+            // check if they have the poh token, pass as a human, and ended the test
             if and {
               // must have poh token
               values.prove_exact_nft(
@@ -135,13 +136,14 @@ validator(
               // test must have ended
               this_datum.test_data.cur_stage == 1,
             } {
-              // you are a human so burn the poh token and mint the coh token
-              // the deposit is not taken here and the test utxo goes back to
-              // the owner automatically
-              // burn the poh token and return deposit
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.merge(value.negate(this_tx.fee))
+              //
+              // You are a human so burn the poh token and mint the coh token.
+              // The deposit is not taken here and the test utxo goes back to
+              // the owner automatically.
+              //
               and {
                 // single script input
                 count.inputs_by_addr(this_tx.inputs, this_addr, 1),
@@ -156,12 +158,17 @@ validator(
               }
             } else {
               // you have failed the test. take the deposit, burn the poh token
-              // send deposit to the vault
+              // send deposit to the vault, this happens automatically
               let deposit: Token = this_datum.deposit
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                   |> value.merge(value.negate(this_tx.fee))
+              //
+              // You are not a human so burn the poh token and no not mint a coh token.
+              // The deposit is taken here and sent to the vault. The test utxo goes back
+              // to the owner automatically.
+              //
               and {
                 // single script input
                 count.inputs_by_addr(this_tx.inputs, this_addr, 1),
@@ -187,82 +194,73 @@ validator(
             // make sure there isnt poh token here else burn it
             let utxo_is_missing_poh_token: Bool =
               value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0
-            let did_the_test_start: Bool =
-              // Is the UTxO holding the poh test token?
-              if utxo_is_missing_poh_token {
-                // no poh token found so the test didnt start
-                // send everything back to the owner with a sig
-                and {
-                  // single script input
-                  count.inputs_by_addr(this_tx.inputs, this_addr, 1),
-                  // single script output
-                  count.outputs_by_addr(this_tx.outputs, this_addr, 0),
-                  // send this value back to the owner address
-                  payout.exact(owner_address, this_value, this_tx.outputs),
-                  // owner must sign it
-                  signing.verify_sig(
-                    this_tx.extra_signatories,
-                    this_datum.owner.pkh,
-                  ),
+            // Is the UTxO holding the poh test token?
+            if utxo_is_missing_poh_token {
+              // no poh token found so the test didnt start
+              // send everything back to the owner with a sig
+              and {
+                // single script input
+                count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                // single script output
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                // send this value back to the owner address
+                payout.exact(owner_address, this_value, this_tx.outputs),
+                // owner must sign it
+                signing.verify_sig(
+                  this_tx.extra_signatories,
+                  this_datum.owner.pkh,
+                ),
+              }
+            } else {
+              // the poh token is on the utxo so the test did start
+              // Is the test currently live?
+              if
+              interval.is_entirely_after(
+                this_tx.validity_range,
+                this_datum.test_data.validity_range.end,
+              ){
+              
+                // the test period has passed
+                // Did the user end their test?
+                if this_datum.test_data.cur_stage == 1 {
+                  // The user must wait for their test to be verified
+                  fail @"No Leaving During Verification"
+                } else {
+                  // user failed to submit the test in time
+                  // send deposit to the vault and burn the poh token
+                  let deposit: Token = this_datum.deposit
+                  let owner_value: Value =
+                    value.add(
+                      this_value,
+                      poh_pid,
+                      token_names.poh_token_name,
+                      -1,
+                    )
+                      |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
+                  and {
+                    // single script input
+                    count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                    // single script output
+                    count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                    // burn the poh token
+                    minting.is_occurring(
+                      mint,
+                      poh_pid,
+                      token_names.poh_token_name,
+                    ),
+                    // the owner gets the left over value
+                    payout.exact(owner_address, owner_value, this_tx.outputs),
+                    // owner must sign it
+                    signing.verify_sig(
+                      this_tx.extra_signatories,
+                      this_datum.owner.pkh,
+                    ),
+                  }
                 }
               } else {
-                // the poh token is on the utxo so the test did start
-                // Is the test currently live?
-                if
-                interval.is_entirely_after(
-                  this_tx.validity_range,
-                  this_datum.test_data.validity_range.end,
-                ){
-                
-                  // the test period has passed
-                  // Did the user end their test?
-                  if this_datum.test_data.cur_stage == 1 {
-                    // The user must wait for their test to be verified
-                    fail @"No Leaving During Verification."
-                  } else {
-                    // user failed to submit the test in time
-                    // send deposit to the vault and burn the poh token
-                    let deposit: Token = this_datum.deposit
-                    let owner_value: Value =
-                      value.add(
-                        this_value,
-                        poh_pid,
-                        token_names.poh_token_name,
-                        -1,
-                      )
-                        |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
-                    and {
-                      // single script input
-                      count.inputs_by_addr(this_tx.inputs, this_addr, 1),
-                      // single script output
-                      count.outputs_by_addr(this_tx.outputs, this_addr, 0),
-                      // burn the poh token
-                      minting.is_occurring(
-                        mint,
-                        poh_pid,
-                        token_names.poh_token_name,
-                      ),
-                      // the owner gets the left over value
-                      payout.exact(owner_address, owner_value, this_tx.outputs),
-                      // owner must sign it
-                      signing.verify_sig(
-                        this_tx.extra_signatories,
-                        this_datum.owner.pkh,
-                      ),
-                    }
-                  }
-                } else {
-                  // the user must take the test
-                  fail @"No Leaving During A Test"
-                }
+                // the user must take the test
+                fail @"No Leaving During A Test"
               }
-            and {
-              // check if you have to burn
-              did_the_test_start,
-              // single script input
-              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
-              // zero script output
-              count.outputs_by_addr(this_tx.outputs, this_addr, 0),
             }
           }
         }
