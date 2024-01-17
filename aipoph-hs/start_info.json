@@ -1,7 +1,6 @@
 {
-    "__comment1__": "The transaction id hash for the pointer token",
+    "__comment1__": "TxId for Genesis",
     "tx_id_hash": "0a087e73b6057ce06d2c6826ca2a57d97deca6bc75b28b87139a0b861477953b",
-    "__comment2__": "The transaction id index for the pointer token",
     "tx_id_idx": 0,
     "__comment3__": "This will be the dao token for voting",
     "dao_pid": "015d83f25700c83d708fbf8ad57783dc257b01a932ffceac9dcd0c3d",
