@@ -47,7 +47,7 @@ fn do_inputs_by_datum_type(
           }
         _ -> do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
       }
-    // there can be only 1 dao contract and any amount of dreps but nothing else
+    // there can be only this address and any amount of dreps but nothing else
     [] -> counter == 1
   }
 }

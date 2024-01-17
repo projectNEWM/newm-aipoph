@@ -2,6 +2,7 @@
 ////
 
 use aiken/dict.{Dict}
+use aiken/transaction/value.{Value}
 use assist/types.{ValidatorHash}
 
 // Petition may change the required lovelace on the utxo
@@ -39,10 +40,28 @@ pub fn find_threshold(thresholds: Thresholds, key: ByteArray) -> Int {
 pub type Contracts =
   Dict<ByteArray, ValidatorHash>
 
-// find a worker by job title inside the worker hot key dictionary.
+// find a contract by title inside the contract dictionary.
 pub fn find_contract(contracts: Contracts, key: ByteArray) -> ValidatorHash {
   when dict.get(contracts, key) is {
     Some(contract) -> contract
     None -> fail @"Contract Not Found"
   }
+}
+
+// The fee structure is a data structure in DAOData
+pub type Fees =
+  Dict<ByteArray, Int>
+
+// find a fee by title inside the fee dictionary.
+pub fn find_fee(fees: Fees, key: ByteArray) -> Int {
+  when dict.get(fees, key) is {
+    Some(fee) -> fee
+    None -> fail @"Fee Not Found"
+  }
+}
+
+pub fn is_valid_fee(this_fee: Value, fee: Int) -> Bool {
+  let lovelace: Int =
+    value.quantity_of(this_fee, value.ada_policy_id, value.ada_asset_name)
+  fee > lovelace
 }

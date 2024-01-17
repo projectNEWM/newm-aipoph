@@ -34,35 +34,41 @@ validator(
       Spend(output_reference) -> {
         // this_tx being validated
         let this_tx: Transaction = context.transaction
+        // the input being spent
         let this_input: Input =
           find.input_by_ref(this_tx.inputs, output_reference)
+        // this address being spent from
         let this_addr: Address = this_input.output.address
+        // this value being spent
         let this_value: Value = this_input.output.value
-        // something will be minted burned 
+        // something will be minted and burned
         let mint: List<(PolicyId, AssetName, Int)> =
           this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
-          // this starts the poh test
+          // this starts the poh test by issuesing a poh token to the utxo
           StartTest -> {
-            // the datum cont must be correct structure
+            // that datum cont must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
+            //
+            // If the utxo doesnt have a poh token and is in the correct state
+            // then mint a poh token to a UTxO and begin the test.
+            // This is ran with MintPohToken.
+            //
             and {
-              // must not have poh token
+              // must not have poh token already
               !values.prove_exact_nft(
                 poh_pid,
                 token_names.poh_token_name,
                 this_value,
               ),
-              // something is being minted
+              // the poh token is being minted
               minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
-              // single script input
-              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
-              // datums must change a specific way
+              // this datum must be in a specific state to start
               poh.start_test_datum_validation(this_datum, that_datum),
               // owner must sign it to prevent miss starts
               signing.verify_sig(
@@ -71,20 +77,21 @@ validator(
               ),
             }
           }
-          // this will end the test and mint a stage 0 coh token
+          // this will end a test with the user submitting a proof
           EndTest { proof } -> {
-            // the datum cont must be correct structure
+            // that datum cont must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
+            //
+            // The user submits what they think the proof is.
+            //
             and {
-              // must have poh token
+              // the test must have been started via minting the poh token
               values.prove_exact_nft(
                 poh_pid,
                 token_names.poh_token_name,
                 this_value,
               ),
-              // something is being minted  and burned
-              minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
@@ -94,22 +101,81 @@ validator(
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,
               ),
-              // must go back
+              // this value must go back to this address
               payout.exact(this_addr, this_value, this_tx.outputs),
-              // datums must change a specific way
+              // the datum must change into the end test state
               poh.end_test_datum_validation(this_datum, that_datum, proof),
-              // the coh datum needs to be based from the poh datum
-              // test must still be valid
+              // test period must still be valid
               poh.valid_test_entry(
                 this_datum.test_data.validity_range,
                 this_tx.validity_range,
               ),
-              // prove you are a human
-              prove.you_are_a_human(this_datum.test_data.question, proof.answer),
             }
           }
           // some user with enough threshold will verify the test
-          VerifyTest -> True
+          VerifyTest -> {
+            // the drep owner address
+            let owner_address: Address =
+              addresses.create_address(
+                this_datum.owner.pkh,
+                this_datum.owner.sc,
+              )
+            if and {
+              // must have poh token
+              values.prove_exact_nft(
+                poh_pid,
+                token_names.poh_token_name,
+                this_value,
+              ),
+              // prove you are a human
+              prove.you_are_a_human(
+                this_datum.test_data.question,
+                this_datum.test_data.answer,
+              ),
+              // test must have ended
+              this_datum.test_data.cur_stage == 1,
+            } {
+              // you are a human so burn the poh token and mint the coh token
+              // the deposit is not taken here and the test utxo goes back to
+              // the owner automatically
+              // burn the poh token and return deposit
+              let owner_value: Value =
+                value.add(this_value, poh_pid, token_names.poh_token_name, -1)
+                  |> value.merge(value.negate(this_tx.fee))
+              and {
+                // single script input
+                count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                // single script output
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                // mint the coh token
+                minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                // burn the poh token
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                // owner gets success test utxo back
+                payout.exact(owner_address, owner_value, this_tx.outputs),
+              }
+            } else {
+              // you have failed the test. take the deposit, burn the poh token
+              // send deposit to the vault
+              let deposit: Token = this_datum.deposit
+              let owner_value: Value =
+                value.add(this_value, poh_pid, token_names.poh_token_name, -1)
+                  |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
+                  |> value.merge(value.negate(this_tx.fee))
+              and {
+                // single script input
+                count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                // single script output
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                // do not mint the coh token
+                !minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                // burn the poh token
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                // owner gets success test utxo back
+                payout.exact(owner_address, owner_value, this_tx.outputs),
+              }
+            }
+          }
           // this quits if the test hasnt started or the user ends teh test successfully
           Quit -> {
             // the drep owner address
@@ -124,16 +190,23 @@ validator(
             let did_the_test_start: Bool =
               // Is the UTxO holding the poh test token?
               if utxo_is_missing_poh_token {
-                // no token, test did not start, send everything back with a signature
+                // no poh token found so the test didnt start
+                // send everything back to the owner with a sig
                 and {
+                  // single script input
+                  count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                  // single script output
+                  count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                  // send this value back to the owner address
                   payout.exact(owner_address, this_value, this_tx.outputs),
+                  // owner must sign it
                   signing.verify_sig(
                     this_tx.extra_signatories,
                     this_datum.owner.pkh,
                   ),
                 }
               } else {
-                // the poh token is on the utxo
+                // the poh token is on the utxo so the test did start
                 // Is the test currently live?
                 if
                 interval.is_entirely_after(
@@ -141,30 +214,14 @@ validator(
                   this_datum.test_data.validity_range.end,
                 ){
                 
-                  // the test has ended
-                  // Did the user pass the test?
+                  // the test period has passed
+                  // Did the user end their test?
                   if this_datum.test_data.cur_stage == 1 {
-                    // user passed
-                    // burn the poh token and return deposit
-                    let owner_value: Value =
-                      value.add(
-                        this_value,
-                        poh_pid,
-                        token_names.poh_token_name,
-                        -1,
-                      )
-                    // anyone can do this, typically the user
-                    and {
-                      minting.is_occurring(
-                        mint,
-                        poh_pid,
-                        token_names.poh_token_name,
-                      ),
-                      payout.exact(owner_address, owner_value, this_tx.outputs),
-                    }
+                    // The user must wait for their test to be verified
+                    fail @"No Leaving During Verification."
                   } else {
-                    // user failed
-                    // send deposit to the vault
+                    // user failed to submit the test in time
+                    // send deposit to the vault and burn the poh token
                     let deposit: Token = this_datum.deposit
                     let owner_value: Value =
                       value.add(
@@ -175,23 +232,27 @@ validator(
                       )
                         |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                     and {
-                      // this needs to send the deposit to the vault contract
+                      // single script input
+                      count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+                      // single script output
+                      count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                      // burn the poh token
                       minting.is_occurring(
                         mint,
                         poh_pid,
                         token_names.poh_token_name,
                       ),
+                      // the owner gets the left over value
                       payout.exact(owner_address, owner_value, this_tx.outputs),
+                      // owner must sign it
+                      signing.verify_sig(
+                        this_tx.extra_signatories,
+                        this_datum.owner.pkh,
+                      ),
                     }
                   }
                 } else {
-                  // The test has begun.
-                  // this can be removed if quiting after a test begins but before it ends
-                  // behaves as if you failed the test then the deposit will be removed
-                  // and the value is sent back to the owner
-                  // this as a fail means no leaving during a test, 
-                  // ie they paid for the test so they have to take it. 
-                  // They can choose to not do it but they still gotta wait
+                  // the user must take the test
                   fail @"No Leaving During A Test"
                 }
               }

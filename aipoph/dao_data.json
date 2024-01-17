@@ -14,5 +14,9 @@
         "poh_lock_contract": "",
         "coh_lock_contract": "",
         "vault_contract": ""
+    }, 
+    "fees" : {
+        "poh_verify_success": 1000000,
+        "poh_verify_fail": 1000000
     }
 }

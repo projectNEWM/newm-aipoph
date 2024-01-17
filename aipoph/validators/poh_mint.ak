@@ -4,6 +4,7 @@
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aipoph/catch
 use aipoph/keys
 use aipoph/reference
 use aipoph/token_names
@@ -34,24 +35,17 @@ validator(
     when context.purpose is {
       // Mint 1 to 1 tokens
       Mint(own_currency_symbol) -> {
-        // the transaction being validated
+        // this transaction being validated
         let this_tx: Transaction = context.transaction
-        // get reference utxo
+        // get the dao reference utxo
         let (dao_datum, dao_input): (DAODatum, Input) =
           reference.get_data(this_tx.reference_inputs, dao_hash_data)
-        // check if the ref input has the correct starter token
-        let dao_utxo_must_have_pointer_token: Bool =
-          values.prove_exact_nft(
-            pointer_pid,
-            pointer_tkn,
-            dao_input.output.value,
-          )
-        // search the contracts for the drep lock
+        // search the contracts for the poh lock
         expect contract_data: Contracts =
           dao.find_data(dao_datum, keys.contracts)
+        // this is the poh lock hash
         let lock_hash: ValidatorHash =
-          dao.find_contract(contract_data, keys.drep_lock_contract)
-        // we need to make sure nothing else officially is getting spent
+          dao.find_contract(contract_data, keys.poh_lock_contract)
         // build the lock address
         let lock_addr: Address = credential.from_script(lock_hash)
         // find the input being spent from it
@@ -65,8 +59,12 @@ validator(
         // this is endpoint specific so check for the correct redeemer
         expect that_redeemer: PoHLockRedeemer =
           find.redeemer_by_ref(this_tx.redeemers, lock_input.output_reference)
+        // the drep address that can be spent from
+        let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
         when redeemer is {
+          // mint the poh token
           MintPohToken -> {
+            // that redeemer must be the start test redeemer
             let must_use_correct_redeemer: Bool =
               when that_redeemer is {
                 // the token can only be minted when the test starts
@@ -74,7 +72,7 @@ validator(
                 // anything else fail
                 _ -> fail @"Not Starting Test"
               }
-            // adjust the value
+            // adjust the value to include the poh token
             let cont_lock_value: Value =
               value.add(
                 lock_value,
@@ -82,34 +80,41 @@ validator(
                 token_names.poh_token_name,
                 1,
               )
-            // check if threshold meets requirements
-            // the threshold to change data
+            // the threshold to start the test
             let start_poh_test_threshold: Int =
               reference.get_poh_test_threshold(dao_datum)
-            // how much they have inside the tx
-            let must_have_enough_tokens_for_threshold: Bool =
-              tx.total_token_amount(
-                this_tx.inputs,
-                dao_pid,
-                dao_tkn,
-                start_poh_test_threshold,
-              )
+            //
+            // Mint a poh token to a UTxO if the threshold is met inside the
+            // transaction. Only the lock contract and dreps can be spent along
+            // this mint action.
+            //
             and {
-              // make sure the bank lock is being spent from
+              // single script input + many dreps
+              catch.specific_inputs_only(this_tx.inputs, lock_addr, drep_addr),
+              // the continuing value must be sent to the lock address
               payout.exact(lock_addr, cont_lock_value, this_tx.outputs),
-              // must mint 1 reference token
+              // must mint 1 poh token
               minting.exact(
                 mint,
                 own_currency_symbol,
                 token_names.poh_token_name,
                 1,
               ),
-              // data reference must be holding correct token
-              dao_utxo_must_have_pointer_token,
+              // data reference must be holding correct pointer token
+              values.prove_exact_nft(
+                pointer_pid,
+                pointer_tkn,
+                dao_input.output.value,
+              ),
               // only can run this if using start test
               must_use_correct_redeemer,
               // do the this_tx meet the threshold
-              must_have_enough_tokens_for_threshold,
+              tx.total_token_amount(
+                this_tx.inputs,
+                dao_pid,
+                dao_tkn,
+                start_poh_test_threshold,
+              ),
             }
           }
           // burning can only occur if the quit endpoint is called during the lock
@@ -159,7 +164,12 @@ validator(
                 -1,
               ),
               // data reference must be holding correct token
-              dao_utxo_must_have_pointer_token,
+              // data reference must be holding correct token
+              values.prove_exact_nft(
+                pointer_pid,
+                pointer_tkn,
+                dao_input.output.value,
+              ),
               // must be quiting when applicable
               must_use_correct_redeemer,
             }

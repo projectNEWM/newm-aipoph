@@ -1,7 +1,7 @@
 use aiken/transaction.{Input}
 use aiken/transaction/credential.{Address}
 use aipoph/keys
-use aipoph/types/dao.{Contracts, DAODatum, Thresholds}
+use aipoph/types/dao.{Contracts, DAODatum, Fees, Thresholds}
 use assist/data
 use assist/find
 use assist/types.{ValidatorHash}
@@ -104,4 +104,14 @@ pub fn get_drep_lock_contract(dao_datum: DAODatum) -> Address {
   let drep_contract_hash: ValidatorHash =
     dao.find_contract(contract_data, keys.drep_lock_contract)
   credential.from_script(drep_contract_hash)
+}
+
+pub fn get_poh_verify_success_fee(dao_datum: DAODatum) -> Int {
+  expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
+  dao.find_fee(fee_data, keys.poh_verify_success)
+}
+
+pub fn get_poh_verify_fail_fee(dao_datum: DAODatum) -> Int {
+  expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
+  dao.find_fee(fee_data, keys.poh_verify_fail)
 }

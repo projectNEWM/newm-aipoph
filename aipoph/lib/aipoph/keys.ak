@@ -45,3 +45,13 @@ pub const revoke_coh_threshold: ByteArray =
 // extract_vault_threshold
 pub const extract_vault_threshold: ByteArray =
   #"657874726163745f7661756c745f7468726573686f6c64"
+
+// fees
+pub const fees: ByteArray = #"66656573"
+
+// poh_verify_success
+pub const poh_verify_success: ByteArray =
+  #"706f685f7665726966795f73756363657373"
+
+// poh_verify_fail
+pub const poh_verify_fail: ByteArray = #"706f685f7665726966795f6661696c"
