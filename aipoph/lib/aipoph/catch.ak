@@ -1,3 +1,4 @@
+use aiken/list
 use aiken/transaction.{DatumHash, InlineDatum, Input}
 use aiken/transaction/credential.{Address}
 
@@ -12,9 +13,9 @@ use aiken/transaction/credential.{Address}
 pub fn specific_inputs_only(
   inputs: List<Input>,
   this_addr: Address,
-  drep_addr: Address,
+  those_addrs: List<Address>,
 ) -> Bool {
-  do_inputs_by_datum_type(inputs, 0, this_addr, drep_addr)
+  do_inputs_by_datum_type(inputs, 0, this_addr, those_addrs)
 }
 
 // Internal only
@@ -22,7 +23,7 @@ fn do_inputs_by_datum_type(
   inputs: List<Input>,
   counter: Int,
   this_addr: Address,
-  drep_addr: Address,
+  those_addrs: List<Address>,
 ) -> Bool {
   when inputs is {
     [input, ..rest] ->
@@ -30,22 +31,22 @@ fn do_inputs_by_datum_type(
         // the actual datum value isn't important here
         InlineDatum(_) ->
           if input.output.address == this_addr {
-            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
-          } else if input.output.address == drep_addr {
-            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+            do_inputs_by_datum_type(rest, counter + 1, this_addr, those_addrs)
+          } else if list.any(those_addrs, fn(n) { input.output.address == n }) {
+            do_inputs_by_datum_type(rest, counter, this_addr, those_addrs)
           } else {
             fail @"Not An Allowed Address On Inline Datum"
           }
         // the actual datum hash isn't important here
         DatumHash(_) ->
           if input.output.address == this_addr {
-            do_inputs_by_datum_type(rest, counter + 1, this_addr, drep_addr)
-          } else if input.output.address == drep_addr {
-            do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+            do_inputs_by_datum_type(rest, counter + 1, this_addr, those_addrs)
+          } else if list.any(those_addrs, fn(n) { input.output.address == n }) {
+            do_inputs_by_datum_type(rest, counter, this_addr, those_addrs)
           } else {
             fail @"Not An Allowed Address On Datum Hash"
           }
-        _ -> do_inputs_by_datum_type(rest, counter, this_addr, drep_addr)
+        _ -> do_inputs_by_datum_type(rest, counter, this_addr, those_addrs)
       }
     // there can be only this address and any amount of dreps but nothing else
     [] -> counter == 1

@@ -1,8 +1,10 @@
 use aipoph/types.{TimeData} as t
+use aipoph/types/oracle.{OracleDatum}
 use assist/types.{Token, Wallet}
 
 pub type TestData {
   validity_range: TimeData,
+  random: OracleDatum,
   question: Data,
   answer: Data,
   cur_stage: Int,
@@ -32,6 +34,8 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
     t.logical_time_data(b.test_data.validity_range),
     // start at the zeroth stage
     b.test_data.cur_stage == 0,
+    // the randomness has to change
+    a.test_data.random != b.test_data.random,
   }
 }
 
@@ -57,6 +61,8 @@ pub fn end_test_datum_validation(
     a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
     b.test_data.answer == answer.answer,
+    // the randomness cant change
+    a.test_data.random == b.test_data.random,
   }
 }
 

@@ -99,6 +99,17 @@ pub fn get_coh_mint_threshold(dao_datum: DAODatum) -> Int {
   mint_coh_threshold
 }
 
+/// get the start poh test threshold or fail
+pub fn get_revoke_coh_threshold(dao_datum: DAODatum) -> Int {
+  // this will fail if it doesn't exist
+  expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
+  // the threshold to change data
+  // this will fail if it doesn't exist
+  let revoke_coh_threshold: Int =
+    dao.find_threshold(threshold_data, keys.revoke_coh_threshold)
+  revoke_coh_threshold
+}
+
 /// get the extract_vault threshold or fail
 pub fn get_extract_vault_threshold(dao_datum: DAODatum) -> Int {
   // this will fail if it doesn't exist
@@ -117,6 +128,32 @@ pub fn get_drep_lock_contract(dao_datum: DAODatum) -> Address {
   credential.from_script(drep_contract_hash)
 }
 
+pub fn get_poh_lock_contract(dao_datum: DAODatum) -> Address {
+  expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
+  let poh_contract_hash: ValidatorHash =
+    dao.find_contract(contract_data, keys.poh_lock_contract)
+  credential.from_script(poh_contract_hash)
+}
+
+pub fn get_coh_lock_contract(dao_datum: DAODatum) -> Address {
+  expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
+  let coh_contract_hash: ValidatorHash =
+    dao.find_contract(contract_data, keys.coh_lock_contract)
+  credential.from_script(coh_contract_hash)
+}
+
+pub fn get_oracle_contract(dao_datum: DAODatum) -> Address {
+  expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
+  let oracle_contract_hash: ValidatorHash =
+    dao.find_contract(contract_data, keys.oracle_contract)
+  credential.from_script(oracle_contract_hash)
+}
+
+pub fn get_poh_start_test_fee(dao_datum: DAODatum) -> Int {
+  expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
+  dao.find_fee(fee_data, keys.poh_start_test)
+}
+
 pub fn get_poh_verify_success_fee(dao_datum: DAODatum) -> Int {
   expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
   dao.find_fee(fee_data, keys.poh_verify_success)
@@ -125,4 +162,9 @@ pub fn get_poh_verify_success_fee(dao_datum: DAODatum) -> Int {
 pub fn get_poh_verify_fail_fee(dao_datum: DAODatum) -> Int {
   expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
   dao.find_fee(fee_data, keys.poh_verify_fail)
+}
+
+pub fn get_coh_revoke_fee(dao_datum: DAODatum) -> Int {
+  expect fee_data: Fees = dao.find_data(dao_datum, keys.fees)
+  dao.find_fee(fee_data, keys.coh_revoke)
 }

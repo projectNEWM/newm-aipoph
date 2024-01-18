@@ -70,8 +70,6 @@ validator(
             // The user submits what they think the answer is.
             //
             and {
-              // single script input
-              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 0),
               // must burn the pointer

@@ -50,7 +50,7 @@ validator(
           dao.find_contract(contract_data, keys.coh_lock_contract)
         // build the lock address
         let coh_lock_addr: Address = credential.from_script(coh_lock_hash)
-        // find the input being spent from it
+        // find the output being sent to the coh lock address
         let coh_lock_output: Output =
           find.output_by_addr(this_tx.outputs, coh_lock_addr)
         // the coh datum on the output
@@ -77,13 +77,13 @@ validator(
             // get the datum from the lock utxo
             expect poh_lock_datum: PoHDatum = data.input_datum(poh_lock_input)
             // this is endpoint specific so check for the correct redeemer
-            expect that_redeemer: PoHLockRedeemer =
+            expect poh_lock_redeemer: PoHLockRedeemer =
               find.redeemer_by_ref(
                 this_tx.redeemers,
                 poh_lock_input.output_reference,
               )
             // that redeemer must be the start test redeemer
-            when that_redeemer is {
+            when poh_lock_redeemer is {
               // the token can only be minted when the test starts
               VerifyTest -> {
                 // the threshold to start the test
@@ -108,7 +108,7 @@ validator(
                 // this mint action.
                 //
                 and {
-                  // Need to make sure the datum is set up correctly
+                  // Need to make sure the coh datum is set up correctly
                   coh.poh_into_coh(
                     poh_lock_datum,
                     coh_lock_datum,
@@ -119,7 +119,7 @@ validator(
                   catch.specific_inputs_only(
                     this_tx.inputs,
                     poh_lock_addr,
-                    drep_addr,
+                    [drep_addr],
                   ),
                   // must mint 1 coh token
                   minting.exact(
@@ -171,12 +171,14 @@ validator(
             // the input being spent
             let coh_lock_input: Input =
               find.input_by_addr(this_tx.inputs, coh_lock_addr)
-            // this value being spent
-            let this_value: Value = coh_lock_input.output.value
+            // this value being spent minus the fee
+            let coh_lock_value: Value =
+              coh_lock_input.output.value
+                |> value.merge(value.negate(this_tx.fee))
             // get the datum from the lock utxo
-            expect this_datum: CoHDatum = data.input_datum(coh_lock_input)
+            expect coh_lock_datum: CoHDatum = data.input_datum(coh_lock_input)
             // // this is endpoint specific so check for the correct redeemer
-            expect that_redeemer: CoHLockRedeemer =
+            expect coh_lock_redeemer: CoHLockRedeemer =
               find.redeemer_by_ref(
                 this_tx.redeemers,
                 coh_lock_input.output_reference,
@@ -190,23 +192,36 @@ validator(
             let vault_input: Input =
               find.input_by_addr(this_tx.inputs, vault_addr)
             let vault_value: Value = vault_input.output.value
+            // add in the leftover lovelace from this value
             let cont_vault_value: Value =
               value.add(
                 vault_value,
                 value.ada_policy_id,
                 value.ada_asset_name,
-                value.lovelace_of(this_value),
+                value.lovelace_of(coh_lock_value),
               )
-            when that_redeemer is {
+            // the threshold to start the test
+            let coh_revoke_threshold: Int =
+              reference.get_revoke_coh_threshold(dao_datum)
+            let max_revoke_fee: Int = reference.get_coh_revoke_fee(dao_datum)
+            when coh_lock_redeemer is {
               // the test is being verified
               Revoke -> and {
+                  // single script input + many dreps
+                  catch.specific_inputs_only(
+                    this_tx.inputs,
+                    coh_lock_addr,
+                    [drep_addr],
+                  ),
+                  // fee must be less then max fee
+                  dao.is_valid_fee(this_tx.fee, max_revoke_fee),
                   // the ada is sent to the vault
                   payout.at_least(vault_addr, cont_vault_value, this_tx.outputs),
                   // must mint 1 coh pointer token
                   minting.exact(
                     mint,
                     own_currency_symbol,
-                    this_datum.verification.pointer.tkn,
+                    coh_lock_datum.verification.pointer.tkn,
                     -1,
                   ),
                   // must mint 1 coh token
@@ -215,6 +230,19 @@ validator(
                     own_currency_symbol,
                     token_names.coh_token_name,
                     -1,
+                  ),
+                  // do the this_tx meet the threshold
+                  tx.total_token_amount(
+                    this_tx.inputs,
+                    dao_pid,
+                    dao_tkn,
+                    coh_revoke_threshold,
+                  ),
+                  // data reference must be holding correct token
+                  values.prove_exact_nft(
+                    pointer_pid,
+                    pointer_tkn,
+                    dao_input.output.value,
                   ),
                 }
               // anything else fail

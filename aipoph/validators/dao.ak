@@ -74,7 +74,7 @@ validator(
           // send that value exactly back to this address.
           payout.exact(this_addr, that_value, this_tx.outputs),
           // single script input + many dreps
-          catch.specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
+          catch.specific_inputs_only(this_tx.inputs, this_addr, [drep_addr]),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
         }

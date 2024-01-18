@@ -71,7 +71,7 @@ validator(
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
               // this datum must be in a specific state to start
               poh.start_test_datum_validation(this_datum, that_datum),
-              // owner must sign it to prevent miss starts
+              // owner must sign it to prevent miss starts,
               signing.verify_sig(
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,

@@ -75,7 +75,7 @@ validator(
             // the threshold to change data
             let extract_vault_threshold: Int =
               reference.get_extract_vault_threshold(dao_datum)
-            // the drep address that can be spent from
+            // get the addresses that 
             let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
             //
             // Tokens can only be subtracted from the UTxO if and only if there
@@ -102,7 +102,7 @@ validator(
               // send that value to this address
               payout.exact(this_addr, that_value, this_tx.outputs),
               // single script input + many dreps
-              catch.specific_inputs_only(this_tx.inputs, this_addr, drep_addr),
+              catch.specific_inputs_only(this_tx.inputs, this_addr, [drep_addr]),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
             }
