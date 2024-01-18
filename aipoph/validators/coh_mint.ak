@@ -17,6 +17,7 @@ use aipoph/types/poh.{PoHDatum, PoHLockRedeemer, VerifyTest}
 use assist/data
 use assist/find
 use assist/minting
+use assist/payout
 use assist/prefixes
 use assist/tx
 use assist/types.{Token, ValidatorHash}
@@ -167,19 +168,55 @@ validator(
           }
           // burn the poh token
           BurnCoHToken -> {
+            // the input being spent
             let coh_lock_input: Input =
               find.input_by_addr(this_tx.inputs, coh_lock_addr)
+            // this value being spent
+            let this_value: Value = coh_lock_input.output.value
             // get the datum from the lock utxo
-            // expect this_datum: CoHDatum = data.input_datum(coh_lock_input)
+            expect this_datum: CoHDatum = data.input_datum(coh_lock_input)
             // // this is endpoint specific so check for the correct redeemer
             expect that_redeemer: CoHLockRedeemer =
               find.redeemer_by_ref(
                 this_tx.redeemers,
                 coh_lock_input.output_reference,
               )
+            // the user will lose the ada to the vault
+            let vault_hash: ValidatorHash =
+              dao.find_contract(contract_data, keys.vault_contract)
+            // build the vault address
+            let vault_addr: Address = credential.from_script(vault_hash)
+            // find the input being spent from it
+            let vault_input: Input =
+              find.input_by_addr(this_tx.inputs, vault_addr)
+            let vault_value: Value = vault_input.output.value
+            let cont_vault_value: Value =
+              value.add(
+                vault_value,
+                value.ada_policy_id,
+                value.ada_asset_name,
+                value.lovelace_of(this_value),
+              )
             when that_redeemer is {
               // the test is being verified
-              Revoke -> True
+              Revoke -> and {
+                  // the ada is sent to the vault
+                  payout.at_least(vault_addr, cont_vault_value, this_tx.outputs),
+                  // must mint 1 coh pointer token
+                  minting.exact(
+                    mint,
+                    own_currency_symbol,
+                    this_datum.verification.pointer.tkn,
+                    -1,
+                  ),
+                  // must mint 1 coh token
+                  minting.exact(
+                    mint,
+                    own_currency_symbol,
+                    token_names.coh_token_name,
+                    -1,
+                  ),
+                }
               // anything else fail
               _ -> fail @"Incorrect CoH Redeemer"
             }
