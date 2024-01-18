@@ -11,7 +11,7 @@ use aipoph/reference
 use aipoph/token_names
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{
-  BurnPoHToken, MintPohToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
+  BurnPoHToken, MintPoHToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
   StartTest, VerifyTest,
 }
 use assist/data
@@ -64,7 +64,7 @@ validator(
         let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
         when redeemer is {
           // mint the poh token
-          MintPohToken ->
+          MintPoHToken ->
             // that redeemer must be the start test redeemer
             when that_redeemer is {
               // the token can only be minted when the test starts

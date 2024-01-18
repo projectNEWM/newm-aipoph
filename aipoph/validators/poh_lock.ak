@@ -7,6 +7,7 @@ use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
 use aipoph/token_names
+use aipoph/types as t
 use aipoph/types/poh.{
   EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
 }
@@ -106,7 +107,7 @@ validator(
               // the datum must change into the end test state
               poh.end_test_datum_validation(this_datum, that_datum, answer),
               // test period must still be valid
-              poh.valid_test_entry(
+              t.valid_time_entry(
                 this_datum.test_data.validity_range,
                 this_tx.validity_range,
               ),

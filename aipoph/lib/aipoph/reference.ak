@@ -88,6 +88,17 @@ pub fn get_poh_test_threshold(dao_datum: DAODatum) -> Int {
   start_poh_test_threshold
 }
 
+/// get the start poh test threshold or fail
+pub fn get_coh_mint_threshold(dao_datum: DAODatum) -> Int {
+  // this will fail if it doesn't exist
+  expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
+  // the threshold to change data
+  // this will fail if it doesn't exist
+  let mint_coh_threshold: Int =
+    dao.find_threshold(threshold_data, keys.mint_coh_threshold)
+  mint_coh_threshold
+}
+
 /// get the extract_vault threshold or fail
 pub fn get_extract_vault_threshold(dao_datum: DAODatum) -> Int {
   // this will fail if it doesn't exist
