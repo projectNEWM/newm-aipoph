@@ -110,7 +110,7 @@ fi
 collat_tx_in=$(jq -r 'keys[0]' tmp/collat_utxo.json)
 
 # script reference utxo
-dao_ref_utxo=$(${cli} transaction txid --tx-file tmp/dao-reference-utxo.signed )
+dao_ref_utxo=$(${cli} transaction txid --tx-file tmp/utxo-dao_contract.plutus.signed )
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \

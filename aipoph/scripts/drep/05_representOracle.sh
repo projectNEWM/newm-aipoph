@@ -142,8 +142,8 @@ fi
 collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
 # script reference utxo
-oracle_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/oracle-reference-utxo.signed )
-drep_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/drep-lock-reference-utxo.signed )
+oracle_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-oracle_contract.plutus.signed )
+drep_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-drep_lock_contract.plutus.signed )
 
 rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")

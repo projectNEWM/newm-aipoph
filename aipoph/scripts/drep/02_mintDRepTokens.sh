@@ -134,8 +134,8 @@ if [ "${TXNS}" -eq "0" ]; then
 fi
 collat_utxo=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
-script_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/drep-mint-reference-utxo.signed)
-lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/drep-lock-reference-utxo.signed)
+script_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-drep_mint_contract.plutus.signed)
+lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-drep_lock_contract.plutus.signed)
 
 # Add metadata to this build function for nfts with data
 echo -e "\033[0;36m Building Tx \033[0m"

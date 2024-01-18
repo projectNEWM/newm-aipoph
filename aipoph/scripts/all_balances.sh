@@ -20,6 +20,14 @@ drep_lock_script_address=$(${cli} address build --payment-script-file ${drep_loc
 vault_script_path="../contracts/vault_contract.plutus"
 vault_script_address=$(${cli} address build --payment-script-file ${vault_script_path} ${network})
 
+# poh lock
+poh_lock_script_path="../contracts/poh_lock_contract.plutus"
+poh_lock_script_address=$(${cli} address build --payment-script-file ${poh_lock_script_path} ${network})
+
+# coh lock
+coh_lock_script_path="../contracts/coh_lock_contract.plutus"
+coh_lock_script_address=$(${cli} address build --payment-script-file ${coh_lock_script_path} ${network})
+
 # get current parameters
 mkdir -p ./tmp
 ${cli} query protocol-parameters ${network} --out-file ./tmp/protocol.json
@@ -48,6 +56,18 @@ echo -e "\033[1;35m Vault Contract Address: \033[0m"
 echo -e "\n \033[1;35m ${vault_script_address} \033[0m \n";
 ${cli} query utxo --address ${vault_script_address} ${network}
 ${cli} query utxo --address ${vault_script_address} ${network} --out-file ./tmp/current_vault.utxo
+
+# vault
+echo -e "\033[1;35m PoH Lock Contract Address: \033[0m" 
+echo -e "\n \033[1;35m ${poh_lock_script_address} \033[0m \n";
+${cli} query utxo --address ${poh_lock_script_address} ${network}
+${cli} query utxo --address ${poh_lock_script_address} ${network} --out-file ./tmp/current_poh.utxo
+
+# vault
+echo -e "\033[1;35m CoH Lock Contract Address: \033[0m" 
+echo -e "\n \033[1;35m ${coh_lock_script_address} \033[0m \n";
+${cli} query utxo --address ${coh_lock_script_address} ${network}
+${cli} query utxo --address ${coh_lock_script_address} ${network} --out-file ./tmp/current_coh.utxo
 
 # Loop through each -wallet folder
 for wallet_folder in wallets/*-wallet; do
