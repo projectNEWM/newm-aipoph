@@ -49,7 +49,7 @@ validator(
         let oracle_threshold: Int = reference.get_oracle_threshold(dao_datum)
         // the drep address that can be spent from
         let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
-        let poh_addr: Address = reference.get_poh_lock_contract(dao_datum)
+        let poh_lock_addr: Address = reference.get_poh_lock_contract(dao_datum)
         //
         // The value should never change and it just returns to the script.
         // The oracle threshold must be met and something always has to change
@@ -73,13 +73,12 @@ validator(
           ),
           // datums must not equal, something has to change
           this_datum != that_datum,
-          // single script input + many dreps
+          // single script input + many dreps + poh test generation
           catch.specific_inputs_only(
             this_tx.inputs,
             this_addr,
-            [drep_addr, poh_addr],
+            [drep_addr, poh_lock_addr],
           ),
-          // count.inputs_by_addr(this_tx.inputs, this_addr, 1),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
         }

@@ -36,13 +36,6 @@ validator(
         // get reference utxo
         let (dao_datum, dao_input): (DAODatum, Input) =
           reference.get_data(this_tx.reference_inputs, dao_hash_data)
-        // check if the ref input has the correct starter token
-        let dao_utxo_must_have_pointer_token: Bool =
-          values.prove_exact_nft(
-            pointer_pid,
-            pointer_tkn,
-            dao_input.output.value,
-          )
         // get the contract data
         expect contract_data: Contracts =
           dao.find_data(dao_datum, keys.contracts)
@@ -53,9 +46,6 @@ validator(
         // so remove the lock hash since we need to spend that one here
         let all_validator_hashes: List<ValidatorHash> =
           dict.values(contract_data) |> list.delete(lock_hash)
-        // now is anything being spent that shouldn't be spent
-        let must_not_be_spending_from: Bool =
-          tx.not_being_spent_from(all_validator_hashes, this_tx.inputs)
         // build the lock address
         let this_lock_addr: Address = credential.from_script(lock_hash)
         // find the input being spent from it
@@ -84,9 +74,13 @@ validator(
                 mint_amt,
               ),
               // data reference must be holding correct token
-              dao_utxo_must_have_pointer_token,
+              values.prove_exact_nft(
+                pointer_pid,
+                pointer_tkn,
+                dao_input.output.value,
+              ),
               // must not be spending from things you dont represent
-              must_not_be_spending_from,
+              tx.not_being_spent_from(all_validator_hashes, this_tx.inputs),
             }
           }
           BurnRepTokens { burn_amt } -> {
@@ -105,9 +99,13 @@ validator(
                 burn_amt,
               ),
               // data reference must be holding correct token
-              dao_utxo_must_have_pointer_token,
+              values.prove_exact_nft(
+                pointer_pid,
+                pointer_tkn,
+                dao_input.output.value,
+              ),
               // must not be spending from things you dont represent
-              must_not_be_spending_from,
+              tx.not_being_spent_from(all_validator_hashes, this_tx.inputs),
             }
           }
         }

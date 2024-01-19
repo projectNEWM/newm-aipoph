@@ -147,12 +147,6 @@ validator(
                     coh_pointer_token_name,
                     coh_lock_value,
                   ),
-                  // data reference must be holding correct pointer token
-                  values.prove_exact_nft(
-                    pointer_pid,
-                    pointer_tkn,
-                    dao_input.output.value,
-                  ),
                   // do the this_tx meet the threshold
                   tx.total_token_amount(
                     this_tx.inputs,
@@ -211,7 +205,7 @@ validator(
                   catch.specific_inputs_only(
                     this_tx.inputs,
                     coh_lock_addr,
-                    [drep_addr],
+                    [drep_addr, vault_addr],
                   ),
                   // fee must be less then max fee
                   dao.is_valid_fee(this_tx.fee, max_revoke_fee),

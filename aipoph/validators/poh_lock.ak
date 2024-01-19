@@ -48,13 +48,16 @@ validator(
             |> value.from_minted_value()
             |> value.flatten()
         when redeemer is {
-          // this starts the poh test by issuesing a poh token to the utxo
+          // This starts the poh test by issuesing a poh token to the utxo. Its designed
+          // so a threshold actor gets an incentive for setting up a test for the owner
+          // of this utxo. The owner does need to sign it so a test technically starts 
+          // when they want it to start.
           StartTest -> {
-            // that datum cont must be correct structure
+            // that datum must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             //
-            // If the utxo doesnt have a poh token and is in the correct state
+            // If the utxo doesnt have a poh token and is in the correct datum state
             // then mint a poh token to a UTxO and begin the test.
             // This is ran with MintPohToken.
             //
@@ -69,8 +72,15 @@ validator(
               minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
-              // this datum must be in a specific state to start
+              // this datum must be in a specific state to start the test
               poh.start_test_datum_validation(this_datum, that_datum),
+              // must have the deposit
+              values.contains(values.from_token(this_datum.deposit), this_value),
+              // must have 2 units of incentive for start test and verify test
+              values.contains(
+                values.from_token(this_datum.incentive) |> values.multiply(2),
+                this_value,
+              ),
               // owner must sign it to prevent miss starts,
               signing.verify_sig(
                 this_tx.extra_signatories,
@@ -78,13 +88,18 @@ validator(
               ),
             }
           }
-          // this will end a test with the user submitting an answer
+          // This will end a test with the user submitting an answer to the question.
+          // This endpoint is paid by the owner. They can submit their answer anytime
+          // within the validity range of the test. If they miss the deadline to submit
+          // then they lose their deposit.
           EndTest { answer } -> {
-            // that datum cont must be correct structure
+            // that datum must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
             //
-            // The user submits what they think the answer is.
+            // The user submits what they think the answer is. The datum changes
+            // into the test ended state and the user will wait for a threshold
+            // actor to verify the result.
             //
             and {
               // the test must have been started via minting the poh token
@@ -113,9 +128,11 @@ validator(
               ),
             }
           }
-          // some user with enough threshold will verify the test
+          // A threshold actor will verify the test. This will result in either a coh token
+          // being minted into the coh lock contract or the test deposit will be lost to the
+          // dao vault.
           VerifyTest -> {
-            // the drep owner address
+            // the test owner address
             let owner_address: Address =
               addresses.create_address(
                 this_datum.owner.pkh,
@@ -123,21 +140,25 @@ validator(
               )
             // check if they have the poh token, pass as a human, and ended the test
             if and {
-              // must have poh token
+              // this checks if the test started
               values.prove_exact_nft(
                 poh_pid,
                 token_names.poh_token_name,
                 this_value,
               ),
-              // prove you are a human
+              // this proves you are a human via the question and answer
               prove.you_are_a_human(
                 this_datum.test_data.question,
                 this_datum.test_data.answer,
               ),
-              // test must have ended
+              // this means the test must have ended
               this_datum.test_data.cur_stage == 1,
             } {
+              //
+              // The user passed!
+              //
               // subtract the burn token, the fee, and the incentive
+              // then subtract the min lovelace for the coh token
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.merge(value.negate(this_tx.fee))
@@ -146,16 +167,17 @@ validator(
                        this_datum.incentive.tkn,
                        -this_datum.incentive.amt,
                      )
+                  |> value.add(
+                       value.ada_policy_id,
+                       value.ada_asset_name,
+                       -this_datum.min_lovelace,
+                     )
               //
               // You are a human so burn the poh token and mint the coh token.
               // The deposit is not taken here and the test utxo goes back to
               // the owner automatically. The incentive is left open for the taking.
               //
               and {
-                // an incentive must exist
-                this_datum.incentive.amt > 0,
-                // single script input
-                count.inputs_by_addr(this_tx.inputs, this_addr, 1),
                 // single script output
                 count.outputs_by_addr(this_tx.outputs, this_addr, 0),
                 // mint the coh token
@@ -171,7 +193,11 @@ validator(
                 ),
               }
             } else {
-              // you have failed the test. take the deposit, burn the poh token
+              //
+              // The user failed!
+              //
+              // remove the deposit, burn the poh token
+              // remove the fee and an incentive
               // send deposit to the vault, this happens automatically
               let deposit: Token = this_datum.deposit
               let owner_value: Value =
@@ -189,10 +215,6 @@ validator(
               // to the owner automatically.
               //
               and {
-                // an incentive must exist
-                this_datum.incentive.amt > 0,
-                // single script input
-                count.inputs_by_addr(this_tx.inputs, this_addr, 1),
                 // single script output
                 count.outputs_by_addr(this_tx.outputs, this_addr, 0),
                 // do not mint the coh token
@@ -209,9 +231,11 @@ validator(
               }
             }
           }
-          // this quits if the test hasnt started or the user ends teh test successfully
+          // The test owner may quit the test during specific times. If the 
+          // test has not started or if they failed to submit the answer
+          // in time.
           Quit -> {
-            // the drep owner address
+            // the test owner address
             let owner_address: Address =
               addresses.create_address(
                 this_datum.owner.pkh,
@@ -222,8 +246,10 @@ validator(
             if
             value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0{
             
-              // no poh token found so the test didnt start
-              // send everything back to the owner with a sig
+              //
+              // The test did not start yet so just send the value
+              // back to test owner with a signature.
+              //
               and {
                 // single script input
                 count.inputs_by_addr(this_tx.inputs, this_addr, 1),
@@ -246,15 +272,18 @@ validator(
                 this_datum.test_data.validity_range.end,
               ){
               
-                // the test period has passed
+                // the test period is over
                 // Did the user end their test?
                 if this_datum.test_data.cur_stage == 1 {
-                  // The user must wait for their test to be verified
+                  //
+                  // The user must wait for their test to be verified.
+                  //
                   fail @"No Leaving During Verification"
                 } else {
                   // user failed to submit the test in time
                   // send deposit to the vault and burn the poh token
                   let deposit: Token = this_datum.deposit
+                  // remove the poh token and take the deposit
                   let owner_value: Value =
                     value.add(
                       this_value,
@@ -263,9 +292,11 @@ validator(
                       -1,
                     )
                       |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
+                  //
+                  // The user loses their deposit due to never finishing the test.
+                  // The poh token will be burned and the owner must sign it.
+                  //
                   and {
-                    // single script input
-                    count.inputs_by_addr(this_tx.inputs, this_addr, 1),
                     // single script output
                     count.outputs_by_addr(this_tx.outputs, this_addr, 0),
                     // burn the poh token
@@ -284,7 +315,9 @@ validator(
                   }
                 }
               } else {
-                // the user must take the test
+                //
+                // The user must take the test.
+                //
                 fail @"No Leaving During A Test"
               }
             }

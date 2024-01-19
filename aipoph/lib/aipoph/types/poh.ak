@@ -3,17 +3,28 @@ use aipoph/types/oracle.{OracleDatum}
 use assist/types.{Token, Wallet}
 
 pub type TestData {
+  // the test must be taken in this time range
   validity_range: TimeData,
+  // the random seed for the test
   random: OracleDatum,
+  // the question to be answer
   question: Data,
+  // the answer to the question
   answer: Data,
+  // the current test stage
   cur_stage: Int,
 }
 
 pub type PoHDatum {
+  // the owner of the test
   owner: Wallet,
+  // the deposit to take the test
   deposit: Token,
+  // a unit of incentive to give to threshold actors
   incentive: Token,
+  // the lovelace required for the coh token
+  min_lovelace: Int,
+  // the test data 
   test_data: TestData,
 }
 
@@ -26,8 +37,12 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
     a.deposit == b.deposit,
     // incentive cant change
     a.incentive == b.incentive,
-    // must have non zero amount
+    // a positive deposit is required
     a.deposit.amt > 0,
+    // a positive min lovelace is required
+    a.min_lovelace > 0,
+    // a positive incentive is required
+    a.incentive.amt > 0,
     // the validity must change
     a.test_data.validity_range != b.test_data.validity_range,
     // time must be logical
@@ -36,6 +51,8 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
     b.test_data.cur_stage == 0,
     // the randomness has to change
     a.test_data.random != b.test_data.random,
+    // this is the minium lovelace required for the coh token
+    a.min_lovelace == b.min_lovelace,
   }
 }
 

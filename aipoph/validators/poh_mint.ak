@@ -1,5 +1,6 @@
 //// this controls the minter for the proof of humanity test. It is used to uniquely
 //// identify a specific test.
+////
 
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
@@ -46,50 +47,58 @@ validator(
         expect contract_data: Contracts =
           dao.find_data(dao_datum, keys.contracts)
         // this is the poh lock hash
-        let lock_hash: ValidatorHash =
+        let poh_lock_hash: ValidatorHash =
           dao.find_contract(contract_data, keys.poh_lock_contract)
         // build the lock address
-        let lock_addr: Address = credential.from_script(lock_hash)
+        let poh_lock_addr: Address = credential.from_script(poh_lock_hash)
         // find the input being spent from it
-        let lock_input: Input = find.input_by_addr(this_tx.inputs, lock_addr)
-        let lock_value: Value = lock_input.output.value
+        let poh_lock_input: Input =
+          find.input_by_addr(this_tx.inputs, poh_lock_addr)
+        let this_poh_lock_value: Value = poh_lock_input.output.value
         // get the datum from the lock utxo
-        expect lock_datum: PoHDatum = data.input_datum(lock_input)
+        expect poh_lock_datum: PoHDatum = data.input_datum(poh_lock_input)
         // what is being minted or burned in this transaction
         let mint: List<(PolicyId, AssetName, Int)> =
           this_tx.mint
             |> value.from_minted_value()
             |> value.flatten()
         // this is endpoint specific so check for the correct redeemer
-        expect lock_redeemer: PoHLockRedeemer =
-          find.redeemer_by_ref(this_tx.redeemers, lock_input.output_reference)
+        expect poh_lock_redeemer: PoHLockRedeemer =
+          find.redeemer_by_ref(
+            this_tx.redeemers,
+            poh_lock_input.output_reference,
+          )
         // the drep address that can be spent from
         let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
         when redeemer is {
-          // mint the poh token
+          // Minting is designed for a threshold actor to come in and prepare a test for the owner.
+          // They are paid an incentive and the fee for the tx is already on the utxo. The tx
+          // should be designed where the owner just needs to sign a tx without spending anything
+          // directly then they choose to start the test when they confirm it.
           MintPoHToken ->
             // that redeemer must be the start test redeemer
-            when lock_redeemer is {
+            when poh_lock_redeemer is {
               // the token can only be minted when the test starts
               StartTest -> {
-                // add poh token to value
-                // minus the fee and an incentive
-                let cont_lock_value: Value =
+                // add poh token to the lock value
+                // minus the fee and a unit of incentive
+                let that_poh_lock_value: Value =
                   value.add(
-                    lock_value,
+                    this_poh_lock_value,
                     own_currency_symbol,
                     token_names.poh_token_name,
                     1,
                   )
                     |> value.merge(value.negate(this_tx.fee))
                     |> value.add(
-                         lock_datum.incentive.pid,
-                         lock_datum.incentive.tkn,
-                         -lock_datum.incentive.amt,
+                         poh_lock_datum.incentive.pid,
+                         poh_lock_datum.incentive.tkn,
+                         -poh_lock_datum.incentive.amt,
                        )
                 // the threshold to start the test
                 let start_poh_test_threshold: Int =
                   reference.get_poh_test_threshold(dao_datum)
+                // maximum fee allowed in this tx
                 let max_start_test_fee: Int =
                   reference.get_poh_start_test_fee(dao_datum)
                 // this is the oracle hash
@@ -97,35 +106,42 @@ validator(
                   dao.find_contract(contract_data, keys.oracle_contract)
                 // build the oracle address
                 let oracle_addr: Address = credential.from_script(oracle_hash)
-                // find the input being spent from it
+                // find the oracle input being spent
                 let oracle_input: Input =
                   find.input_by_addr(this_tx.inputs, oracle_addr)
-                // just empty cast this right now
+                // find the oracle datum, we need the random data
                 expect oracle_datum: OracleDatum =
                   data.input_datum(oracle_input)
-                // outbound lock datum
-                expect that_lock_datum: PoHDatum =
-                  find.output_datum_by_addr(this_tx.outputs, lock_addr)
-                // do something with the oracle data here that generates the question?
-                // maybe a redeemer exists that combines with this oracle data
+                // the outbound lock datum
+                expect that_poh_lock_datum: PoHDatum =
+                  find.output_datum_by_addr(this_tx.outputs, poh_lock_addr)
                 //
+                // do something with the oracle data here that generates the question?
+                // maybe a redeemer exists that combines with this oracle data, this would be the 
+                // place to do it.
+                //
+                // 
                 // Mint a poh token to a UTxO if the threshold is met inside the
                 // transaction. Only the lock contract and dreps can be spent along
                 // this mint action.
                 //
                 and {
-                  // the oracle data gets assigned to the test as the rng
-                  that_lock_datum.test_data.random == oracle_datum,
-                  // fee must be less then max fee
+                  // the oracle data gets assigned to the test data as the rng
+                  that_poh_lock_datum.test_data.random == oracle_datum,
+                  // fee must be less then max fee for starting the test
                   dao.is_valid_fee(this_tx.fee, max_start_test_fee),
-                  // single script input + many dreps
+                  // single script input + many dreps + oracle
                   catch.specific_inputs_only(
                     this_tx.inputs,
-                    lock_addr,
+                    poh_lock_addr,
                     [drep_addr, oracle_addr],
                   ),
                   // the continuing value must be sent to the lock address
-                  payout.exact(lock_addr, cont_lock_value, this_tx.outputs),
+                  payout.exact(
+                    poh_lock_addr,
+                    that_poh_lock_value,
+                    this_tx.outputs,
+                  ),
                   // must mint 1 poh token
                   minting.exact(
                     mint,
@@ -151,19 +167,27 @@ validator(
               // anything else fail
               _ -> fail @"Not Starting Test"
             }
-          // burn the poh token
+          // Burning is designed to only happen during a verification and when a user is quitting.
+          // In all the cases a token will be burned but the deposit may or may not be lost
+          // to the vault.
           BurnPoHToken ->
-            when lock_redeemer is {
+            when poh_lock_redeemer is {
               // the test is being verified
               VerifyTest ->
                 if and {
+                  // this checks if the test started
+                  values.prove_exact_nft(
+                    own_currency_symbol,
+                    token_names.poh_token_name,
+                    this_poh_lock_value,
+                  ),
                   // prove you are a human
                   prove.you_are_a_human(
-                    lock_datum.test_data.question,
-                    lock_datum.test_data.answer,
+                    poh_lock_datum.test_data.question,
+                    poh_lock_datum.test_data.answer,
                   ),
                   // test must have ended
-                  lock_datum.test_data.cur_stage == 1,
+                  poh_lock_datum.test_data.cur_stage == 1,
                 } {
                   let max_success_fee: Int =
                     reference.get_poh_verify_success_fee(dao_datum)
@@ -199,26 +223,35 @@ validator(
                   let vault_input: Input =
                     find.input_by_addr(this_tx.inputs, vault_addr)
                   let vault_value: Value = vault_input.output.value
-                  let cont_vault_value: Value =
+                  let that_vault_value: Value =
                     value.add(
                       vault_value,
-                      lock_datum.deposit.pid,
-                      lock_datum.deposit.tkn,
-                      lock_datum.deposit.amt,
+                      poh_lock_datum.deposit.pid,
+                      poh_lock_datum.deposit.tkn,
+                      poh_lock_datum.deposit.amt,
                     )
                   let max_fail_fee: Int =
                     reference.get_poh_verify_fail_fee(dao_datum)
+                  // the drep address that can be spent from
+                  let drep_addr: Address =
+                    reference.get_drep_lock_contract(dao_datum)
                   //
                   // the user will lose the deposit to the vault while
                   // burning the poh token.
                   //
                   and {
+                    // single script input + many dreps + vault
+                    catch.specific_inputs_only(
+                      this_tx.inputs,
+                      poh_lock_addr,
+                      [drep_addr, vault_addr],
+                    ),
                     // fee must be less then max fee
                     dao.is_valid_fee(this_tx.fee, max_fail_fee),
                     // the deposit is sent to the vault
                     payout.at_least(
                       vault_addr,
-                      cont_vault_value,
+                      that_vault_value,
                       this_tx.outputs,
                     ),
                     // must mint 1 reference token
@@ -239,7 +272,7 @@ validator(
               // the user is quitting the test
               Quit -> {
                 // get the datum from the lock utxo
-                expect datum: PoHDatum = data.input_datum(lock_input)
+                expect datum: PoHDatum = data.input_datum(poh_lock_input)
                 if datum.test_data.cur_stage == 1 {
                   // The user must wait for their test to be verified
                   fail @"No Leaving During Verification"
@@ -253,7 +286,7 @@ validator(
                   let vault_input: Input =
                     find.input_by_addr(this_tx.inputs, vault_addr)
                   let vault_value: Value = vault_input.output.value
-                  let cont_vault_value: Value =
+                  let that_vault_value: Value =
                     value.add(
                       vault_value,
                       datum.deposit.pid,
@@ -261,6 +294,12 @@ validator(
                       datum.deposit.amt,
                     )
                   and {
+                    // single script input + many dreps + vault
+                    catch.specific_inputs_only(
+                      this_tx.inputs,
+                      poh_lock_addr,
+                      [drep_addr, vault_addr],
+                    ),
                     // must mint 1 reference token
                     minting.exact(
                       mint,
@@ -277,7 +316,7 @@ validator(
                     // the deposit is sent to the vault
                     payout.at_least(
                       vault_addr,
-                      cont_vault_value,
+                      that_vault_value,
                       this_tx.outputs,
                     ),
                   }

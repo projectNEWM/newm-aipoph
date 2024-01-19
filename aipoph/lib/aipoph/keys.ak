@@ -61,3 +61,6 @@ pub const poh_verify_fail: ByteArray = #"706f685f7665726966795f6661696c"
 
 // coh_revoke
 pub const coh_revoke: ByteArray = #"636f685f7265766f6b65"
+
+// minimum_lovelace
+pub const minimum_lovelace: ByteArray = #"6d696e696d756d5f6c6f76656c616365"
