@@ -65,6 +65,7 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
 # 3 ada for fees and 2 ada for the min utxo for the coh
 required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - 500000))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
+echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 echo "Oracle OUTPUT: "${oracle_script_out}
 #
 # exit
@@ -262,8 +263,6 @@ total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${p
 echo FEE: $total_fee
 required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - ${total_fee}))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
-echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
-
 
 ${cli} transaction build-raw \
     --babbage-era \
@@ -297,7 +296,7 @@ ${cli} transaction build-raw \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
     --mint-reference-tx-in-execution-units="${poh_mint_execution_unts}" \
-    --mint-reference-tx-in-redeemer-file ../data/poh/mint-redeemer.json \
+    --mint-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
     --fee ${total_fee}
 
 

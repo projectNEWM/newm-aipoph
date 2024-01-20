@@ -75,7 +75,7 @@ validator(
           // They are paid an incentive and the fee for the tx is already on the utxo. The tx
           // should be designed where the owner just needs to sign a tx without spending anything
           // directly then they choose to start the test when they confirm it.
-          MintPoHToken ->
+          MintPoHToken { complexity } ->
             // that redeemer must be the start test redeemer
             when poh_lock_redeemer is {
               // the token can only be minted when the test starts
@@ -120,7 +120,8 @@ validator(
                 // do something with the oracle data here that generates the question?
                 // maybe a redeemer exists that combines with this oracle data, this would be the 
                 // place to do it.
-                // let question_data: Question = question.generate(oracle_datum)
+                //
+                // let question_data: Question = question.generate(oracle_datum, complexity)
                 //
                 // 
                 // Mint a poh token to a UTxO if the threshold is met inside the
@@ -128,6 +129,8 @@ validator(
                 // this mint action.
                 //
                 and {
+                  // some positive complexity factor
+                  complexity > 0,
                   // the oracle data gets assigned to the test data as the rng
                   (that_poh_lock_datum.test_data.random.number == oracle_datum.number)?,
                   (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,

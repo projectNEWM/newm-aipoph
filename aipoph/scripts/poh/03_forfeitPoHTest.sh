@@ -50,9 +50,6 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
 
-# 3 ada for fees and 2 ada for the min utxo for the coh
-user_address_out="${user_address} + ${required_lovelace}"
-echo "User OUTPUT: "${user_address_out}
 #
 # exit
 #

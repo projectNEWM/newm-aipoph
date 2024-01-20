@@ -71,8 +71,9 @@ validator(
             dao_tkn,
             oracle_threshold,
           ),
-          // datums must not equal, something has to change
-          this_datum != that_datum,
+          // datums must not equal, the value has to change
+          this_datum.number != that_datum.number,
+          this_datum.string != that_datum.string,
           // single script input + many dreps + poh test generation
           catch.specific_inputs_only(
             this_tx.inputs,

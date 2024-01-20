@@ -95,6 +95,6 @@ pub type PoHLockRedeemer {
 }
 
 pub type PoHMintRedeemer {
-  MintPoHToken
+  MintPoHToken { complexity: Int }
   BurnPoHToken
 }
