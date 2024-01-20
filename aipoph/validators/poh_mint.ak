@@ -89,12 +89,13 @@ validator(
                     token_names.poh_token_name,
                     1,
                   )
-                    |> value.merge(value.negate(this_tx.fee))
                     |> value.add(
                          poh_lock_datum.incentive.pid,
                          poh_lock_datum.incentive.tkn,
                          -poh_lock_datum.incentive.amt,
                        )
+                    |> value.merge(value.negate(this_tx.fee))
+                //
                 // the threshold to start the test
                 let start_poh_test_threshold: Int =
                   reference.get_poh_test_threshold(dao_datum)
@@ -119,6 +120,7 @@ validator(
                 // do something with the oracle data here that generates the question?
                 // maybe a redeemer exists that combines with this oracle data, this would be the 
                 // place to do it.
+                // let question_data: Question = question.generate(oracle_datum)
                 //
                 // 
                 // Mint a poh token to a UTxO if the threshold is met inside the
@@ -127,41 +129,42 @@ validator(
                 //
                 and {
                   // the oracle data gets assigned to the test data as the rng
-                  that_poh_lock_datum.test_data.random == oracle_datum,
+                  (that_poh_lock_datum.test_data.random.number == oracle_datum.number)?,
+                  (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,
                   // fee must be less then max fee for starting the test
-                  dao.is_valid_fee(this_tx.fee, max_start_test_fee),
+                  dao.is_valid_fee(this_tx.fee, max_start_test_fee)?,
                   // single script input + many dreps + oracle
                   catch.specific_inputs_only(
                     this_tx.inputs,
                     poh_lock_addr,
                     [drep_addr, oracle_addr],
-                  ),
+                  )?,
                   // the continuing value must be sent to the lock address
                   payout.exact(
                     poh_lock_addr,
                     that_poh_lock_value,
                     this_tx.outputs,
-                  ),
+                  )?,
                   // must mint 1 poh token
                   minting.exact(
                     mint,
                     own_currency_symbol,
                     token_names.poh_token_name,
                     1,
-                  ),
+                  )?,
                   // data reference must be holding correct pointer token
                   values.prove_exact_nft(
                     pointer_pid,
                     pointer_tkn,
                     dao_input.output.value,
-                  ),
+                  )?,
                   // do the this_tx meet the threshold
                   tx.total_token_amount(
                     this_tx.inputs,
                     dao_pid,
                     dao_tkn,
                     start_poh_test_threshold,
-                  ),
+                  )?,
                 }
               }
               // anything else fail
@@ -172,7 +175,7 @@ validator(
           // to the vault.
           BurnPoHToken ->
             when poh_lock_redeemer is {
-              // the test is being verified
+              // A threshold actor is verifying the test.
               VerifyTest ->
                 if and {
                   // this checks if the test started
@@ -269,7 +272,8 @@ validator(
                     ),
                   }
                 }
-              // the user is quitting the test
+              // The user is quitting the test and forfetting their deposit to 
+              // the vault.
               Quit -> {
                 // get the datum from the lock utxo
                 expect datum: PoHDatum = data.input_datum(poh_lock_input)
@@ -299,26 +303,26 @@ validator(
                       this_tx.inputs,
                       poh_lock_addr,
                       [drep_addr, vault_addr],
-                    ),
+                    )?,
                     // must mint 1 reference token
                     minting.exact(
                       mint,
                       own_currency_symbol,
-                      token_names.drep_token_name,
+                      token_names.poh_token_name,
                       -1,
-                    ),
+                    )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
                       pointer_pid,
                       pointer_tkn,
                       dao_input.output.value,
-                    ),
+                    )?,
                     // the deposit is sent to the vault
                     payout.at_least(
                       vault_addr,
                       that_vault_value,
                       this_tx.outputs,
-                    ),
+                    )?,
                   }
                 }
               }

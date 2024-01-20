@@ -57,11 +57,11 @@ validator(
               // can only add a token
               incoming.amt > 0,
               // send at least that value to this address
-              payout.at_least(this_addr, that_value, this_tx.outputs),
+              payout.at_least(this_addr, that_value, this_tx.outputs)?,
               // single script input
-              count.inputs_by_addr(this_tx.inputs, this_addr, 1),
+              count.inputs_by_addr(this_tx.inputs, this_addr, 1)?,
               // single script output
-              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1)?,
             }
           }
           // only those with enough dao tokens may subtract from the vault

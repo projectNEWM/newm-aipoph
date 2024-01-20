@@ -14,6 +14,7 @@ use aipoph/types/coh.{
 }
 use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{PoHDatum, PoHLockRedeemer, VerifyTest}
+use assist/count
 use assist/data
 use assist/find
 use assist/minting
@@ -121,6 +122,8 @@ validator(
                     poh_lock_addr,
                     [drep_addr],
                   ),
+                  // single script output to coh lock adddress
+                  count.outputs_by_addr(this_tx.outputs, coh_lock_addr, 0),
                   // must mint 1 coh token
                   minting.exact(
                     mint,

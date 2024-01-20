@@ -1,0 +1,86 @@
+{
+  "constructor": 0,
+  "fields": [
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        },
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        },
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000"
+        },
+        {
+          "int": 18446744073709551615
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        },
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000"
+        },
+        {
+          "int": 18446744073709551615
+        }
+      ]
+    },
+    {
+      "int": 18446744073709551615
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 18446744073709551615
+            },
+            {
+              "int": 18446744073709551615
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 18446744073709551615
+            },
+            {
+              "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000"
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": []
+        },
+        {
+          "constructor": 0,
+          "fields": []
+        },
+        {
+          "int": 18446744073709551615
+        }
+      ]
+    }
+  ]
+}
+  

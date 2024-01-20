@@ -67,20 +67,20 @@ validator(
                 poh_pid,
                 token_names.poh_token_name,
                 this_value,
-              ),
+              )?,
               // the poh token is being minted
-              minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+              minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
               // single script output
-              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1)?,
               // this datum must be in a specific state to start the test
-              poh.start_test_datum_validation(this_datum, that_datum),
+              poh.start_test_datum_validation(this_datum, that_datum)?,
               // must have the deposit
-              values.contains(values.from_token(this_datum.deposit), this_value),
+              values.contains(values.from_token(this_datum.deposit), this_value)?,
               // must have 2 units of incentive for start test and verify test
               values.contains(
                 values.from_token(this_datum.incentive) |> values.multiply(2),
                 this_value,
-              ),
+              )?,
               // owner must sign it to prevent miss starts,
               signing.verify_sig(
                 this_tx.extra_signatories,
@@ -241,8 +241,10 @@ validator(
                 this_datum.owner.pkh,
                 this_datum.owner.sc,
               )
-            // make sure there isnt poh token here else burn it
+            //
+            // Make sure the utxo doesn't contain the poh token.
             // Is the UTxO holding the poh test token?
+            //
             if
             value.quantity_of(this_value, poh_pid, token_names.poh_token_name) == 0{
             
@@ -264,24 +266,28 @@ validator(
                 ),
               }
             } else {
-              // the poh token is on the utxo so the test did start
+              //
+              // The poh token is on the utxo so the test did start.
               // Is the test currently live?
+              //
               if
               interval.is_entirely_after(
                 this_tx.validity_range,
                 this_datum.test_data.validity_range.end,
               ){
               
-                // the test period is over
+                //
+                // The test period is over.
                 // Did the user end their test?
                 if this_datum.test_data.cur_stage == 1 {
                   //
-                  // The user must wait for their test to be verified.
+                  // The user must wait for their test to be verified by a threshold actor.
                   //
                   fail @"No Leaving During Verification"
                 } else {
-                  // user failed to submit the test in time
-                  // send deposit to the vault and burn the poh token
+                  //
+                  // The user failed to submit an answer during the test period.
+                  // Send the deposit to the vault and burn the poh token.
                   let deposit: Token = this_datum.deposit
                   // remove the poh token and take the deposit
                   let owner_value: Value =
@@ -295,6 +301,7 @@ validator(
                   //
                   // The user loses their deposit due to never finishing the test.
                   // The poh token will be burned and the owner must sign it.
+                  // 
                   //
                   and {
                     // single script output

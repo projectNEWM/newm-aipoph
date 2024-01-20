@@ -1,6 +1,6 @@
 {
     "__comment1__": "TxId for Genesis",
-    "tx_id_hash": "02d4f4dc78b609e471acfda828bf8542de94c9caa6ac93c5373704b6f4ea87e0",
+    "tx_id_hash": "219c9835cb0393eb6f9af194f26c221344e72c7ad89638f0bdbebf6cda1ae00a",
     "tx_id_idx": 0,
     "__comment3__": "This will be the dao token for voting",
     "dao_pid": "015d83f25700c83d708fbf8ad57783dc257b01a932ffceac9dcd0c3d",
