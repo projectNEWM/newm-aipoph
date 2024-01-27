@@ -3,7 +3,6 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/catch
 use aipoph/reference
 use aipoph/types/dao.{DAODatum}
 use aipoph/types/vault.{AddToVault, SubFromVault, VaultRedeemer}
@@ -102,7 +101,11 @@ validator(
               // send that value to this address
               payout.exact(this_addr, that_value, this_tx.outputs),
               // single script input + many dreps
-              catch.specific_inputs_only(this_tx.inputs, this_addr, [drep_addr]),
+              count.single_input_with_bypass(
+                this_tx.inputs,
+                this_addr,
+                [drep_addr],
+              ),
               // single script output
               count.outputs_by_addr(this_tx.outputs, this_addr, 1),
             }

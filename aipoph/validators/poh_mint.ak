@@ -5,7 +5,6 @@
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/catch
 use aipoph/keys
 use aipoph/prove
 use aipoph/reference
@@ -16,12 +15,14 @@ use aipoph/types/poh.{
   BurnPoHToken, MintPoHToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
   StartTest, VerifyTest,
 }
+use aipoph/types/vault.{AddToVault, VaultRedeemer}
+use assist/count
 use assist/data
 use assist/find
 use assist/minting
 use assist/payout
 use assist/tx
-use assist/types.{ValidatorHash}
+use assist/types/hashes.{ValidatorHash}
 use assist/values
 
 validator(
@@ -137,7 +138,7 @@ validator(
                   // fee must be less then max fee for starting the test
                   dao.is_valid_fee(this_tx.fee, max_start_test_fee)?,
                   // single script input + many dreps + oracle
-                  catch.specific_inputs_only(
+                  count.single_input_with_bypass(
                     this_tx.inputs,
                     poh_lock_addr,
                     [drep_addr, oracle_addr],
@@ -228,6 +229,17 @@ validator(
                   // find the input being spent from it
                   let vault_input: Input =
                     find.input_by_addr(this_tx.inputs, vault_addr)
+                  // this is endpoint specific so check for the correct redeemer
+                  expect vault_redeemer: VaultRedeemer =
+                    find.redeemer_by_ref(
+                      this_tx.redeemers,
+                      vault_input.output_reference,
+                    )
+                  let is_vault_being_spent: Bool =
+                    when vault_redeemer is {
+                      AddToVault { incoming } -> incoming == incoming
+                      _ -> False
+                    }
                   let vault_value: Value = vault_input.output.value
                   let that_vault_value: Value =
                     value.add(
@@ -247,13 +259,15 @@ validator(
                   //
                   and {
                     // single script input + many dreps + vault
-                    catch.specific_inputs_only(
+                    count.single_input_with_bypass(
                       this_tx.inputs,
                       poh_lock_addr,
                       [drep_addr, vault_addr],
                     ),
                     // fee must be less then max fee
                     dao.is_valid_fee(this_tx.fee, max_fail_fee),
+                    // a vault needs to be spent
+                    is_vault_being_spent,
                     // the deposit is sent to the vault
                     payout.at_least(
                       vault_addr,
@@ -302,7 +316,7 @@ validator(
                     )
                   and {
                     // single script input + many dreps + vault
-                    catch.specific_inputs_only(
+                    count.single_input_with_bypass(
                       this_tx.inputs,
                       poh_lock_addr,
                       [drep_addr, vault_addr],

@@ -1,13 +1,11 @@
 //// this controls the locking of the poh pointer token and contains all of the
 //// poh test logic. a successful test will issue a certificate of humanity
 
-use aiken/interval
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/prove
 use aipoph/token_names
-use aipoph/types as t
 use aipoph/types/poh.{
   EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
 }
@@ -17,7 +15,8 @@ use assist/find
 use assist/minting
 use assist/payout
 use assist/signing
-use assist/types.{Token}
+use assist/types/moment
+use assist/types/token.{Token}
 use assist/values
 
 validator(
@@ -122,7 +121,7 @@ validator(
               // the datum must change into the end test state
               poh.end_test_datum_validation(this_datum, that_datum, answer)?,
               // test period must still be valid
-              t.valid_time_entry(
+              moment.is_contained(
                 this_datum.test_data.validity_range,
                 this_tx.validity_range,
               )?,
@@ -187,9 +186,9 @@ validator(
                 // owner gets success test utxo back
                 payout.exact(owner_address, owner_value, this_tx.outputs),
                 // test needs to be over
-                interval.is_entirely_after(
+                moment.is_after(
+                  this_datum.test_data.validity_range,
                   this_tx.validity_range,
-                  this_datum.test_data.validity_range.end,
                 ),
               }
             } else {
@@ -224,9 +223,9 @@ validator(
                 // owner gets success test utxo back
                 payout.exact(owner_address, owner_value, this_tx.outputs),
                 // test needs to be over
-                interval.is_entirely_after(
+                moment.is_after(
+                  this_datum.test_data.validity_range,
                   this_tx.validity_range,
-                  this_datum.test_data.validity_range.end,
                 ),
               }
             }
@@ -271,9 +270,9 @@ validator(
               // Is the test currently live?
               //
               if
-              interval.is_entirely_after(
+              moment.is_after(
+                this_datum.test_data.validity_range,
                 this_tx.validity_range,
-                this_datum.test_data.validity_range.end,
               ){
               
                 //
@@ -305,7 +304,7 @@ validator(
                   //
                   and {
                     // single script output
-                    count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                    count.outputs_by_vkh(this_tx.outputs, 0),
                     // burn the poh token
                     minting.is_occurring(
                       mint,
@@ -323,7 +322,7 @@ validator(
                 }
               } else {
                 //
-                // The user must take the test.
+                // The test is currently live, The user must take the test.
                 //
                 fail @"No Leaving During A Test"
               }

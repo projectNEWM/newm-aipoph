@@ -3,7 +3,7 @@
 
 use aiken/dict.{Dict}
 use aiken/transaction/value.{Value}
-use assist/types.{ValidatorHash}
+use assist/types/hashes.{ValidatorHash}
 
 // Petition may change the required lovelace on the utxo
 pub type Petition {

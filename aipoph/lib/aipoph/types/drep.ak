@@ -1,4 +1,4 @@
-use assist/types.{Wallet}
+use assist/types/wallet.{Wallet}
 
 pub type DRepDatum {
   owner: Wallet,

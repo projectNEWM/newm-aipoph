@@ -3,7 +3,6 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/catch
 use aipoph/reference
 use aipoph/types/dao.{DAODatum}
 use aipoph/types/oracle.{OracleDatum}
@@ -75,7 +74,7 @@ validator(
           this_datum.number != that_datum.number,
           this_datum.string != that_datum.string,
           // single script input + many dreps + poh test generation
-          catch.specific_inputs_only(
+          count.single_input_with_bypass(
             this_tx.inputs,
             this_addr,
             [drep_addr, poh_lock_addr],

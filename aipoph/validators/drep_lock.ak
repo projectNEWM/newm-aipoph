@@ -16,6 +16,8 @@ use assist/minting
 use assist/payout
 use assist/signing
 
+// this needs a moment for the locking period then a voting period then an unlocking period
+// then dreps can give them time to vote with Represent. These moments will need to be updatable.
 validator(mirror_pid: PolicyId) {
   fn params(
     this_datum: DRepDatum,

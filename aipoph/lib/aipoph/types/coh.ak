@@ -1,26 +1,27 @@
 use aiken/transaction.{ValidityRange}
 use aiken/transaction/value.{Value}
 use aipoph/prove
-use aipoph/types.{TimeData} as t
 use aipoph/types/poh.{PoHDatum}
-use assist/types.{Token, Wallet}
+use assist/types/moment.{Moment}
+use assist/types/token.{Token}
+use assist/types/wallet.{Wallet}
 use assist/values
 
 pub type VerificationData {
   question: Data,
   answer: Data,
   pointer: Token,
-  validity_range: TimeData,
+  validity_range: Moment,
 }
 
 pub fn value_has_pointer(this_value: Value, pointer: Token) -> Bool {
   values.prove_exact_nft(pointer.pid, pointer.tkn, this_value)
 }
 
-pub fn is_time_valid(validity: TimeData, a_range: ValidityRange) -> Bool {
+pub fn is_time_valid(validity: Moment, a_range: ValidityRange) -> Bool {
   and {
-    t.logical_time_data(validity),
-    t.valid_time_entry(validity, a_range),
+    moment.is_logical(validity),
+    moment.is_contained(validity, a_range),
   }
 }
 

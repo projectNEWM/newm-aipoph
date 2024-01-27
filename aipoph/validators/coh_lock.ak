@@ -11,7 +11,7 @@ use assist/count
 use assist/find
 use assist/minting
 use assist/payout
-use assist/types.{Token}
+use assist/types/token.{Token}
 
 validator(
   // the certificate of humanity pid

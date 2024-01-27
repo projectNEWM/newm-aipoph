@@ -4,7 +4,7 @@ use aipoph/keys
 use aipoph/types/dao.{Contracts, DAODatum, Fees, Thresholds}
 use assist/data
 use assist/find
-use assist/types.{ValidatorHash}
+use assist/types/hashes.{ValidatorHash}
 
 /// Get the dao data from the reference inputs
 pub fn get_data(
@@ -27,6 +27,7 @@ pub fn does_the_intial_state_exist(
   let dao_hash: ValidatorHash = dao.find_contract(contracts, keys.dao_contract)
   let drep_hash: ValidatorHash =
     dao.find_contract(contracts, keys.drep_lock_contract)
+  // no stake
   let that_dao_addr: Address = credential.from_script(dao_hash)
   expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
   // the threshold to change data

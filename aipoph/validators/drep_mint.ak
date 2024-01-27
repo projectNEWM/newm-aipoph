@@ -14,7 +14,7 @@ use assist/find
 use assist/minting
 use assist/payout
 use assist/tx
-use assist/types.{ValidatorHash}
+use assist/types/hashes.{ValidatorHash}
 use assist/values
 
 validator(

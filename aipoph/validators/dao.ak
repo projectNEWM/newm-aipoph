@@ -3,7 +3,6 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/catch
 use aipoph/reference
 use aipoph/types/dao.{DAODatum, Petition}
 use assist/count
@@ -27,7 +26,8 @@ validator(
   ) -> Bool {
     when context.purpose is {
       Spend(output_reference) -> {
-        // This brings `lovelace` into scope.
+        // This brings `lovelace` into scope to adjust the required lovelace 
+        // on the utxo being spent
         let Petition(lovelace) = redeemer
         // this tx being validated
         let this_tx: Transaction = context.transaction
@@ -38,7 +38,7 @@ validator(
         let this_value: Value = this_input.output.value
         // this address being spent from
         let this_addr: Address = this_input.output.address
-        // the continuing datum must have the correct data structure
+        // that datum must have the DAODatum Structure
         expect that_datum: DAODatum =
           find.output_datum_by_addr(this_tx.outputs, this_addr)
         // add or subtract from the required lovelace if necessary
@@ -49,7 +49,7 @@ validator(
             value.ada_asset_name,
             lovelace,
           )
-        // the threshold to change data
+        // the petition threshold to change data
         let petition_threshold: Int =
           reference.get_petition_threshold(this_datum)
         // the drep address to allow dreps to participate in the dao
@@ -74,7 +74,7 @@ validator(
           // send that value exactly back to this address.
           payout.exact(this_addr, that_value, this_tx.outputs),
           // single script input + many dreps; anything else being spent with this should fail
-          catch.specific_inputs_only(this_tx.inputs, this_addr, [drep_addr]),
+          count.single_input_with_bypass(this_tx.inputs, this_addr, [drep_addr]),
           // single script output
           count.outputs_by_addr(this_tx.outputs, this_addr, 1),
         }

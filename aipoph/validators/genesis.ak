@@ -1,43 +1,20 @@
 //// This create an output utxo that contains a dao pointer token and the dao
 //// datum and it only can be used once.
 
-use aiken/transaction.{
-  InlineDatum, Mint, Output, OutputReference, ScriptContext, Transaction,
-}
+use aiken/transaction.{Mint, OutputReference, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId}
 use aipoph/keys
 use aipoph/reference
 use aipoph/token_names
 use aipoph/types/dao.{Contracts, DAODatum}
+use assist/find
 use assist/minting
 use assist/payout
 use assist/std
 use assist/tx
-use assist/types.{TxHash, ValidatorHash}
+use assist/types/hashes.{TxHash, ValidatorHash}
 use assist/values
-
-/// Find the datum that is on an output with a specific nft.
-fn output_datum_by_nft(
-  outputs: List<Output>,
-  pid: PolicyId,
-  tkn: AssetName,
-) -> Data {
-  when outputs is {
-    [output, ..rest] ->
-      when output.datum is {
-        // inline and holding the nft
-        InlineDatum(outbound_datum) ->
-          if values.prove_exact_nft(pid, tkn, output.value) {
-            outbound_datum
-          } else {
-            fail @"No Datum Found By NFT"
-          }
-        _ -> output_datum_by_nft(rest, pid, tkn)
-      }
-    [] -> fail @"No Datum Found In Outputs"
-  }
-}
 
 validator(
   // transaction id hash
@@ -68,18 +45,18 @@ validator(
         // that datum must have the DAODatum data structure, and it must
         // exist on an output that has a the pointer token.
         expect that_datum: DAODatum =
-          output_datum_by_nft(this_tx.outputs, currency_symbol, token_name)
+          find.output_datum_by_nft(this_tx.outputs, currency_symbol, token_name)
         // get the contract data from that datum
         expect contract_data: Contracts =
           dao.find_data(that_datum, keys.contracts)
-        // this must exist inside of that datum
+        // the dao hash must exist inside of that datum
         let dao_hash: ValidatorHash =
           dao.find_contract(contract_data, keys.dao_contract)
-        // build the dao address
+        // build the dao address, no staking
         let dao_addr: Address = credential.from_script(dao_hash)
         //
         // check if the intial conditions exist, prove that the txid is actually
-        // being spent, and mint exactly one pointer.
+        // being spent, and mint exactly one pointer onto the dao address.
         //
         and {
           // petition must exist and be positive

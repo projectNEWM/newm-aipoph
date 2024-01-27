@@ -5,6 +5,38 @@ import tempfile
 
 import cbor2
 import requests
+from bech32 import bech32_decode, convertbits
+
+
+def run_bech32(key: str) -> str:
+    """Run bech 32 on some key and return the raw hash.
+
+    Args:
+        key (str): The key to decode.
+
+    Returns:
+        str: The decoded raw hash.
+    """
+    try:
+        # Bech32 decode
+        _, data5 = bech32_decode(key)
+
+        # Convert 5-bit array back to 8-bit
+        data8 = convertbits(data5, 5, 8, False)
+
+        hex_string = ''.join(format(x, '02x') for x in data8)
+
+        # remove the network tag
+
+        # print('hex string', hex_string)
+        if hex_string[:2] in ["e0", "00", "60", "10"]:
+            # print("stake key is not contract")
+            return hex_string[2:], False
+        else:
+            # print("stake key is contract")
+            return hex_string[2:], True
+    except TypeError:
+        raise TypeError("non-standard format in run_bech32() arg at position 1")
 
 
 def to_bytes(s: str) -> bytes:
@@ -189,8 +221,22 @@ def build_resolved_output(tx_id: str, tx_idx: int, outputs: list[dict], network:
             # one index must exist
             # 2 and 3 are optional
             if txo['inline_datum'] is not None:
-                network_flag = "71" if network is True else "70"
-                pkh = network_flag + txo['payment_addr']['cred']
+                # smart contract
+                if txo["stake_addr"] is None:
+                    # no stake key
+                    network_flag = "71" if network is True else "70"
+                    pkh = network_flag + txo['payment_addr']['cred']
+                else:
+                    stake_key, contract_flag = run_bech32(txo["stake_addr"])
+                    # is it a smart contract stake key?
+                    if contract_flag is True:
+                        # contract
+                        network_flag = "31" if network is True else "30"
+                    else:
+                        # not a contract
+                        network_flag = "11" if network is True else "10"
+                    pkh = network_flag + txo['payment_addr']['cred'] + stake_key
+                # correct format
                 pkh = to_bytes(pkh)
                 resolved[0] = pkh
 
@@ -198,8 +244,22 @@ def build_resolved_output(tx_id: str, tx_idx: int, outputs: list[dict], network:
                 cbor_datum = to_bytes(txo['inline_datum']['bytes'])
                 resolved[2] = [1, cbor2.CBORTag(24, cbor_datum)]
             else:
-                # simple payment
-                network_flag = "61" if network is True else "60"
+                # no datum
+                if txo["stake_addr"] is None:
+                    # no stake key
+                    network_flag = "61" if network is True else "60"
+                    pkh = network_flag + txo['payment_addr']['cred']
+                else:
+                    # is the stake key a contract?
+                    stake_key, contract_flag = run_bech32(txo["stake_addr"])
+                    # is it a smart contract stake key?
+                    if contract_flag is True:
+                        # contract
+                        network_flag = "21" if network is True else "20"
+                    else:
+                        # not a contract
+                        network_flag = "01" if network is True else "00"
+                    pkh = network_flag + txo['payment_addr']['cred'] + stake_key
                 pkh = network_flag + txo['payment_addr']['cred']
                 pkh = to_bytes(pkh)
                 resolved[0] = pkh
@@ -224,7 +284,7 @@ def build_resolved_output(tx_id: str, tx_idx: int, outputs: list[dict], network:
     return resolved
 
 
-def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: str = 'aiken') -> list[dict]:
+def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: str = 'aiken', debug: bool = False) -> list[dict]:
     # try to simulate the tx and return the results else return an empty dict
     try:
         # use some temp files that get deleted later
@@ -240,17 +300,29 @@ def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: s
 
         # the default value assumes aiken to be on path
         # or it uses the aiken path
-        output = subprocess.run(
-            [
-                aiken_path, 'tx', 'simulate',
-                temp_tx_file_path,
-                temp_input_file_path,
-                temp_output_file_path
-            ],
-            check=True,
-            capture_output=True,
-            text=True
-        )
+        if debug is False:
+            output = subprocess.run(
+                [
+                    aiken_path, 'tx', 'simulate',
+                    temp_tx_file_path,
+                    temp_input_file_path,
+                    temp_output_file_path
+                ],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+        else:
+            output = subprocess.run(
+                [
+                    aiken_path, 'tx', 'simulate',
+                    temp_tx_file_path,
+                    temp_input_file_path,
+                    temp_output_file_path
+                ],
+                check=True,
+                text=True
+            )
 
         # this should remove the temp files
         os.remove(temp_tx_file_path)
@@ -312,7 +384,7 @@ def from_cbor(tx_cbor: str, network: bool, debug: bool = False, aiken_path: str 
         print(output_cbor, '\n')
 
     # try to simulate the tx and return the results else return an empty dict
-    return simulate_cbor(tx_cbor, input_cbor, output_cbor, aiken_path)
+    return simulate_cbor(tx_cbor, input_cbor, output_cbor, aiken_path, debug)
 
 
 def from_file(tx_draft_path: str, network: bool, debug: bool = False, aiken_path: str = 'aiken') -> dict:
