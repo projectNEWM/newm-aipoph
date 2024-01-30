@@ -304,7 +304,7 @@ validator(
                   //
                   and {
                     // single script output
-                    count.outputs_by_vkh(this_tx.outputs, 0),
+                    count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                     // burn the poh token
                     minting.is_occurring(
                       mint,

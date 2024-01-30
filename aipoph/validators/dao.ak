@@ -12,10 +12,10 @@ use assist/tx
 use assist/values
 
 validator(
-  // the dao pointer token
+  // the dao pointer token from the genesis contract
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao vote token
+  // the dao vote token that already exists
   dao_pid: PolicyId,
   dao_tkn: AssetName,
 ) {

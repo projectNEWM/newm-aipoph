@@ -7,7 +7,7 @@ The current solution aims to create a system of contracts that are as close to a
 
 ## Implementation Strategy
 
-There are many pieces to this puzzle.
+There are many pieces to this puzzle. Each existing to fulfill a purpose within the ecosystem of the contracts.
 
 ### Genesis Contract
 
@@ -23,7 +23,7 @@ The oracle contract allows users with enough of the DAO token to generate random
 
 ### Vault Contract
 
-The vault contract will be used to stored lost deposits for failed tests.
+The vault contract will be used to stored lost deposits for failed tests. Anyone can add funds to the vault but only a threshold actor can subtract any.
 
 ### Representative Contract
 
@@ -32,25 +32,9 @@ The vault contract will be used to stored lost deposits for failed tests.
 ### Certificate of Humanity Contract
 
 
+### tldr
 
-# First Pass Implementation
-
-- the system starts from a genesis contract that anyone can use
-- pure threshold-based dao using an already existing and distributed token
-- the dao datum is a general type similar to cip68 metadatum
-- an oracle for randomness must exist
-- distributed reps must exists to simply the transactions
-- users interact with large holders of the token to start the process
-- the process is timed
-- users have an unlimited tries to attempt the solution until the time runs out
-- have ability to do pure off chain secondary validations after initial test
-- certificates of humanity live in a storage contract with inline datum
-- verifications can be done with either a contract validations or valid signature
-- contracts will initially be designed so the cryptographic proof generation system can be arbitrary
-- end is goal is a happy path that demestrates the minting of a ceritificate of humanity using the proof of humanity protocol
-- the certificate nft name should be "Congratulations! You're a human." its actually 32 characters
-
-This should be an attempt at a hyperstructure proof of humanity using Aiken.
+This should be a pretty good attempt at a hyperstructure proof of humanity using Aiken.
 
 ## Happy Path Scripts
 

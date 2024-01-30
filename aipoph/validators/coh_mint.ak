@@ -1,6 +1,4 @@
 //// this controls the minting of the certificate of humanity.
-//// this controls the minter for the proof of humanity test. It is used to uniquely
-//// identify a specific test.
 
 use aiken/transaction.{Input, Mint, Output, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}

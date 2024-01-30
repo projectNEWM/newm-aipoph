@@ -2,21 +2,23 @@
 ////
 
 use aiken/dict.{Dict}
+use aiken/transaction/credential.{PoolId}
 use aiken/transaction/value.{Value}
 use assist/types/hashes.{ValidatorHash}
+use assist/types/wallet.{Wallet}
 
 // Petition may change the required lovelace on the utxo
 pub type Petition {
   lovelace: Int,
 }
 
-// general dict data type for the DAO
+// general dict data type for the data requried for aipoph
 pub type DAODatum {
   data: Dict<ByteArray, Data>,
   version: Int,
 }
 
-// find a data structure by a title inside the DAOData dictionary.
+// find a data structure by a title inside the DAODatum data dictionary.
 pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
   when dict.get(data.data, key) is {
     Some(thing) -> thing
@@ -64,4 +66,22 @@ pub fn is_valid_fee(this_fee: Value, fee: Int) -> Bool {
   let lovelace: Int =
     value.quantity_of(this_fee, value.ada_policy_id, value.ada_asset_name)
   fee > lovelace
+}
+
+// The staking structure is a data structure in DAOData
+pub type Staking =
+  Dict<ByteArray, StakeData>
+
+// find some stake data by a title inside the staking dictionary.
+pub fn find_stake_data(staking: Staking, key: ByteArray) -> StakeData {
+  when dict.get(staking, key) is {
+    Some(stake) -> stake
+    None -> fail @"Stake Data Not Found"
+  }
+}
+
+pub type StakeData {
+  pool_id: PoolId,
+  stake_cred: ValidatorHash,
+  reward_wallet: Wallet,
 }

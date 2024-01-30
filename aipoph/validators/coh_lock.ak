@@ -1,6 +1,4 @@
 //// this controls the locking of a certificate of humanity.
-//// this controls the locking of the poh pointer token and contains all of the
-//// poh test logic. a successful test will issue a certificate of humanity
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}

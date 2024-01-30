@@ -1,3 +1,6 @@
+// staking
+pub const staking: ByteArray = #"7374616b696e67"
+
 // contracts
 pub const contracts: ByteArray = #"636f6e747261637473"
 
