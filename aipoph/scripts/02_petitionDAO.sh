@@ -7,6 +7,8 @@ source .env
 # get params
 ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 
+python3 py/generate_dao_datum.py
+
 # dao script
 script_path="../contracts/dao_contract.plutus"
 script_address=$(${cli} address build --payment-script-file ${script_path} ${network})
