@@ -5,3 +5,7 @@ build/
 # Aiken's default documentation export
 docs/
 aiken.lock
+plutus.json
+contracts/
+hashes/
+lib/aipoph/question.ak

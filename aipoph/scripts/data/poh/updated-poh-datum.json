@@ -1,0 +1,85 @@
+{
+  "constructor": 0,
+  "fields": [
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        },
+        {
+          "bytes": ""
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        },
+        {
+          "int": 1000000
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        },
+        {
+          "int": 1000000
+        }
+      ]
+    },
+    {
+      "int": 1500000
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 1705769912396
+            },
+            {
+              "int": 1705770212398
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 13991192382901627000
+            },
+            {
+              "bytes": "cb699dd1065d8a38fd3619df71b25deef68202140bec917ab79da6780477e27e"
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": []
+        },
+        {
+          "constructor": 0,
+          "fields": []
+        },
+        {
+          "int": 0
+        }
+      ]
+    }
+  ]
+}
