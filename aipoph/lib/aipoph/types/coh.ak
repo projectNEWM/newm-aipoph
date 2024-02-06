@@ -10,6 +10,7 @@ use assist/values
 pub type VerificationData {
   question: Data,
   answer: Data,
+  verifier: Data,
   pointer: Token,
   validity_range: Moment,
 }
@@ -33,7 +34,11 @@ pub fn authenticity_of_verification_data(
   and {
     value_has_pointer(this_value, verification_data.pointer),
     is_time_valid(verification_data.validity_range, this_range),
-    prove.you_are_a_human(verification_data.question, verification_data.answer),
+    prove.you_are_a_human(
+      verification_data.question,
+      verification_data.answer,
+      verification_data.verifier,
+    ),
   }
 }
 

@@ -88,10 +88,14 @@ pub type AnswerData {
   answer: Data,
 }
 
+pub type VerifierData {
+  verifier: Data,
+}
+
 pub type PoHLockRedeemer {
   StartTest
   EndTest { answer: AnswerData }
-  VerifyTest
+  VerifyTest { verifier: VerifierData }
   Quit
 }
 

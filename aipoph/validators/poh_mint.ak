@@ -180,7 +180,7 @@ validator(
           BurnPoHToken ->
             when poh_lock_redeemer is {
               // A threshold actor is verifying the test.
-              VerifyTest ->
+              VerifyTest { verifier } ->
                 if and {
                   // this checks if the test started
                   values.prove_exact_nft(
@@ -192,6 +192,7 @@ validator(
                   prove.you_are_a_human(
                     poh_lock_datum.test_data.question,
                     poh_lock_datum.test_data.answer,
+                    verifier,
                   ),
                   // test must have ended
                   poh_lock_datum.test_data.cur_stage == 1,

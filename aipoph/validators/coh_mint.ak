@@ -85,7 +85,7 @@ validator(
             // that redeemer must be the start test redeemer
             when poh_lock_redeemer is {
               // the token can only be minted when the test starts
-              VerifyTest -> {
+              VerifyTest { verifier } -> {
                 // the threshold to start the test
                 let coh_mint_threshold: Int =
                   reference.get_coh_mint_threshold(dao_datum)
@@ -108,6 +108,8 @@ validator(
                 // this mint action.
                 //
                 and {
+                  // do we need to do something with this?
+                  verifier == verifier,
                   // Need to make sure the coh datum is set up correctly
                   coh.poh_into_coh(
                     poh_lock_datum,

@@ -130,7 +130,7 @@ validator(
           // A threshold actor will verify the test. This will result in either a coh token
           // being minted into the coh lock contract or the test deposit will be lost to the
           // dao vault.
-          VerifyTest -> {
+          VerifyTest { verifier } -> {
             // the test owner address
             let owner_address: Address =
               addresses.create_address(
@@ -149,6 +149,7 @@ validator(
               prove.you_are_a_human(
                 this_datum.test_data.question,
                 this_datum.test_data.answer,
+                verifier,
               ),
               // this means the test must have ended
               this_datum.test_data.cur_stage == 1,
