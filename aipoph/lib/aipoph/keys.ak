@@ -1,7 +1,7 @@
-// staking
+/// staking
 pub const staking: ByteArray = #"7374616b696e67"
 
-// contracts
+/// contracts
 pub const contracts: ByteArray = #"636f6e747261637473"
 
 // drep_lock_contract
@@ -23,7 +23,7 @@ pub const coh_lock_contract: ByteArray = #"636f685f6c6f636b5f636f6e7472616374"
 // vault_contract
 pub const vault_contract: ByteArray = #"7661756c745f636f6e7472616374"
 
-// thresholds
+/// thresholds
 pub const thresholds: ByteArray = #"7468726573686f6c6473"
 
 // petition_threshold
@@ -49,7 +49,7 @@ pub const revoke_coh_threshold: ByteArray =
 pub const extract_vault_threshold: ByteArray =
   #"657874726163745f7661756c745f7468726573686f6c64"
 
-// fees
+/// fees
 pub const fees: ByteArray = #"66656573"
 
 // poh_start_test
@@ -67,3 +67,9 @@ pub const coh_revoke: ByteArray = #"636f685f7265766f6b65"
 
 // minimum_lovelace
 pub const minimum_lovelace: ByteArray = #"6d696e696d756d5f6c6f76656c616365"
+
+/// keys
+pub const keys: ByteArray = #"6b657973"
+
+// website_key
+pub const website_key: ByteArray = #"776562736974655f6b6579"

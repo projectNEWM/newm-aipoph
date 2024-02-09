@@ -4,11 +4,11 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/prove
 use aipoph/token_names
 use aipoph/types/poh.{
   EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
 }
+use aipoph/types/prove
 use assist/addresses
 use assist/count
 use assist/find
@@ -130,7 +130,7 @@ validator(
           // A threshold actor will verify the test. This will result in either a coh token
           // being minted into the coh lock contract or the test deposit will be lost to the
           // dao vault.
-          VerifyTest { verifier } -> {
+          VerifyTest -> {
             // the test owner address
             let owner_address: Address =
               addresses.create_address(
@@ -149,7 +149,6 @@ validator(
               prove.you_are_a_human(
                 this_datum.test_data.question,
                 this_datum.test_data.answer,
-                verifier,
               ),
               // this means the test must have ended
               this_datum.test_data.cur_stage == 1,
