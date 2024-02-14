@@ -156,7 +156,7 @@ validator(
               //
               // The user passed!
               //
-              // subtract the burn token, the fee, and the incentive
+              // subtract the token to be burned, the fee, and the incentive
               // then subtract the min lovelace for the coh token
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
