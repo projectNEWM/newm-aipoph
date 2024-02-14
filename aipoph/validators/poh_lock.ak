@@ -4,11 +4,11 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/prove
 use aipoph/token_names
 use aipoph/types/poh.{
   EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
 }
+use aipoph/types/prove
 use assist/addresses
 use assist/count
 use assist/find

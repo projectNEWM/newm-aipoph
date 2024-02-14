@@ -1,4 +1,5 @@
 use aipoph/types/oracle.{OracleDatum}
+use aipoph/types/prove.{Answer, Question}
 use assist/types/moment.{Moment}
 use assist/types/token.{Token}
 use assist/types/wallet.{Wallet}
@@ -9,9 +10,9 @@ pub type TestData {
   // the random seed for the test
   random: OracleDatum,
   // the question to be answer
-  question: Data,
+  question: Question,
   // the answer to the question
-  answer: Data,
+  answer: Answer,
   // the current test stage
   cur_stage: Int,
 }
@@ -85,7 +86,7 @@ pub fn end_test_datum_validation(
 }
 
 pub type AnswerData {
-  answer: Data,
+  answer: Answer,
 }
 
 pub type PoHLockRedeemer {

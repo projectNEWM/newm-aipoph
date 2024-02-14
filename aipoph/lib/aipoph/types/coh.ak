@@ -1,15 +1,15 @@
 use aiken/transaction.{ValidityRange}
 use aiken/transaction/value.{Value}
-use aipoph/prove
 use aipoph/types/poh.{PoHDatum}
+use aipoph/types/prove.{Answer, Question}
 use assist/types/moment.{Moment}
 use assist/types/token.{Token}
 use assist/types/wallet.{Wallet}
 use assist/values
 
 pub type VerificationData {
-  question: Data,
-  answer: Data,
+  question: Question,
+  answer: Answer,
   pointer: Token,
   validity_range: Moment,
 }

@@ -6,7 +6,6 @@ use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
-use aipoph/prove
 use aipoph/reference
 use aipoph/token_names
 use aipoph/types/dao.{Contracts, DAODatum}
@@ -15,6 +14,7 @@ use aipoph/types/poh.{
   BurnPoHToken, MintPoHToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
   StartTest, VerifyTest,
 }
+use aipoph/types/prove
 use aipoph/types/vault.{AddToVault, VaultRedeemer}
 use assist/count
 use assist/data
@@ -118,12 +118,7 @@ validator(
                 expect that_poh_lock_datum: PoHDatum =
                   find.output_datum_by_addr(this_tx.outputs, poh_lock_addr)
                 //
-                // do something with the oracle data here that generates the question?
-                // maybe a redeemer exists that combines with this oracle data, this would be the 
-                // place to do it.
-                //
-                // let question_data: Question = question.generate(oracle_datum, complexity)
-                //
+                // The question is generated off-chain to minimize cost and increase security.
                 // 
                 // Mint a poh token to a UTxO if the threshold is met inside the
                 // transaction. Only the lock contract and dreps can be spent along

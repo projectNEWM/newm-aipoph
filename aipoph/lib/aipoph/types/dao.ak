@@ -4,7 +4,7 @@
 use aiken/dict.{Dict}
 use aiken/transaction/credential.{PoolId}
 use aiken/transaction/value.{Value}
-use assist/types/hashes.{ValidatorHash}
+use assist/types/hashes.{PublicKeyHash, ValidatorHash}
 use assist/types/wallet.{Wallet}
 
 // Petition may change the required lovelace on the utxo
@@ -84,4 +84,16 @@ pub type StakeData {
   pool_id: PoolId,
   stake_cred: ValidatorHash,
   reward_wallet: Wallet,
+}
+
+// The contract structure is a data structure in DAOData
+pub type Keys =
+  Dict<ByteArray, PublicKeyHash>
+
+// find a contract by title inside the contract dictionary.
+pub fn find_key(keys: Keys, key: ByteArray) -> PublicKeyHash {
+  when dict.get(keys, key) is {
+    Some(pkh) -> pkh
+    None -> fail @"PKH Not Found"
+  }
 }
