@@ -23,7 +23,13 @@ def compute_blake2b_256_hex(data_hex):
     return hasher.hexdigest()
 
 
-def coloring_hash(values):
+def coloring_hash(coloring):
+    coloring_cbor = do_coloring_hash(coloring)
+    coloring_cbor_hex = coloring_cbor.hex()
+    return compute_blake2b_256_hex(coloring_cbor_hex)
+
+
+def do_coloring_hash(values):
     """
     Creates a CBOR byte string representing an indefinite-length array
     with the given values.
@@ -44,10 +50,16 @@ def coloring_hash(values):
     # Convert the bytearray to a bytes object
     graph_cbor = bytes(cbor_bytes)
 
-    return graph_cbor.hex()
+    return graph_cbor
 
 
-def graph_hash(edges):
+def graph_hash(graph):
+    graph_cbor = do_graph_hash(graph)
+    graph_cbor_hex = graph_cbor.hex()
+    return compute_blake2b_256_hex(graph_cbor_hex)
+
+
+def do_graph_hash(edges):
     # Start with the indefinite array prefix
     encoded = bytearray([0x9f])
 
@@ -69,26 +81,15 @@ def graph_hash(edges):
     return bytes(encoded)
 
 
-# Define the edges to encode
-graph = [
-    [2, 1], [1, 0], [0, 4], [4, 3], [3, 1], [2, 0], [4, 2]
-]
-# Encode the data
-graph_cbor = graph_hash(graph)
+if __name__ == "__main__":
+    graph = [
+        [2, 1], [1, 0], [0, 4], [4, 3], [3, 1], [2, 0], [4, 2]
+    ]
+    the_graph_hash = graph_hash(graph)
+    print(f"BLAKE2b hash of '{graph}' (32-byte digest): {the_graph_hash}")
+    print(the_graph_hash == "b3064a26269668c85c14d735a77b3b225f5e30ad911870428d3d8daba85e486c")
 
-colors = [0, 1, 2, 0, 1]
-
-color_cbor = coloring_hash(colors)
-
-# Display the CBOR data in hexadecimal format
-hex_cbor = graph_cbor.hex()
-
-# Using a digest size of 32 bytes for example
-hash_result = compute_blake2b_256_hex(hex_cbor)
-print(f"BLAKE2b hash of '{hex_cbor}' (32-byte digest): {hash_result}")
-print(hash_result == "b3064a26269668c85c14d735a77b3b225f5e30ad911870428d3d8daba85e486c")
-
-hash_result = compute_blake2b_256_hex(color_cbor)
-print(f"BLAKE2b hash of '{color_cbor}' (32-byte digest): {hash_result}")
-
-print(hash_result == "398c36e82ee7a6d7a2bee6fde26fc0c9df373f687b9ec73b5968f9fae8ff92de")
+    coloring = [0, 1, 2, 0, 1]
+    the_coloring_hash = coloring_hash(coloring)
+    print(f"BLAKE2b hash of '{coloring}' (32-byte digest): {the_coloring_hash}")
+    print(the_coloring_hash == "398c36e82ee7a6d7a2bee6fde26fc0c9df373f687b9ec73b5968f9fae8ff92de")

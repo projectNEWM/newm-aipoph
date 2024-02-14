@@ -4,10 +4,12 @@ use aipoph/types/graph.{Coloring, Edge, Graph}
 use aipoph/types/signed.{SignedData}
 use assist/types/hashes.{PublicKeyHash}
 
+/// The question type will be a graph.
 pub type Question {
   graph: Graph,
 }
 
+/// The answer to the question will be a coloring to the graph plus two signatures
 pub type Answer {
   coloring: Coloring,
   start: SignedData,

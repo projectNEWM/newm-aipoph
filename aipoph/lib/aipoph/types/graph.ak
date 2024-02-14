@@ -25,7 +25,7 @@ pub fn coloring_hash(coloring: Coloring) -> ByteArray {
 test color_serialised() {
   let c: Coloring =
     [0, 1, 2, 0, 1]
-  ( c |> serialise_data ) == #""
+  ( c |> serialise_data ) == #"9f0001020001ff"
 }
 
 test small_coloring_hash() {
