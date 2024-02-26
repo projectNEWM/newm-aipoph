@@ -126,7 +126,7 @@ validator(
                 //
                 and {
                   // some positive complexity factor
-                  complexity > 0,
+                  (complexity > 0)?,
                   // the oracle data gets assigned to the test data as the rng
                   (that_poh_lock_datum.test_data.random.number == oracle_datum.number)?,
                   (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,

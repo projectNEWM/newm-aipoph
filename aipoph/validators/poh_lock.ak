@@ -68,23 +68,23 @@ validator(
                 this_value,
               )?,
               // the poh token is being minted
-              minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+              minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
               // single script output
-              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1)?,
               // this datum must be in a specific state to start the test
-              poh.start_test_datum_validation(this_datum, that_datum),
+              poh.start_test_datum_validation(this_datum, that_datum)?,
               // must have the deposit
-              values.contains(values.from_token(this_datum.deposit), this_value),
+              values.contains(values.from_token(this_datum.deposit), this_value)?,
               // must have 2 units of incentive for start test and verify test
               values.contains(
                 values.from_token(this_datum.incentive) |> values.multiply(2),
                 this_value,
-              ),
+              )?,
               // owner must sign it to prevent miss starts,
               signing.verify_sig(
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,
-              ),
+              )?,
             }
           }
           // This will end a test with the user submitting an answer to the question.

@@ -61,10 +61,11 @@ def draw_colored_graph(edges, coloring):
     color_map = [coloring[node] for node in G.nodes()]
 
     # Extract positions for nodes using a layout
-    pos = nx.shell_layout(G)
+    # pos = nx.shell_layout(G)
+    pos = nx.arf_layout(G)
     # Draw the graph
     nx.draw(G, pos, node_color=color_map, with_labels=False,
-            cmap=plt.cm.jet, node_size=800, edge_color='black')
+            cmap=plt.cm.jet, edge_color='black')
 
     # Save the image
     plt.savefig("graph.png")

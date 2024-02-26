@@ -63,11 +63,13 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
 
 # 3 ada for fees and 2 ada for the min utxo for the coh
-required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - 500000))
+# take incentive out, take 1 fee out
+required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
 echo "Oracle OUTPUT: "${oracle_script_out}
+echo "PoH OUTPUT: "${poh_lock_script_out}
 #
-# exit
+exit
 #
 
 echo -e "\033[0;36m Gathering Voter UTxO Information  \033[0m"
@@ -86,6 +88,7 @@ TXIN=$(jq -r --arg alltxin "" 'keys[] | . + $alltxin + " --tx-in"' ../tmp/voter_
 voter_tx_in=${TXIN::-8}
 voter_lovelace_value=$(jq -r '.[].value.lovelace' ../tmp/voter_utxo.json)
 
+# voter tokens needs to be dynamic
 voter_out="${voter_address} + $((${voter_lovelace_value} + 1000000)) + 153456789 015d83f25700c83d708fbf8ad57783dc257b01a932ffceac9dcd0c3d.43757272656e6379"
 echo "Voter OUTPUT: "${voter_out}
 
@@ -147,12 +150,12 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
 # script reference utxo
 
-cpu_steps=300000000
-mem_steps=1000000
+cpu_steps=0
+mem_steps=0
 
 sale_execution_unts="(${cpu_steps}, ${mem_steps})"
 
-# script reference utxo
+# we need to update the oracle datum and the poh datum
 
 rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
@@ -160,9 +163,9 @@ rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness im
 cur_rand_num=$(jq -r '.fields[0].int' ../data/oracle/oracle-datum.json)
 cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 
-cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
-
 #   A five (5) minute window would be 5 * 60 * 1000  = 300,000.
+# set the time for the test
+cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
 new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
 
 
@@ -222,15 +225,15 @@ ${cli} transaction build-raw \
     --policy-id="${poh_policy_id}" \
     --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
     --mint-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
-    --fee 500000
+    --fee 0
 
 python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
-# cat ../data/poh/exe_units.json
+cat ../data/poh/exe_units.json
 # echo poh lock ${poh_lock_tx_in}
 # echo oracle ${oracle_tx_in}
 
-# exit
+exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)

@@ -30,18 +30,17 @@ def generate(N, E, seed_value):
     random.seed(seed_value)
     random.shuffle(nodes)
 
-    # Create a spanning tree first to ensure all nodes are connected
-    # We'll use a randomized node list and connect them all together
-    for i in range(1, len(nodes)):
-        G.append((nodes[i - 1], nodes[i]))
-
-    edges_added = N - 1
-
-    # Randomly add the remaining edges
-    while edges_added < E:
-        u, v = random.sample(nodes, 2)
-        if (u, v) not in G and (v, u) not in G:
-            G.append((u, v))
+    # create pairs, then triples, then quads, etc until E
+    edges_added = 0
+    flag = False
+    for k in range(1, N):
+        for i in range(k, N):
+            G.append((nodes[i - k], nodes[i]))
             edges_added += 1
+            if edges_added == E:
+                flag = True
+                break
+        if flag is True:
+            break
 
     return G

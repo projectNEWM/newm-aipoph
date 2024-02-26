@@ -94,7 +94,7 @@ validator(
                   values.unique_token_name(
                     poh_lock_input.output_reference.transaction_id.hash,
                     poh_lock_input.output_reference.output_index,
-                    prefixes.prefix_callable,
+                    prefixes.callable,
                   )
                 let coh_pointer_token: Token =
                   Token {
