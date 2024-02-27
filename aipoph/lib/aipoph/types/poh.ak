@@ -79,7 +79,7 @@ pub fn end_test_datum_validation(
     // question cant change
     a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
-    b.test_data.answer == answer.answer,
+    (b.test_data.answer == answer.answer)?,
     // the randomness cant change
     a.test_data.random == b.test_data.random,
   }
@@ -97,6 +97,6 @@ pub type PoHLockRedeemer {
 }
 
 pub type PoHMintRedeemer {
-  MintPoHToken { complexity: Int }
+  MintPoHToken
   BurnPoHToken
 }

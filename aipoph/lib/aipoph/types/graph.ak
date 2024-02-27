@@ -52,6 +52,12 @@ test graph_serialised() {
   ( g |> serialise_data ) == #"9fd8799f0201ffd8799f0100ffd8799f0004ffd8799f0403ffd8799f0301ffd8799f0200ffd8799f0402ffff"
 }
 
+test empty_graph_serialised() {
+  let g: Graph =
+    []
+  ( g |> serialise_data ) == #"80"
+}
+
 test empty_graph_graph_hash() {
   graph_hash([]) == #"45b0cfc220ceec5b7c1c62c4d4193d38e4eba48e8815729ce75f9c0ab0e4c1c0"
 }

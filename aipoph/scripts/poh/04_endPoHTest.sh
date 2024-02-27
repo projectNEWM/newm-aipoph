@@ -68,7 +68,7 @@ poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_t
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 echo "Oracle OUTPUT: "${oracle_script_out}
 #
-# exit
+exit
 #
 
 echo -e "\033[0;36m Gathering Voter UTxO Information  \033[0m"
