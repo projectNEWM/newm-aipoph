@@ -69,7 +69,7 @@ poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_t
 echo "Oracle OUTPUT: "${oracle_script_out}
 echo "PoH OUTPUT: "${poh_lock_script_out}
 #
-exit
+# exit
 #
 
 echo -e "\033[0;36m Gathering Voter UTxO Information  \033[0m"
@@ -161,6 +161,7 @@ rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness im
 rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
 
 cur_rand_num=$(jq -r '.fields[0].int' ../data/oracle/oracle-datum.json)
+echo Seed For Graph: ${cur_rand_num}
 cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 
 #   A five (5) minute window would be 5 * 60 * 1000  = 300,000.
@@ -168,7 +169,22 @@ cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
 new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
 
+graph=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 
+edges=$(../py/k-coloring-test/venv/bin/python -c "
+import sys; sys.path.append('../py/k-coloring-test');
+from src.generate import generate;
+from src.convert import to_datum;
+g = generate(10, 12, ${cur_rand_num});
+print(to_datum(g))
+")
+
+variable=${edges}; jq --argjson variable "$variable" '.fields[4].fields[2].fields[0].list=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
+mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+
+../py/k-coloring-test/venv/bin/python -c "import sys; sys.path.append('../py/k-coloring-test');from src.generate import generate; from src.coloring import find_minimal_coloring; c = find_minimal_coloring(generate(10, 12, ${cur_rand_num}));print(list(c.values()))"
+
+# exit
 
 # update the random number
 variable=${rand_num}; jq --argjson variable "$variable" '.fields[0].int=$variable' ../data/oracle/updated-oracle-datum.json > ../data/oracle/updated-oracle-datum-new.json
@@ -224,16 +240,16 @@ ${cli} transaction build-raw \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
     --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
-    --mint-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
+    --mint-reference-tx-in-redeemer-file ../data/poh/mint-redeemer.json \
     --fee 0
 
-python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
+python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
 cat ../data/poh/exe_units.json
-# echo poh lock ${poh_lock_tx_in}
-# echo oracle ${oracle_tx_in}
+echo poh lock ${poh_lock_tx_in}
+echo oracle ${oracle_tx_in}
 
-exit
+# exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)

@@ -36,7 +36,7 @@ def find_minimal_coloring(edges):
     # Try to color the graph starting from 1 color up to the number of vertices
     max_colors = len(graph) + 1
     for m in range(1, max_colors):
-        print(f"Is The Graph {m}-Colorable?")
+        # print(f"Is The Graph {m}-Colorable?")
         colors, success = graph_coloring(graph, m)
         if success:
             return colors  # Return the coloring and the used number of colors
@@ -61,8 +61,8 @@ def draw_colored_graph(edges, coloring):
     color_map = [coloring[node] for node in G.nodes()]
 
     # Extract positions for nodes using a layout
-    # pos = nx.shell_layout(G)
-    pos = nx.arf_layout(G)
+    pos = nx.shell_layout(G)
+    # pos = nx.arf_layout(G)
     # Draw the graph
     nx.draw(G, pos, node_color=color_map, with_labels=False,
             cmap=plt.cm.jet, edge_color='black')
