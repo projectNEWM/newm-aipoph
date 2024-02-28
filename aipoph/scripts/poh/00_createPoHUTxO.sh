@@ -58,7 +58,7 @@ FEE=$(${cli} transaction build \
     --change-address ${user_address} \
     --tx-in ${user_tx_in} \
     --tx-out="${poh_lock_script_out}" \
-    --tx-out-inline-datum-file ../data/poh/poh-datum.json \
+    --tx-out-inline-datum-file ../data/poh/initial-poh-datum.json \
     --required-signer-hash ${user_pkh} \
     ${network})
 

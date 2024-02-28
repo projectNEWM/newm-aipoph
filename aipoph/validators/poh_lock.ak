@@ -91,7 +91,7 @@ validator(
           // This endpoint is paid by the owner. They can submit their answer anytime
           // within the validity range of the test. If they miss the deadline to submit
           // then they lose their deposit.
-          EndTest { answer } -> {
+          EndTest(answer) -> {
             // that datum must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)

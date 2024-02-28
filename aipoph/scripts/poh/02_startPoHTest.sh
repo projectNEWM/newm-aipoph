@@ -53,19 +53,21 @@ oracle_script_out="${oracle_script_address} + ${min_utxo}"
 
 poh_token="1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
 
-worst_case_tokens="9223372036854775807 632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b.632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000
-+ 9223372036854775807 532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c.532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000
-+ 9223372036854775807 432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162d.432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000"
-min_utxo=$(${cli} transaction calculate-min-required-utxo \
-    --babbage-era \
-    --protocol-params-file ../tmp/protocol.json \
-    --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
-    --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
+# get script utxo
+echo -e "\033[0;36m Gathering PoH UTxO Information  \033[0m"
+${cli} query utxo \
+    --address ${poh_lock_script_address} \
+    ${network} \
+    --out-file ../tmp/script_utxo.json
+TXNS=$(jq length ../tmp/script_utxo.json)
+if [ "${TXNS}" -eq "0" ]; then
+   echo -e "\n \033[0;31m NO UTxOs Found At ${poh_lock_script_address} \033[0m \n";
+.   exit;
+fi
+poh_lock_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
 
-# 3 ada for fees and 2 ada for the min utxo for the coh
-# take incentive out, take 1 fee out
-required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000))
-poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
+required_lovelace=$(jq -r 'to_entries[].value.value.lovelace' ../tmp/script_utxo.json)
+poh_lock_script_out="${poh_lock_script_address} + $((${required_lovelace} - 1000000)) + ${poh_token}"
 echo "Oracle OUTPUT: "${oracle_script_out}
 echo "PoH OUTPUT: "${poh_lock_script_out}
 #
@@ -148,6 +150,7 @@ if [ "${TXNS}" -eq "0" ]; then
 fi
 collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
+cp ../data/poh/initial-poh-datum.json ../data/poh/updated-poh-datum.json
 # script reference utxo
 
 cpu_steps=0
@@ -164,19 +167,20 @@ cur_rand_num=$(jq -r '.fields[0].int' ../data/oracle/oracle-datum.json)
 echo Seed For Graph: ${cur_rand_num}
 cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 
-#   A five (5) minute window would be 5 * 60 * 1000  = 300,000.
+# A five (5) minute window would be 5 * 60 * 1000  = 300,000.
+# A thirty (30) minute window would be 30 * 60 * 1000  = 1,800,000.
 # set the time for the test
 cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
-new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
+new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 1800000)`)
 
 graph=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 
 edges=$(../py/k-coloring-test/venv/bin/python -c "
 import sys; sys.path.append('../py/k-coloring-test');
 from src.generate import generate;
-from src.convert import to_datum;
+from src.convert import graph_to_datum;
 g = generate(10, 12, ${cur_rand_num});
-print(to_datum(g))
+print(graph_to_datum(g))
 ")
 
 variable=${edges}; jq --argjson variable "$variable" '.fields[4].fields[2].fields[0].list=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
@@ -201,6 +205,9 @@ mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 variable=${cur_rand_num}; jq --argjson variable "$variable" '.fields[4].fields[1].fields[0].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
 mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 variable=${cur_rand_str}; jq --arg variable "$variable" '.fields[4].fields[1].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
+mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+
+variable=0; jq --argjson variable "$variable" '.fields[4].fields[4].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
 mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 
 poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contract.plutus.signed )
@@ -279,10 +286,9 @@ pm_computation_fee_int=$(printf "%.0f" "$pm_computation_fee")
 
 total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${pm_computation_fee_int}))
 echo FEE: $total_fee
-required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - ${total_fee}))
+required_lovelace=$((${required_lovelace} - 1000000 - ${total_fee}))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
-
 
 ${cli} transaction build-raw \
     --babbage-era \

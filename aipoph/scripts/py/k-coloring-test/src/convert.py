@@ -44,8 +44,15 @@ def edge(begin: int, end: int) -> dict:
     }
 
 
-def to_datum(graph: list[(int, int)]) -> None:
+def graph_to_datum(graph: list[(int, int)]) -> None:
     edges = []
     for (a, b) in graph:
         edges.append(edge(a, b))
     return json.dumps(edges)
+
+
+def coloring_to_datum(coloring: list[int]) -> None:
+    colors = []
+    for c in coloring:
+        colors.append({"int": c})
+    return json.dumps(colors)
