@@ -109,53 +109,54 @@ validator(
                 //
                 and {
                   // Need to make sure the coh datum is set up correctly
+                  // coh datum is from an output
                   coh.poh_into_coh(
                     poh_lock_datum,
                     coh_lock_datum,
                     coh_pointer_token,
                     this_tx.validity_range,
-                  ),
+                  )?,
                   // single script input + many dreps
                   count.single_input_with_bypass(
                     this_tx.inputs,
                     poh_lock_addr,
                     [drep_addr],
-                  ),
+                  )?,
                   // single script output to coh lock adddress
-                  count.outputs_by_addr(this_tx.outputs, coh_lock_addr, 0),
+                  count.outputs_by_addr(this_tx.outputs, coh_lock_addr, 0)?,
                   // must mint 1 coh token
                   minting.exact(
                     mint,
                     own_currency_symbol,
                     token_names.coh_token_name,
                     1,
-                  ),
+                  )?,
                   // the coh lock value must be holding the coh token
                   values.prove_exact_nft(
                     own_currency_symbol,
                     token_names.coh_token_name,
                     coh_lock_value,
-                  ),
+                  )?,
                   // must mint 1 coh pointer token
                   minting.exact(
                     mint,
                     own_currency_symbol,
                     coh_pointer_token_name,
                     1,
-                  ),
+                  )?,
                   // the coh lock value must be holding the coh pointer token
                   values.prove_exact_nft(
                     own_currency_symbol,
                     coh_pointer_token_name,
                     coh_lock_value,
-                  ),
+                  )?,
                   // do the this_tx meet the threshold
                   tx.total_token_amount(
                     this_tx.inputs,
                     dao_pid,
                     dao_tkn,
                     coh_mint_threshold,
-                  ),
+                  )?,
                 }
               }
               // anything else fail

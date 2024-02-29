@@ -139,21 +139,6 @@ mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 
 poh_token="1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
 
-# worst_case_tokens="9223372036854775807 632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b.632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000
-# + 9223372036854775807 532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c.532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000
-# + 9223372036854775807 432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162d.432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000"
-# min_utxo=$(${cli} transaction calculate-min-required-utxo \
-#     --babbage-era \
-#     --protocol-params-file ../tmp/protocol.json \
-#     --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
-#     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
-
-# 3 ada for fees and 2 ada for the min utxo for the coh
-# required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - 500000))
-
-#
-#
-
 # get user utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
 ${cli} query utxo \
@@ -234,12 +219,12 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
 poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contract.plutus.signed )
 
-echo $collat_tx_in
-echo $dao_tx_in
-echo $user_tx_in
-echo $poh_lock_tx_in
-echo $user_address
-echo $poh_lock_ref_utxo
+# echo $collat_tx_in
+# echo $dao_tx_in
+# echo $user_tx_in
+# echo $poh_lock_tx_in
+# echo $user_address
+# echo $poh_lock_ref_utxo
 
 slot=$(${cli} query tip ${network} | jq .slot)
 current_slot=$(($slot - 1))

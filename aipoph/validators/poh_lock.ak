@@ -149,7 +149,7 @@ validator(
               prove.you_are_a_human(
                 this_datum.test_data.question,
                 this_datum.test_data.answer,
-              ),
+              )?,
               // this means the test must have ended
               this_datum.test_data.cur_stage == 1,
             } {
@@ -178,18 +178,18 @@ validator(
               //
               and {
                 // single script output
-                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // mint the coh token
-                minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                minting.is_occurring(mint, coh_pid, token_names.coh_token_name)?,
                 // burn the poh token
-                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
                 // owner gets success test utxo back
-                payout.exact(owner_address, owner_value, this_tx.outputs),
+                payout.exact(owner_address, owner_value, this_tx.outputs)?,
                 // test needs to be over
                 moment.is_after(
                   this_datum.test_data.validity_range,
                   this_tx.validity_range,
-                ),
+                )?,
               }
             } else {
               //
@@ -215,18 +215,18 @@ validator(
               //
               and {
                 // single script output
-                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // do not mint the coh token
-                !minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                !minting.is_occurring(mint, coh_pid, token_names.coh_token_name)?,
                 // burn the poh token
-                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
                 // owner gets success test utxo back
-                payout.exact(owner_address, owner_value, this_tx.outputs),
+                payout.exact(owner_address, owner_value, this_tx.outputs)?,
                 // test needs to be over
                 moment.is_after(
                   this_datum.test_data.validity_range,
                   this_tx.validity_range,
-                ),
+                )?,
               }
             }
           }

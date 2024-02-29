@@ -197,20 +197,20 @@ validator(
                   //
                   and {
                     // fee must be less then max fee
-                    dao.is_valid_fee(this_tx.fee, max_success_fee),
+                    dao.is_valid_fee(this_tx.fee, max_success_fee)?,
                     // must mint 1 reference token,
                     minting.exact(
                       mint,
                       own_currency_symbol,
                       token_names.poh_token_name,
                       -1,
-                    ),
+                    )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
                       pointer_pid,
                       pointer_tkn,
                       dao_input.output.value,
-                    ),
+                    )?,
                   }
                 } else {
                   // they failed the test or didnt finish the test
@@ -256,9 +256,9 @@ validator(
                       this_tx.inputs,
                       poh_lock_addr,
                       [drep_addr, vault_addr],
-                    ),
+                    )?,
                     // fee must be less then max fee
-                    dao.is_valid_fee(this_tx.fee, max_fail_fee),
+                    dao.is_valid_fee(this_tx.fee, max_fail_fee)?,
                     // a vault needs to be spent
                     is_vault_being_spent,
                     // the deposit is sent to the vault
@@ -266,20 +266,20 @@ validator(
                       vault_addr,
                       that_vault_value,
                       this_tx.outputs,
-                    ),
+                    )?,
                     // must mint 1 reference token
                     minting.exact(
                       mint,
                       own_currency_symbol,
                       token_names.poh_token_name,
                       -1,
-                    ),
+                    )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
                       pointer_pid,
                       pointer_tkn,
                       dao_input.output.value,
-                    ),
+                    )?,
                   }
                 }
               // The user is quitting the test and forfetting their deposit to 

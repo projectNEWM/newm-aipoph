@@ -11,6 +11,9 @@ ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 poh_lock_script_path="../../contracts/poh_lock_contract.plutus"
 poh_lock_script_address=$(${cli} address build --payment-script-file ${poh_lock_script_path} ${network})
 
+coh_lock_script_path="../../contracts/coh_lock_contract.plutus"
+coh_lock_script_address=$(${cli} address build --payment-script-file ${coh_lock_script_path} ${network})
+
 # dao script
 dao_script_path="../../contracts/dao_contract.plutus"
 dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
@@ -32,6 +35,7 @@ voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
 
 poh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/poh_mint_contract.plutus)
+coh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/coh_mint_contract.plutus)
 
 tx_id_hash=$(jq -r '.tx_id_hash' ../../start_info.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../start_info.json)
@@ -39,38 +43,54 @@ pointer_prefix="5f6169706f70685f"
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
-# asset to trade
-# the locking token information
+poh_token="-1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
+coh_token="1 ${coh_policy_id}.436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e"
 
-# incentive, deposit, and poh token
+# get script utxo
+echo -e "\033[0;36m Gathering PoH UTxO Information  \033[0m"
+${cli} query utxo \
+    --address ${poh_lock_script_address} \
+    ${network} \
+    --out-file ../tmp/script_utxo.json
+TXNS=$(jq length ../tmp/script_utxo.json)
+if [ "${TXNS}" -eq "0" ]; then
+   echo -e "\n \033[0;31m NO UTxOs Found At ${poh_lock_script_address} \033[0m \n";
+.   exit;
+fi
+poh_lock_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
+
+echo "PoH Lock UTxO:" $poh_lock_tx_in
+string=${poh_lock_tx_in}
+IFS='#' read -ra array <<< "$string"
+
+tx_id_hash=$(jq -r '.tx_id_hash' ../../start_info.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../../start_info.json)
+pointer_prefix="5f6169706f70685f"
+pointer_pid=$(cat ../../hashes/genesis.hash)
+pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
+
+
+callable="ca11ab1e"
+coh_pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${array[0]}', ${array[1]}, '${callable}')")
+coh_pointer_token="1 ${coh_policy_id}.${coh_pointer_tkn}"
+
 min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file ../tmp/protocol.json \
-    --tx-out-inline-datum-file ../data/oracle/worst-case-oracle-datum.json \
-    --tx-out="${oracle_script_address} + 5000000" | tr -dc '0-9')
+    --tx-out-inline-datum-file ../data/coh/coh-datum.json \
+    --tx-out="${poh_lock_script_address} + 5000000 + ${coh_token} + ${coh_pointer_token}" | tr -dc '0-9')
+echo $min_utxo
 
-oracle_script_out="${oracle_script_address} + ${min_utxo}"
+mint_token="${coh_token} + ${coh_pointer_token}"
 
-poh_token="1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
-
-worst_case_tokens="9223372036854775807 632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b.632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000
-+ 9223372036854775807 532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c.532e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000
-+ 9223372036854775807 432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162d.432e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162c00000000"
-min_utxo=$(${cli} transaction calculate-min-required-utxo \
-    --babbage-era \
-    --protocol-params-file ../tmp/protocol.json \
-    --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
-    --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
-
-# 3 ada for fees and 2 ada for the min utxo for the coh
-required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - 500000))
-poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
-echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
-echo "Oracle OUTPUT: "${oracle_script_out}
+required_lovelace=$(jq -r 'to_entries[].value.value.lovelace' ../tmp/script_utxo.json)
+owner_script_out="${user_address} + $((${required_lovelace} - 1000000 - 5000000))"
+coh_lock_script_out="${coh_lock_script_address} + 5000000 + ${coh_token} + ${coh_pointer_token}"
+echo "Owner OUTPUT: "${owner_script_out}
+echo "Certificate of Humanity OUTPUT: "${coh_lock_script_out}
 #
 # exit
 #
-
 echo -e "\033[0;36m Gathering Voter UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
@@ -148,52 +168,29 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
 # script reference utxo
 
-cpu_steps=300000000
-mem_steps=1000000
+cpu_steps=0
+mem_steps=0
 
 sale_execution_unts="(${cpu_steps}, ${mem_steps})"
 
 # script reference utxo
 
-rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
-rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
-
-cur_rand_num=$(jq -r '.fields[0].int' ../data/oracle/oracle-datum.json)
-cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
-
-cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
-
-#   A five (5) minute window would be 5 * 60 * 1000  = 300,000.
-new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
-
-
-
-# update the random number
-variable=${rand_num}; jq --argjson variable "$variable" '.fields[0].int=$variable' ../data/oracle/updated-oracle-datum.json > ../data/oracle/updated-oracle-datum-new.json
-mv ../data/oracle/updated-oracle-datum-new.json ../data/oracle/updated-oracle-datum.json
-# update the random string
-variable=${rand_str}; jq --arg variable "$variable" '.fields[1].bytes=$variable' ../data/oracle/updated-oracle-datum.json > ../data/oracle/updated-oracle-datum-new.json
-mv ../data/oracle/updated-oracle-datum-new.json ../data/oracle/updated-oracle-datum.json
-
-variable=${cur_time}; jq --argjson variable "$variable" '.fields[4].fields[0].fields[0].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
-variable=${new_time}; jq --argjson variable "$variable" '.fields[4].fields[0].fields[1].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
-
-variable=${cur_rand_num}; jq --argjson variable "$variable" '.fields[4].fields[1].fields[0].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
-variable=${cur_rand_str}; jq --arg variable "$variable" '.fields[4].fields[1].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
-
 poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contract.plutus.signed )
 poh_mint_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_mint_contract.plutus.signed)
-oracle_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-oracle_contract.plutus.signed )
+coh_mint_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-coh_mint_contract.plutus.signed)
 
+slot=$(${cli} query tip ${network} | jq .slot)
+current_slot=$(($slot - 1))
+final_slot=$(($slot + 250))
+
+# exit
 echo -e "\033[0;36m Building Tx \033[0m"
 ${cli} transaction build-raw \
     --babbage-era \
     --protocol-params-file ../tmp/protocol.json \
     --out-file ../tmp/tx.draft \
+    --invalid-before ${current_slot} \
+    --invalid-hereafter ${final_slot} \
     --read-only-tx-in-reference ${dao_tx_in} \
     --tx-in-collateral ${collat_tx_in} \
     --tx-in ${poh_lock_tx_in} \
@@ -201,37 +198,34 @@ ${cli} transaction build-raw \
     --spending-plutus-script-v2 \
     --spending-reference-tx-in-inline-datum-present \
     --spending-reference-tx-in-execution-units="${sale_execution_unts}" \
-    --spending-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
-    --tx-out="${poh_lock_script_out}" \
-    --tx-out-inline-datum-file ../data/poh/updated-poh-datum.json \
-    --tx-in ${oracle_tx_in} \
-    --spending-tx-in-reference="${oracle_ref_utxo}#1" \
-    --spending-plutus-script-v2 \
-    --spending-reference-tx-in-inline-datum-present \
-    --spending-reference-tx-in-execution-units="${sale_execution_unts}" \
-    --spending-reference-tx-in-redeemer-file ../data/oracle/oracle-redeemer.json \
-    --tx-out="${oracle_script_out}" \
-    --tx-out-inline-datum-file ../data/oracle/updated-oracle-datum.json \
+    --spending-reference-tx-in-redeemer-file ../data/poh/verify-test-redeemer.json \
+    --tx-out="${owner_script_out}" \
+    --tx-out="${coh_lock_script_out}" \
+    --tx-out-inline-datum-file ../data/coh/coh-datum.json \
     --tx-in ${voter_tx_in} \
     --tx-out="${voter_out}" \
     --required-signer-hash ${user_pkh} \
     --required-signer-hash ${voter_pkh} \
     --required-signer-hash ${collat_pkh} \
-    --mint="${poh_token}" \
+    --mint="${poh_token} + ${mint_token}" \
     --mint-tx-in-reference="${poh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
     --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
-    --mint-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
-    --fee 500000
+    --mint-reference-tx-in-redeemer-file ../data/poh/burn-redeemer.json \
+    --mint-tx-in-reference="${coh_mint_ref_utxo}#1" \
+    --mint-plutus-script-v2 \
+    --policy-id="${coh_policy_id}" \
+    --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
+    --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
+    --fee 0
 
-python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
+python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=True);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
-# cat ../data/poh/exe_units.json
-# echo poh lock ${poh_lock_tx_in}
-# echo oracle ${oracle_tx_in}
+cat ../data/poh/exe_units.json
+echo poh lock ${poh_lock_tx_in}
 
-# exit
+exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
