@@ -179,9 +179,107 @@ poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contr
 poh_mint_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_mint_contract.plutus.signed)
 coh_mint_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-coh_mint_contract.plutus.signed)
 
+${cli} query tip ${network} | jq
 slot=$(${cli} query tip ${network} | jq .slot)
-current_slot=$(($slot - 1))
-final_slot=$(($slot + 250))
+current_slot2=$(($slot))
+current_slot=1709246925494
+final_slot=$(($current_slot + 500))
+
+# asset to trade
+cur_rand_num=$(jq -r '.fields[4].fields[1].fields[0].int' ../data/poh/poh-datum.json)
+edges=$(../py/k-coloring-test/venv/bin/python -c "
+import sys; sys.path.append('../py/k-coloring-test');
+from src.generate import generate;
+from src.convert import graph_to_datum;
+g = generate(10, 12, ${cur_rand_num});
+print(graph_to_datum(g))
+")
+variable=${edges}; jq --argjson variable "$variable" '.fields[1].fields[0].fields[0].list=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+# the locking token information
+coloring=$(../py/k-coloring-test/venv/bin/python -c "
+import sys;
+sys.path.append('../py/k-coloring-test');
+from src.generate import generate;
+from src.coloring import find_minimal_coloring;
+from src.convert import coloring_to_datum;
+g = generate(10, 12, ${cur_rand_num});
+c = find_minimal_coloring(g);
+print(coloring_to_datum(list(c.values())))")
+
+variable=${coloring}; jq --argjson variable "$variable" '.fields[1].fields[1].fields[0].list=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+
+graph_hash=$(../py/k-coloring-test/venv/bin/python -c "
+import sys;
+sys.path.append('../py/k-coloring-test');
+from src.generate import generate;
+from src.convert import graph_to_hash;
+g = generate(10, 12, ${cur_rand_num});
+print(graph_to_hash(g));
+")
+
+color_hash=$(../py/k-coloring-test/venv/bin/python -c "
+import sys;
+sys.path.append('../py/k-coloring-test');
+from src.generate import generate;
+from src.convert import coloring_to_hash;
+from src.coloring import find_minimal_coloring;
+g = generate(10, 12, ${cur_rand_num});
+c = list(find_minimal_coloring(g).values());
+print(coloring_to_hash(c));
+")
+
+graph_sig=$(python -c "
+import sys;
+sys.path.append('../py/data-signing');
+from signature import sign;
+skey_path = '../wallets/website-wallet/payment.skey';
+signature = sign(skey_path, '${graph_hash}');
+print(signature)
+")
+
+pkh=$(cat ../wallets/website-wallet/payment.vkey)
+echo Graph Pkh: $pkh
+variable=${pkh}; jq --arg variable "$variable" '.fields[1].fields[1].fields[1].fields[0].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+echo Graph Hash: $graph_hash
+variable=${graph_hash}; jq --arg variable "$variable" '.fields[1].fields[1].fields[1].fields[1].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+echo Graph Sig: $graph_sig
+variable=${graph_sig}; jq --arg variable "$variable" '.fields[1].fields[1].fields[1].fields[2].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+color_sig=$(python -c "
+import sys;
+sys.path.append('../py/data-signing');
+from signature import sign;
+skey_path = '../wallets/website-wallet/payment.skey';
+signature = sign(skey_path, '${color_hash}');
+print(signature)
+")
+
+echo Color Pkh: $pkh
+variable=${pkh}; jq --arg variable "$variable" '.fields[1].fields[1].fields[2].fields[0].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+echo Color Hash: $color_hash
+variable=${color_hash}; jq --arg variable "$variable" '.fields[1].fields[1].fields[2].fields[1].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+echo Color Sig: $color_sig
+variable=${color_sig}; jq --arg variable "$variable" '.fields[1].fields[1].fields[2].fields[2].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+
+
+variable=${coh_policy_id}; jq --arg variable "$variable" '.fields[1].fields[2].fields[0].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
+variable=${coh_pointer_tkn}; jq --arg variable "$variable" '.fields[1].fields[2].fields[1].bytes=$variable' ../data/coh/coh-datum.json > ../data/coh/coh-datum-new.json
+mv ../data/coh/coh-datum-new.json ../data/coh/coh-datum.json
 
 # exit
 echo -e "\033[0;36m Building Tx \033[0m"
@@ -220,21 +318,21 @@ ${cli} transaction build-raw \
     --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee 0
 
-python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=True);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
+python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
 cat ../data/poh/exe_units.json
-echo poh lock ${poh_lock_tx_in}
+# echo poh lock ${poh_lock_tx_in}
 
-exit
+# exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
 
-ocpu=$(jq -r '.[1].cpu' ../data/poh/exe_units.json)
-omem=$(jq -r '.[1].mem' ../data/poh/exe_units.json)
+ocpu=$(jq -r '.[2].cpu' ../data/poh/exe_units.json)
+omem=$(jq -r '.[2].mem' ../data/poh/exe_units.json)
 
-pmcpu=$(jq -r '.[2].cpu' ../data/poh/exe_units.json)
-pmmem=$(jq -r '.[2].mem' ../data/poh/exe_units.json)
+pmcpu=$(jq -r '.[1].cpu' ../data/poh/exe_units.json)
+pmmem=$(jq -r '.[1].mem' ../data/poh/exe_units.json)
 
 
 poh_lock_execution_unts="(${plcpu}, ${plmem})"
@@ -255,13 +353,16 @@ pm_computation_fee_int=$(printf "%.0f" "$pm_computation_fee")
 
 total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${pm_computation_fee_int}))
 echo FEE: $total_fee
-required_lovelace=$((${min_utxo} + 3000000 + 2000000 - 1000000 - ${total_fee}))
-poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
-
+owner_script_out="${user_address} + $((${required_lovelace} - 1000000 - 5000000 - ${total_fee}))"
+# exit
+current_slot=$current_slot2
+final_slot=$(($current_slot2 + 355))
 ${cli} transaction build-raw \
     --babbage-era \
     --protocol-params-file ../tmp/protocol.json \
     --out-file ../tmp/tx.draft \
+    --invalid-before ${current_slot} \
+    --invalid-hereafter ${final_slot} \
     --read-only-tx-in-reference ${dao_tx_in} \
     --tx-in-collateral ${collat_tx_in} \
     --tx-in ${poh_lock_tx_in} \
@@ -269,28 +370,26 @@ ${cli} transaction build-raw \
     --spending-plutus-script-v2 \
     --spending-reference-tx-in-inline-datum-present \
     --spending-reference-tx-in-execution-units="${poh_lock_execution_unts}" \
-    --spending-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
-    --tx-out="${poh_lock_script_out}" \
-    --tx-out-inline-datum-file ../data/poh/updated-poh-datum.json \
-    --tx-in ${oracle_tx_in} \
-    --spending-tx-in-reference="${oracle_ref_utxo}#1" \
-    --spending-plutus-script-v2 \
-    --spending-reference-tx-in-inline-datum-present \
-    --spending-reference-tx-in-execution-units="${oracle_execution_unts}" \
-    --spending-reference-tx-in-redeemer-file ../data/oracle/oracle-redeemer.json \
-    --tx-out="${oracle_script_out}" \
-    --tx-out-inline-datum-file ../data/oracle/updated-oracle-datum.json \
+    --spending-reference-tx-in-redeemer-file ../data/poh/verify-test-redeemer.json \
+    --tx-out="${owner_script_out}" \
+    --tx-out="${coh_lock_script_out}" \
+    --tx-out-inline-datum-file ../data/coh/coh-datum.json \
     --tx-in ${voter_tx_in} \
     --tx-out="${voter_out}" \
     --required-signer-hash ${user_pkh} \
     --required-signer-hash ${voter_pkh} \
     --required-signer-hash ${collat_pkh} \
-    --mint="${poh_token}" \
+    --mint="${poh_token} + ${mint_token}" \
     --mint-tx-in-reference="${poh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
+    --mint-reference-tx-in-execution-units="${oracle_execution_unts}" \
+    --mint-reference-tx-in-redeemer-file ../data/poh/burn-redeemer.json \
+    --mint-tx-in-reference="${coh_mint_ref_utxo}#1" \
+    --mint-plutus-script-v2 \
+    --policy-id="${coh_policy_id}" \
     --mint-reference-tx-in-execution-units="${poh_mint_execution_unts}" \
-    --mint-reference-tx-in-redeemer-file ../data/poh/start-test-redeemer.json \
+    --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee ${total_fee}
 
 
@@ -315,6 +414,3 @@ ${cli} transaction submit \
 
 tx=$(cardano-cli transaction txid --tx-file ../tmp/tx.signed)
 echo "Tx Hash:" $tx
-
-cp ../data/poh/updated-poh-datum.json ../data/poh/poh-datum.json
-cp ../data/oracle/updated-oracle-datum.json ../data/oracle/oracle-datum.json

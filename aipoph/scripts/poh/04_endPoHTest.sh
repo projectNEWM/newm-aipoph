@@ -226,9 +226,10 @@ poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contr
 # echo $user_address
 # echo $poh_lock_ref_utxo
 
-slot=$(${cli} query tip ${network} | jq .slot)
-current_slot=$(($slot - 1))
-final_slot=$(($slot + 250))
+current_slot=$(${cli} query tip ${network} | jq .slot)
+final_slot=$(($current_slot + 55))
+
+echo $current_slot $final_slot
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \

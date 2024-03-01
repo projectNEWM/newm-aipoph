@@ -171,7 +171,7 @@ cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 # A thirty (30) minute window would be 30 * 60 * 1000  = 1,800,000.
 # set the time for the test
 cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
-new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 1800000)`)
+new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
 
 graph=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 
@@ -257,13 +257,15 @@ echo poh lock ${poh_lock_tx_in}
 echo oracle ${oracle_tx_in}
 
 # exit
-
+# poh lock
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
 
+# oracle
 ocpu=$(jq -r '.[1].cpu' ../data/poh/exe_units.json)
 omem=$(jq -r '.[1].mem' ../data/poh/exe_units.json)
 
+# poh mint
 pmcpu=$(jq -r '.[2].cpu' ../data/poh/exe_units.json)
 pmmem=$(jq -r '.[2].mem' ../data/poh/exe_units.json)
 

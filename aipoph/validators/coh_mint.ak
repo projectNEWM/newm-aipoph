@@ -123,7 +123,7 @@ validator(
                     [drep_addr],
                   )?,
                   // single script output to coh lock adddress
-                  count.outputs_by_addr(this_tx.outputs, coh_lock_addr, 0)?,
+                  count.outputs_by_addr(this_tx.outputs, coh_lock_addr, 1)?,
                   // must mint 1 coh token
                   minting.exact(
                     mint,
