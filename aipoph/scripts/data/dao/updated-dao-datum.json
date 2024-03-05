@@ -71,7 +71,7 @@
                   "bytes": "647265705f6c6f636b5f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "ded5727c213c9c1484afddba6410c84faf943bbb4abdeedc39945eba"
+                  "bytes": "fdf1f33d453db3db9515dede313807b9669a1f7ee70c98b53c598c87"
                 }
               },
               {
@@ -79,7 +79,7 @@
                   "bytes": "64616f5f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "3bc5bc0f7b4865322c273805fbf42fe634165e9ec28be7cac885a1f2"
+                  "bytes": "ba58a20573d866649adbf52693cb79218436fd04f4978265a4639399"
                 }
               },
               {
@@ -87,7 +87,7 @@
                   "bytes": "6f7261636c655f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "45c1b6fd976a40646ef8ca0e3d8b3edd13c430bc532abf6bdc1e39f0"
+                  "bytes": "c732b9551940e485ef318b25a61de6b5b6f838d71e71762b8ad69c6f"
                 }
               },
               {
@@ -95,7 +95,7 @@
                   "bytes": "706f685f6c6f636b5f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "ad2ef7aa87de44e01c51a38bd81abd579a5e753759ae22f7bacfbedb"
+                  "bytes": "f10ff41a3e0bdeeec79effe6ae6fd801dde3b334e41918a955150b13"
                 }
               },
               {
@@ -103,7 +103,7 @@
                   "bytes": "636f685f6c6f636b5f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "0a9980f4a2934bf2c65e9a98382b8fd318f7ff792362e39fd273e8f3"
+                  "bytes": "2bcd7b9b373d099b3b43d68316c9ff8be3e54d0d793b018446a7924b"
                 }
               },
               {
@@ -111,7 +111,7 @@
                   "bytes": "7661756c745f636f6e7472616374"
                 },
                 "v": {
-                  "bytes": "854f43feea8ae1172e18a0d7ce8295aaf578f28e487d2a8b8d319461"
+                  "bytes": "d27d6b66ba97a52dfabc39ab59becd958dc98f1424ef909d40f0c080"
                 }
               }
             ]
@@ -153,6 +153,31 @@
                 },
                 "v": {
                   "int": 1000000
+                }
+              },
+              {
+                "k": {
+                  "bytes": "6d696e696d756d5f6c6f76656c616365"
+                },
+                "v": {
+                  "int": 1500000
+                }
+              }
+            ]
+          }
+        },
+        {
+          "k": {
+            "bytes": "6b657973"
+          },
+          "v": {
+            "map": [
+              {
+                "k": {
+                  "bytes": "776562736974655f6b6579"
+                },
+                "v": {
+                  "bytes": ""
                 }
               }
             ]

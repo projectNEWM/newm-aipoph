@@ -1,0 +1,121 @@
+{
+  "constructor": 0,
+  "fields": [
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": "632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b"
+        },
+        {
+          "bytes": ""
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        },
+        {
+          "int": 1000000
+        }
+      ]
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        },
+        {
+          "int": 1000000
+        }
+      ]
+    },
+    {
+      "int": 5000000
+    },
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 0
+            },
+            {
+              "bytes": ""
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "list": []
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "list": []
+            },
+            {
+              "constructor": 0,
+              "fields": [
+                {
+                  "bytes": ""
+                },
+                {
+                  "bytes": ""
+                },
+                {
+                  "bytes": ""
+                }
+              ]
+            },
+            {
+              "constructor": 0,
+              "fields": [
+                {
+                  "bytes": ""
+                },
+                {
+                  "bytes": ""
+                },
+                {
+                  "bytes": ""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "int": 0
+        }
+      ]
+    }
+  ]
+}

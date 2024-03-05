@@ -20,8 +20,8 @@ pub fn value_has_pointer(this_value: Value, pointer: Token) -> Bool {
 
 pub fn is_time_valid(validity: Moment, a_range: ValidityRange) -> Bool {
   and {
-    moment.is_logical(validity),
-    moment.is_contained(validity, a_range),
+    moment.is_logical(validity)?,
+    moment.is_contained(validity, a_range)?,
   }
 }
 
@@ -59,11 +59,10 @@ pub fn poh_into_coh(
   r: ValidityRange,
 ) -> Bool {
   and {
-    a.owner == b.owner,
-    a.test_data.question == b.verification.question,
-    a.test_data.answer == b.verification.answer,
-    a.test_data.validity_range.end == b.verification.validity_range.start,
-    b.verification.pointer == t,
-    is_time_valid(b.verification.validity_range, r),
+    (a.owner == b.owner)?,
+    (a.test_data.question == b.verification.question)?,
+    (a.test_data.answer == b.verification.answer)?,
+    (b.verification.pointer == t)?,
+    is_time_valid(b.verification.validity_range, r)?,
   }
 }

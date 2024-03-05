@@ -28,9 +28,9 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **research cryptographic proof generation and validation methods**
 - [ ] **Back-End Implementation**
   - [x] **developing the proof of humanity system**
-  - [ ] **coding the user verification module**
-  - [ ] **creating the cryptographic proof generation system**
-  - [ ] **implementing the proof validation system**
+  - [x] **coding the user verification module**
+  - [x] **creating the cryptographic proof generation system**
+  - [x] **implementing the proof validation system**
 - [ ] **Quality-Control Stage**
   - [ ] **internal system testing**
   - [ ] **potential vulnerabilities testing**

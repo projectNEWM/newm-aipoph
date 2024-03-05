@@ -1,7 +1,10 @@
 //// this controls the locking of the poh pointer token and contains all of the
 //// poh test logic. a successful test will issue a certificate of humanity
 
-use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
+use aiken/interval.{
+  Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
+}
+use aiken/transaction.{Input, ScriptContext, Spend, Transaction, ValidityRange}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/token_names
@@ -15,9 +18,33 @@ use assist/find
 use assist/minting
 use assist/payout
 use assist/signing
-use assist/types/moment
+use assist/types/moment.{Moment}
 use assist/types/token.{Token}
 use assist/values
+
+pub fn is_contained2(m: Moment, vr: ValidityRange) -> Bool {
+  when vr.lower_bound.bound_type is {
+    // must be finite
+    NegativeInfinity -> fail @"lower bound neg inf"
+    // get the lower bound int
+    Finite(lower_bound) ->
+      when vr.upper_bound.bound_type is {
+        // must be finite
+        NegativeInfinity -> fail @"upper bound neg inf"
+        // get the upper bound int
+        Finite(upper_bound) -> and {
+            // the lower bound is greater than or equal the start of the moment
+            (m.start <= lower_bound)?,
+            // the upper bound is less or equal to the end of the moment
+            (upper_bound <= m.end)?,
+          }
+        // must be finite
+        PositiveInfinity -> fail @"upper bound pos inf"
+      }
+    // must be finite
+    PositiveInfinity -> fail @"lower bound pos inf"
+  }
+}
 
 validator(
   // the proof of humanity pid
@@ -68,30 +95,30 @@ validator(
                 this_value,
               )?,
               // the poh token is being minted
-              minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+              minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
               // single script output
-              count.outputs_by_addr(this_tx.outputs, this_addr, 1),
+              count.outputs_by_addr(this_tx.outputs, this_addr, 1)?,
               // this datum must be in a specific state to start the test
-              poh.start_test_datum_validation(this_datum, that_datum),
+              poh.start_test_datum_validation(this_datum, that_datum)?,
               // must have the deposit
-              values.contains(values.from_token(this_datum.deposit), this_value),
+              values.contains(values.from_token(this_datum.deposit), this_value)?,
               // must have 2 units of incentive for start test and verify test
               values.contains(
                 values.from_token(this_datum.incentive) |> values.multiply(2),
                 this_value,
-              ),
+              )?,
               // owner must sign it to prevent miss starts,
               signing.verify_sig(
                 this_tx.extra_signatories,
                 this_datum.owner.pkh,
-              ),
+              )?,
             }
           }
           // This will end a test with the user submitting an answer to the question.
           // This endpoint is paid by the owner. They can submit their answer anytime
           // within the validity range of the test. If they miss the deadline to submit
           // then they lose their deposit.
-          EndTest { answer } -> {
+          EndTest(answer) -> {
             // that datum must be correct structure
             expect that_datum: PoHDatum =
               find.output_datum_by_addr(this_tx.outputs, this_addr)
@@ -121,7 +148,8 @@ validator(
               // the datum must change into the end test state
               poh.end_test_datum_validation(this_datum, that_datum, answer)?,
               // test period must still be valid
-              moment.is_contained(
+              // moment.is_contained(
+              is_contained2(
                 this_datum.test_data.validity_range,
                 this_tx.validity_range,
               )?,
@@ -144,19 +172,19 @@ validator(
                 poh_pid,
                 token_names.poh_token_name,
                 this_value,
-              ),
+              )?,
               // this proves you are a human via the question and answer
               prove.you_are_a_human(
                 this_datum.test_data.question,
                 this_datum.test_data.answer,
-              ),
+              )?,
               // this means the test must have ended
-              this_datum.test_data.cur_stage == 1,
+              (this_datum.test_data.cur_stage == 1)?,
             } {
               //
               // The user passed!
               //
-              // subtract the burn token, the fee, and the incentive
+              // subtract the token to be burned, the fee, and the incentive
               // then subtract the min lovelace for the coh token
               let owner_value: Value =
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
@@ -177,19 +205,19 @@ validator(
               // the owner automatically. The incentive is left open for the taking.
               //
               and {
+                // // test needs to be over
+                // moment.is_after(
+                //   this_datum.test_data.validity_range,
+                //   this_tx.validity_range,
+                // )?,
                 // single script output
-                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // mint the coh token
-                minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                minting.is_occurring(mint, coh_pid, token_names.coh_token_name)?,
                 // burn the poh token
-                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
                 // owner gets success test utxo back
-                payout.exact(owner_address, owner_value, this_tx.outputs),
-                // test needs to be over
-                moment.is_after(
-                  this_datum.test_data.validity_range,
-                  this_tx.validity_range,
-                ),
+                payout.exact(owner_address, owner_value, this_tx.outputs)?,
               }
             } else {
               //
@@ -214,19 +242,19 @@ validator(
               // to the owner automatically.
               //
               and {
+                // // test needs to be over
+                // moment.is_after(
+                //   this_datum.test_data.validity_range,
+                //   this_tx.validity_range,
+                // )?,
                 // single script output
-                count.outputs_by_addr(this_tx.outputs, this_addr, 0),
+                count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // do not mint the coh token
-                !minting.is_occurring(mint, coh_pid, token_names.coh_token_name),
+                !minting.is_occurring(mint, coh_pid, token_names.coh_token_name)?,
                 // burn the poh token
-                minting.is_occurring(mint, poh_pid, token_names.poh_token_name),
+                minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
                 // owner gets success test utxo back
-                payout.exact(owner_address, owner_value, this_tx.outputs),
-                // test needs to be over
-                moment.is_after(
-                  this_datum.test_data.validity_range,
-                  this_tx.validity_range,
-                ),
+                payout.exact(owner_address, owner_value, this_tx.outputs)?,
               }
             }
           }

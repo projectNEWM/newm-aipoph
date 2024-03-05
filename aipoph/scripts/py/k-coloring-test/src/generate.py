@@ -1,7 +1,7 @@
 import random
 
 
-def generate(N, E, seed_value):
+def generate(N: int, E: int, seed_value: int) -> list[(int, int)]:
     """
     Generates a randomly connected undirected graph with N nodes and E edges.
     Ensures that every node is connected and there are no isolated nodes.
@@ -9,39 +9,33 @@ def generate(N, E, seed_value):
     Parameters:
     - N (int): Number of nodes.
     - E (int): Number of edges.
+    - seed_value (int): Seed value for randomness.
 
     Returns:
-    - G (list[(int, int)]): The generated graph.
+    - G (list[(int, int)]): The generated graph as a list of edge tuples.
     """
-    # Check for feasibility of E given N
-    max_edges = N * (N - 1) // 2
-    min_edges = N - 1  # to ensure a connected graph
-    if E > max_edges or E < min_edges:
-        raise ValueError(
-            f"Invalid number of edges for {N} nodes. Allowed range: {min_edges} to {max_edges}.")
+    if E > N * (N - 1) // 2 or E < N - 1:
+        raise ValueError(f"Invalid number of edges for {N} nodes. Allowed range: {N - 1} to {N * (N - 1) // 2}.")
 
-    # The graph as a list of tuples of integers, each tuple is an edge and
-    # each number is the label for a node.
-    G = []
-    # Add N nodes
-    nodes = [i for i in range(N)]
-
-    # the rng oracle needs to seed the random
     random.seed(seed_value)
+    nodes = list(range(N))
     random.shuffle(nodes)
 
-    # Create a spanning tree first to ensure all nodes are connected
-    # We'll use a randomized node list and connect them all together
-    for i in range(1, len(nodes)):
-        G.append((nodes[i - 1], nodes[i]))
+    # Use a set to keep track of added edges for efficient lookup
+    edges_set = set()
 
-    edges_added = N - 1
+    # Initial spanning tree to ensure connectivity
+    for i in range(1, N):
+        edge = (nodes[i - 1], nodes[i])
+        edges_set.add(edge)
 
-    # Randomly add the remaining edges
-    while edges_added < E:
-        u, v = random.sample(nodes, 2)
-        if (u, v) not in G and (v, u) not in G:
-            G.append((u, v))
-            edges_added += 1
+    # Add additional edges randomly
+    while len(edges_set) < E:
+        a, b = random.randint(0, N - 1), random.randint(0, N - 1)
+        edge = (min(a, b), max(a, b))  # Ensure consistent ordering
+        if a != b and edge not in edges_set:
+            edges_set.add(edge)
 
+    # Convert set back to a list of tuples for the output
+    G = list(edges_set)
     return G

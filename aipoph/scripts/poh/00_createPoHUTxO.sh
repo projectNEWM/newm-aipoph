@@ -28,8 +28,8 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
 
-# 3 ada for fees and 2 ada for the min utxo for the coh
-required_lovelace=$((${min_utxo} + 3000000 + 2000000))
+# 3 ada for fees and 5 ada for the min utxo for the coh
+required_lovelace=$((${min_utxo} + 5000000 + 5000000))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace}"
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 #
@@ -58,7 +58,7 @@ FEE=$(${cli} transaction build \
     --change-address ${user_address} \
     --tx-in ${user_tx_in} \
     --tx-out="${poh_lock_script_out}" \
-    --tx-out-inline-datum-file ../data/poh/poh-datum.json \
+    --tx-out-inline-datum-file ../data/poh/initial-poh-datum.json \
     --required-signer-hash ${user_pkh} \
     ${network})
 

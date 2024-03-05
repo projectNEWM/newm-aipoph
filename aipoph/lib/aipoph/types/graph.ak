@@ -34,6 +34,12 @@ test small_coloring_hash() {
   coloring_hash(c) == #"398c36e82ee7a6d7a2bee6fde26fc0c9df373f687b9ec73b5968f9fae8ff92de"
 }
 
+test real_coloring_hash() {
+  let c: Coloring =
+    [0, 0, 0, 1, 1, 1, 0, 1, 2, 1]
+  coloring_hash(c) == #"935f929a7e28b70857580a6e6de7969c7cc3bc5a6c516836ab2620412b3d8c4c"
+}
+
 pub fn graph_hash(graph: Graph) -> ByteArray {
   graph |> serialise_data |> blake2b_256
 }
@@ -50,6 +56,12 @@ test graph_serialised() {
       Edge { begin: 4, end: 2 },
     ]
   ( g |> serialise_data ) == #"9fd8799f0201ffd8799f0100ffd8799f0004ffd8799f0403ffd8799f0301ffd8799f0200ffd8799f0402ffff"
+}
+
+test empty_graph_serialised() {
+  let g: Graph =
+    []
+  ( g |> serialise_data ) == #"80"
 }
 
 test empty_graph_graph_hash() {

@@ -76,7 +76,7 @@ validator(
           // They are paid an incentive and the fee for the tx is already on the utxo. The tx
           // should be designed where the owner just needs to sign a tx without spending anything
           // directly then they choose to start the test when they confirm it.
-          MintPoHToken { complexity } ->
+          MintPoHToken ->
             // that redeemer must be the start test redeemer
             when poh_lock_redeemer is {
               // the token can only be minted when the test starts
@@ -125,8 +125,6 @@ validator(
                 // this mint action.
                 //
                 and {
-                  // some positive complexity factor
-                  complexity > 0,
                   // the oracle data gets assigned to the test data as the rng
                   (that_poh_lock_datum.test_data.random.number == oracle_datum.number)?,
                   (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,
@@ -199,20 +197,20 @@ validator(
                   //
                   and {
                     // fee must be less then max fee
-                    dao.is_valid_fee(this_tx.fee, max_success_fee),
+                    dao.is_valid_fee(this_tx.fee, max_success_fee)?,
                     // must mint 1 reference token,
                     minting.exact(
                       mint,
                       own_currency_symbol,
                       token_names.poh_token_name,
                       -1,
-                    ),
+                    )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
                       pointer_pid,
                       pointer_tkn,
                       dao_input.output.value,
-                    ),
+                    )?,
                   }
                 } else {
                   // they failed the test or didnt finish the test
@@ -258,9 +256,9 @@ validator(
                       this_tx.inputs,
                       poh_lock_addr,
                       [drep_addr, vault_addr],
-                    ),
+                    )?,
                     // fee must be less then max fee
-                    dao.is_valid_fee(this_tx.fee, max_fail_fee),
+                    dao.is_valid_fee(this_tx.fee, max_fail_fee)?,
                     // a vault needs to be spent
                     is_vault_being_spent,
                     // the deposit is sent to the vault
@@ -268,20 +266,20 @@ validator(
                       vault_addr,
                       that_vault_value,
                       this_tx.outputs,
-                    ),
+                    )?,
                     // must mint 1 reference token
                     minting.exact(
                       mint,
                       own_currency_symbol,
                       token_names.poh_token_name,
                       -1,
-                    ),
+                    )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
                       pointer_pid,
                       pointer_tkn,
                       dao_input.output.value,
-                    ),
+                    )?,
                   }
                 }
               // The user is quitting the test and forfetting their deposit to 

@@ -16,59 +16,6 @@
       "constructor": 0,
       "fields": [
         {
-          "bytes": ""
-        },
-        {
-          "bytes": ""
-        },
-        {
-          "int": 1000000
-        }
-      ]
-    },
-    {
-      "constructor": 0,
-      "fields": [
-        {
-          "bytes": ""
-        },
-        {
-          "bytes": ""
-        },
-        {
-          "int": 1000000
-        }
-      ]
-    },
-    {
-      "int": 5000000
-    },
-    {
-      "constructor": 0,
-      "fields": [
-        {
-          "constructor": 0,
-          "fields": [
-            {
-              "int": 1709252487561
-            },
-            {
-              "int": 1709252787563
-            }
-          ]
-        },
-        {
-          "constructor": 0,
-          "fields": [
-            {
-              "int": 10251257937618905000
-            },
-            {
-              "bytes": "0e2d892b0c831adb6e8557f0e3a4e378ce1a0a1f89299a9d0ae0acd494631b04"
-            }
-          ]
-        },
-        {
           "constructor": 0,
           "fields": [
             {
@@ -277,7 +224,29 @@
           ]
         },
         {
-          "int": 1
+          "constructor": 0,
+          "fields": [
+            {
+              "bytes": "00bc6335441b7a7cb4f77b2f058e10944db25297df2eab05194a5339"
+            },
+            {
+              "bytes": "ca11ab1e007eaece91dd93d12d62339aef48bee420ae80a0e2b0425536def698"
+            },
+            {
+              "int": 1
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "int": 0
+            },
+            {
+              "int": 18446744073709552000
+            }
+          ]
         }
       ]
     }

@@ -34,34 +34,34 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   // the test_data.question is left to change into whatever here
   and {
     // owner cant change
-    a.owner == b.owner,
+    (a.owner == b.owner)?,
     // deposit cant change
-    a.deposit == b.deposit,
+    (a.deposit == b.deposit)?,
     // incentive cant change
-    a.incentive == b.incentive,
+    (a.incentive == b.incentive)?,
     // a positive deposit is required
-    a.deposit.amt > 0,
+    (a.deposit.amt > 0)?,
     // a positive min lovelace is required
-    a.min_lovelace > 0,
+    (a.min_lovelace > 0)?,
     // a positive incentive is required
-    a.incentive.amt > 0,
+    (a.incentive.amt > 0)?,
     // the validity must change
-    a.test_data.validity_range != b.test_data.validity_range,
+    (a.test_data.validity_range != b.test_data.validity_range)?,
     // time must be logical
-    moment.is_logical(b.test_data.validity_range),
+    moment.is_logical(b.test_data.validity_range)?,
     // start at the zeroth stage
-    b.test_data.cur_stage == 0,
+    (b.test_data.cur_stage == 0)?,
     // the randomness has to change
-    a.test_data.random != b.test_data.random,
+    (a.test_data.random != b.test_data.random)?,
     // this is the minium lovelace required for the coh token
-    a.min_lovelace == b.min_lovelace,
+    (a.min_lovelace == b.min_lovelace)?,
   }
 }
 
 pub fn end_test_datum_validation(
   a: PoHDatum,
   b: PoHDatum,
-  answer: AnswerData,
+  answer: Answer,
 ) -> Bool {
   and {
     // owner cant change
@@ -79,7 +79,7 @@ pub fn end_test_datum_validation(
     // question cant change
     a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
-    b.test_data.answer == answer.answer,
+    (b.test_data.answer == answer)?,
     // the randomness cant change
     a.test_data.random == b.test_data.random,
   }
@@ -91,12 +91,12 @@ pub type AnswerData {
 
 pub type PoHLockRedeemer {
   StartTest
-  EndTest { answer: AnswerData }
+  EndTest(Answer)
   VerifyTest
   Quit
 }
 
 pub type PoHMintRedeemer {
-  MintPoHToken { complexity: Int }
+  MintPoHToken
   BurnPoHToken
 }

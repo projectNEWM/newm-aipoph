@@ -1,4 +1,3 @@
-import math
 import random
 
 from src.coloring import (draw_colored_graph, find_minimal_coloring,
@@ -7,20 +6,20 @@ from src.generate import generate
 
 
 def test_find_coloring():
+    n = 15
+    # density
+    d = 0.25
+
     # this is a parameter
-    a = 1 / (math.e * math.pi)
-    # a = 1 / (math.e ** math.pi)
-    # a = 1 / 2
+    a = (-2 + d * n) / (-2 + n)
     b = 1 - a
     print(a, b)
 
     # this is a parameter
-    n = 20
-    e = (-1 + n) * (2 * b + a * n) // 2
-    print(f"A graph wiht {n} nodes and {e} edges")
+    e = int(d * (n * n - n) / 2)
+    # print(f"A graph wiht {n} nodes and {e} edges and density {(2 * e) / (n * (n - 1))}")
 
     rng = random.random()
-    rng = 0
     edges = generate(n, e, rng)
     print(edges)
 
