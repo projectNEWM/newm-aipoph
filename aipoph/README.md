@@ -1,8 +1,8 @@
-# aipoph
+# AIPoPh
 
 - TODO
 
-This is the smart contract implementation for `aipoph`. We seek to create a novel method for certifying human identity in a decentralized and secure manner.
+This is the smart contract implementation for `AIPoPh`. We seek to create a novel method for certifying human identity in a decentralized and secure manner.
 
 The current solution aims to create a system of contracts that are as close to a hyperstructure as possible. All federated and centralized solutions ought to be able to be derived from this solution.
 
