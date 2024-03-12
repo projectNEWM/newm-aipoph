@@ -1,4 +1,6 @@
-//// This is a threshold-based data script for a dao.
+//// This is a threshold-based datum script. Users with enough dao tokens may
+//// petition the dao for a datum update. The Datum is generalized to allow
+//// for a dynamic data structures and infinite undateablililty.
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}

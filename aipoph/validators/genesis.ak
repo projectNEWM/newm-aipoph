@@ -1,5 +1,5 @@
 //// This create an output utxo that contains a dao pointer token and the dao
-//// datum and it only can be used once.
+//// datum. This can only be used once.
 
 use aiken/transaction.{Mint, OutputReference, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
