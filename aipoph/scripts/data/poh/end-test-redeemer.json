@@ -1,0 +1,72 @@
+{
+  "constructor": 1,
+  "fields": [
+    {
+      "constructor": 0,
+      "fields": [
+        {
+          "list": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 2
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "bytes": "349be58c12c8724b9c705ecad06c435e0f9c7f0f9604833dba5fe95c37dbc9d3"
+            },
+            {
+              "bytes": "1faa4b23ce0e4d0fc10e17abbbde54c988c43d5e7cc9154304b12e6f0a474ba5"
+            },
+            {
+              "bytes": "7970f1f56f6fbac66e5a69a36c556fb1d2cea33d7e05a18b7881425949fef1c3af66a3b03dc35e1e0d971157aa47c7c36aee704137a02c98f444f209d14cfe0e"
+            }
+          ]
+        },
+        {
+          "constructor": 0,
+          "fields": [
+            {
+              "bytes": "349be58c12c8724b9c705ecad06c435e0f9c7f0f9604833dba5fe95c37dbc9d3"
+            },
+            {
+              "bytes": "357f1969124b87462fd65053ca0d0b9c5116513f8809c4ae3fbbc3f243e5b283"
+            },
+            {
+              "bytes": "e94c51c0e6be7a63eb5190c1478c8a4f01444ab7e51cd76c61dfd2fdb7cbd453237545e5fe45f768a70be092c8b4df60af1700396f4504d90ac1ecf518944000"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

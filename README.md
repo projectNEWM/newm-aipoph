@@ -26,11 +26,11 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **explore different methods of user verification**
   - [x] **study the feasibility of integrating them into Cardano**
   - [x] **research cryptographic proof generation and validation methods**
-- [ ] **Back-End Implementation**
-  - [ ] **developing the proof of humanity system**
-  - [ ] **coding the user verification module**
-  - [ ] **creating the cryptographic proof generation system**
-  - [ ] **implementing the proof validation system**
+- [x] **Back-End Implementation**
+  - [x] **developing the proof of humanity system**
+  - [x] **coding the user verification module**
+  - [x] **creating the cryptographic proof generation system**
+  - [x] **implementing the proof validation system**
 - [ ] **Quality-Control Stage**
   - [ ] **internal system testing**
   - [ ] **potential vulnerabilities testing**
@@ -56,7 +56,7 @@ The main goals of the Proof-of-Human (PoH) system for smart contracts are:
 
 ## Contact
 
-For questions, suggestions, or concerns, please reach out to logical.mechanism@protonmail.com.
+For questions, suggestions, or concerns, please reach out to `support@logicalmechanism.io`.
 
 ### MD2PDF
 
