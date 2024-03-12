@@ -148,8 +148,7 @@ validator(
               // the datum must change into the end test state
               poh.end_test_datum_validation(this_datum, that_datum, answer)?,
               // test period must still be valid
-              // moment.is_contained(
-              is_contained2(
+              moment.is_contained(
                 this_datum.test_data.validity_range,
                 this_tx.validity_range,
               )?,
@@ -190,26 +189,26 @@ validator(
                 value.add(this_value, poh_pid, token_names.poh_token_name, -1)
                   |> value.merge(value.negate(this_tx.fee))
                   |> value.add(
-                       this_datum.incentive.pid,
-                       this_datum.incentive.tkn,
-                       -this_datum.incentive.amt,
-                     )
+                      this_datum.incentive.pid,
+                      this_datum.incentive.tkn,
+                      -this_datum.incentive.amt,
+                    )
                   |> value.add(
-                       value.ada_policy_id,
-                       value.ada_asset_name,
-                       -this_datum.min_lovelace,
-                     )
+                      value.ada_policy_id,
+                      value.ada_asset_name,
+                      -this_datum.min_lovelace,
+                    )
               //
               // You are a human so burn the poh token and mint the coh token.
               // The deposit is not taken here and the test utxo goes back to
               // the owner automatically. The incentive is left open for the taking.
               //
               and {
-                // // test needs to be over
-                // moment.is_after(
-                //   this_datum.test_data.validity_range,
-                //   this_tx.validity_range,
-                // )?,
+                // test needs to be over
+                moment.is_after(
+                  this_datum.test_data.validity_range,
+                  this_tx.validity_range,
+                )?,
                 // single script output
                 count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // mint the coh token
@@ -232,21 +231,21 @@ validator(
                   |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
                   |> value.merge(value.negate(this_tx.fee))
                   |> value.add(
-                       this_datum.incentive.pid,
-                       this_datum.incentive.tkn,
-                       -this_datum.incentive.amt,
-                     )
+                      this_datum.incentive.pid,
+                      this_datum.incentive.tkn,
+                      -this_datum.incentive.amt,
+                    )
               //
               // You are not a human so burn the poh token and do not mint a coh token.
               // The deposit is taken here and sent to the vault. The test utxo goes back
               // to the owner automatically.
               //
               and {
-                // // test needs to be over
-                // moment.is_after(
-                //   this_datum.test_data.validity_range,
-                //   this_tx.validity_range,
-                // )?,
+                // test needs to be over
+                moment.is_after(
+                  this_datum.test_data.validity_range,
+                  this_tx.validity_range,
+                )?,
                 // single script output
                 count.outputs_by_addr(this_tx.outputs, this_addr, 0)?,
                 // do not mint the coh token
