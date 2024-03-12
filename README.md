@@ -26,7 +26,7 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **explore different methods of user verification**
   - [x] **study the feasibility of integrating them into Cardano**
   - [x] **research cryptographic proof generation and validation methods**
-- [ ] **Back-End Implementation**
+- [x] **Back-End Implementation**
   - [x] **developing the proof of humanity system**
   - [x] **coding the user verification module**
   - [x] **creating the cryptographic proof generation system**
