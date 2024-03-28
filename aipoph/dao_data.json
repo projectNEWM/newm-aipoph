@@ -1,28 +1,31 @@
 {
-    "thresholds" : {
-        "petition_threshold": 150000000,
-        "oracle_threshold": 150000000,
-        "start_poh_test_threshold": 150000000,
-        "mint_coh_threshold": 150000000,
-        "revoke_coh_threshold": 150000000,
-        "extract_vault_threshold": 150000000
-    },
-    "contracts": {
-        "drep_lock_contract": "",
-        "dao_contract": "",
-        "oracle_contract": "",
-        "poh_lock_contract": "",
-        "coh_lock_contract": "",
-        "vault_contract": ""
-    }, 
-    "fees" : {
-        "poh_start_test": 1000000,
-        "poh_verify_success": 1000000,
-        "poh_verify_fail": 1000000,
-        "coh_revoke" : 1000000,
-        "minimum_lovelace": 1500000
-    },
-    "keys" : {
-        "website_key": "349be58c12c8724b9c705ecad06c435e0f9c7f0f9604833dba5fe95c37dbc9d3"
-    }
+  "thresholds": {
+    "petition_threshold": 150000000,
+    "oracle_threshold": 150000000,
+    "start_poh_test_threshold": 150000000,
+    "mint_coh_threshold": 150000000,
+    "revoke_coh_threshold": 150000000,
+    "extract_vault_threshold": 150000000
+  },
+  "contracts": {
+    "drep_lock_contract": "4631c3d262ccf50930fd5c19b5d4fdd8ae1e022d1fa2f47ba5ed0914",
+    "dao_contract": "413e2ad485d4703b7cbaac612ffaf137b60ed5c822b94558c1769ea9",
+    "oracle_contract": "3970dbe88f7b3cfaba52ef4fe6e900a403e2d9bde4045d496a1ba8c0",
+    "poh_lock_contract": "c866518022fcee3991e40950cbf998017dac2ea693f350b96a382702",
+    "coh_lock_contract": "776c021b69085d8ccd31e096dac3a19b6bcd1f10f8d3e62e0c44eea0",
+    "vault_contract": "23381b5359bc26bf13ac3aa1bbe051f123d83c064ce3893486abe6fc",
+    "drep_mint_contract": "0ac58cd73a6ef8156d845efd78e5b7d27afc540fd24e4559e2d543db",
+    "poh_mint_contract": "20865f02304cdbe357f0d16439c65bad26a7ea8180b0ee6989834139",
+    "coh_mint_contract": "da6fdf433303a025db5a35bae73a096f860054b42937ad19d9ee649b"
+  },
+  "fees": {
+    "poh_start_test": 1000000,
+    "poh_verify_success": 1000000,
+    "poh_verify_fail": 1000000,
+    "coh_revoke": 1000000,
+    "minimum_lovelace": 1500000
+  },
+  "keys": {
+    "website_key": "349be58c12c8724b9c705ecad06c435e0f9c7f0f9604833dba5fe95c37dbc9d3"
+  }
 }

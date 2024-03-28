@@ -160,23 +160,19 @@ def generate_datum():
 
     dao_data = get_dao_data()
     for counter, outer_key in enumerate(dao_data):
-        # print(outer_key)
-        # map a byte map map lement
-        # base['fields'][0]['map'].append(byte_map_map_element(outer_key))
+        base['list'].append(new_data_element(outer_key))
         for inner_key in dao_data[outer_key]:
-            # print(inner_key)
             value = dao_data[outer_key][inner_key]
+            # print(outer_key, inner_key, value, counter)
             if isinstance(value, str):
                 # we need the byte_byte map element
-                # contract_hash = compute_contract_hash(inner_key)
-                # base['fields'][0]['map'][counter]['v']['map'].append(byte_byte_map_element(inner_key, contract_hash))
-                pass
+                base['list'][counter]['fields'][1]['list'].append(byte_byte_element(inner_key, value))
             elif isinstance(value, int):
                 # we need the byte_int map element
-                # base['fields'][0]['map'][counter]['v']['map'].append(byte_int_map_element(inner_key, value))
-                pass
+                base['list'][counter]['fields'][1]['list'].append(byte_int_element(inner_key, value))
             else:
                 pass
+
     # Get the current script's directory (py folder)
     current_script_path = pathlib.Path(__file__).parent
 
