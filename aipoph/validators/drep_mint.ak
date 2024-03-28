@@ -1,7 +1,5 @@
 //// This handles tokens for the drep
 
-use aiken/dict
-use aiken/list
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
@@ -45,7 +43,7 @@ validator(
         // we need to make sure nothing else officially is getting spent
         // so remove the lock hash since we need to spend that one here
         let all_validator_hashes: List<ValidatorHash> =
-          dict.values(contract_data) |> list.delete(lock_hash)
+          dao.delete_contract(contract_data, lock_hash, [])
         // build the lock address
         let this_lock_addr: Address = credential.from_script(lock_hash)
         // find the input being spent from it
