@@ -50,15 +50,15 @@ genesis_tx_in=${TXIN::-8}
 
 echo "Genesis UTxO:" $genesis_tx_in
 
-# this is set in the dao data
+# # this is set in the dao data
 petition_amount=$(jq -r '.thresholds.petition_threshold' ../dao_data.json)
-jq --argjson petition_amount "$petition_amount" '.fields[0].map[0].v.map[0].v.int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --argjson petition_amount "$petition_amount" '.list[0].fields[1].list[0].fields[1].int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg dao_hash "$dao_hash" '.fields[0].map[1].v.map[0].v.bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --arg dao_hash "$dao_hash" '.list[1].fields[1].list[0].fields[1].bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg drep_hash "$drep_hash" '.fields[0].map[1].v.map[1].v.bytes=$drep_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --arg drep_hash "$drep_hash" '.list[1].fields[1].list[1].fields[1].bytes=$drep_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
 # the pointer token

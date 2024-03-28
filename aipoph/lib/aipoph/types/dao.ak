@@ -30,24 +30,18 @@ pub type ByteArrayPublicKeyHashPair {
 }
 
 // general dict data type for the data requried for aipoph
-pub type DAODatum {
-  data: List<ByteArrayDataPair>,
-  version: Int,
-}
+pub type DAODatum =
+  List<ByteArrayDataPair>
 
 // find a data structure by a title inside the DAODatum data dictionary.
 pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
-  do_find_data(data.data, key)
-}
-
-fn do_find_data(datas: List<ByteArrayDataPair>, key: ByteArray) -> Data {
-  when datas is {
+  when data is {
     [] -> fail @"Data Structure Not Found"
     [d, ..ds] ->
       if d.key == key {
         d.value
       } else {
-        do_find_data(ds, key)
+        find_data(ds, key)
       }
   }
 }
