@@ -1,64 +1,121 @@
 //// The DAO data types for `aipoph`
 ////
 
-use aiken/dict.{Dict}
-use aiken/transaction/credential.{PoolId}
 use aiken/transaction/value.{Value}
 use assist/types/hashes.{PublicKeyHash, ValidatorHash}
-use assist/types/wallet.{Wallet}
 
 // Petition may change the required lovelace on the utxo
 pub type Petition {
   lovelace: Int,
 }
 
+pub type ByteArrayDataPair {
+  key: ByteArray,
+  value: Data,
+}
+
+pub type ByteArrayIntegerPair {
+  key: ByteArray,
+  value: Int,
+}
+
+pub type ByteArrayValidatorHashPair {
+  key: ByteArray,
+  value: ValidatorHash,
+}
+
+pub type ByteArrayPublicKeyHashPair {
+  key: ByteArray,
+  value: PublicKeyHash,
+}
+
 // general dict data type for the data requried for aipoph
 pub type DAODatum {
-  data: Dict<ByteArray, Data>,
+  data: List<ByteArrayDataPair>,
   version: Int,
 }
 
 // find a data structure by a title inside the DAODatum data dictionary.
 pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
-  when dict.get(data.data, key) is {
-    Some(thing) -> thing
-    None -> fail @"Data Structure Not Found"
+  do_find_data(data.data, key)
+}
+
+fn do_find_data(datas: List<ByteArrayDataPair>, key: ByteArray) -> Data {
+  when datas is {
+    [] -> fail @"Data Structure Not Found"
+    [d, ..ds] ->
+      if d.key == key {
+        d.value
+      } else {
+        do_find_data(ds, key)
+      }
   }
 }
 
 // The threshold structure is a data structure in DAOData
 pub type Thresholds =
-  Dict<ByteArray, Int>
+  List<ByteArrayIntegerPair>
 
 // find a threshold by some key inside the thresholds dictionary.
 pub fn find_threshold(thresholds: Thresholds, key: ByteArray) -> Int {
-  when dict.get(thresholds, key) is {
-    Some(threshold) -> threshold
-    None -> fail @"Threshold Not Found"
+  when thresholds is {
+    [] -> fail @"Threshold Not Found"
+    [d, ..ds] ->
+      if d.key == key {
+        d.value
+      } else {
+        find_threshold(ds, key)
+      }
   }
 }
 
 // The contract structure is a data structure in DAOData
 pub type Contracts =
-  Dict<ByteArray, ValidatorHash>
+  List<ByteArrayValidatorHashPair>
 
 // find a contract by title inside the contract dictionary.
 pub fn find_contract(contracts: Contracts, key: ByteArray) -> ValidatorHash {
-  when dict.get(contracts, key) is {
-    Some(contract) -> contract
-    None -> fail @"Contract Not Found"
+  when contracts is {
+    [] -> fail @"Contract Not Found"
+    [d, ..ds] ->
+      if d.key == key {
+        d.value
+      } else {
+        find_contract(ds, key)
+      }
+  }
+}
+
+pub fn delete_contract(
+  contracts: Contracts,
+  elem: ValidatorHash,
+  holder: List<ValidatorHash>,
+) -> List<ValidatorHash> {
+  when contracts is {
+    [] -> holder
+    [x, ..xs] ->
+      if x.value == elem {
+        delete_contract(xs, elem, holder)
+      } else {
+        delete_contract(xs, elem, [x.value, ..holder])
+      }
   }
 }
 
 // The fee structure is a data structure in DAOData
 pub type Fees =
-  Dict<ByteArray, Int>
+  List<ByteArrayIntegerPair>
 
 // find a fee by title inside the fee dictionary.
 pub fn find_fee(fees: Fees, key: ByteArray) -> Int {
-  when dict.get(fees, key) is {
-    Some(fee) -> fee
-    None -> fail @"Fee Not Found"
+  when fees is {
+    [] -> fail @"Fee Not Found"
+    [d, ..ds] ->
+      if d.key == key {
+        d.value
+      } else {
+        find_fee(ds, key)
+      }
   }
 }
 
@@ -68,32 +125,19 @@ pub fn is_valid_fee(this_fee: Value, fee: Int) -> Bool {
   fee > lovelace
 }
 
-// The staking structure is a data structure in DAOData
-pub type Staking =
-  Dict<ByteArray, StakeData>
-
-// find some stake data by a title inside the staking dictionary.
-pub fn find_stake_data(staking: Staking, key: ByteArray) -> StakeData {
-  when dict.get(staking, key) is {
-    Some(stake) -> stake
-    None -> fail @"Stake Data Not Found"
-  }
-}
-
-pub type StakeData {
-  pool_id: PoolId,
-  stake_cred: ValidatorHash,
-  reward_wallet: Wallet,
-}
-
 // The contract structure is a data structure in DAOData
 pub type Keys =
-  Dict<ByteArray, PublicKeyHash>
+  List<ByteArrayPublicKeyHashPair>
 
 // find a contract by title inside the contract dictionary.
 pub fn find_key(keys: Keys, key: ByteArray) -> PublicKeyHash {
-  when dict.get(keys, key) is {
-    Some(pkh) -> pkh
-    None -> fail @"PKH Not Found"
+  when keys is {
+    [] -> fail @"Public Key Hash Not Found"
+    [d, ..ds] ->
+      if d.key == key {
+        d.value
+      } else {
+        find_key(ds, key)
+      }
   }
 }
