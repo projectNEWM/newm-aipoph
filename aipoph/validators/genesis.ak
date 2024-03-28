@@ -60,17 +60,17 @@ validator(
         //
         and {
           // petition must exist and be positive
-          reference.does_the_intial_state_exist(dao_addr, that_datum),
+          reference.does_the_intial_state_exist(dao_addr, that_datum)?,
           // these inputs must be spending this output reference
-          tx.is_spending_input(this_tx.inputs, this_out_ref),
+          tx.is_spending_input(this_tx.inputs, this_out_ref)?,
           // mint exactly 1 pointer token
-          minting.exact(mint, currency_symbol, token_name, 1),
+          minting.exact(mint, currency_symbol, token_name, 1)?,
           // must send the dao address at least the pointer token
           payout.at_least(
             dao_addr,
             value.from_asset(currency_symbol, token_name, 1),
             this_tx.outputs,
-          ),
+          )?,
         }
       }
       // anything else fails

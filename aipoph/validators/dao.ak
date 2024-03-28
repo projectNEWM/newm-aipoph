@@ -63,22 +63,22 @@ validator(
         // 
         and {
           // at least the initial state has to exist
-          reference.does_the_intial_state_exist(this_addr, that_datum),
+          reference.does_the_intial_state_exist(this_addr, that_datum)?,
           // this value must be holding the pointer token
-          values.prove_exact_nft(pointer_pid, pointer_tkn, this_value),
+          values.prove_exact_nft(pointer_pid, pointer_tkn, this_value)?,
           // must be spending enough of the dao vote token
           tx.total_token_amount(
             this_tx.inputs,
             dao_pid,
             dao_tkn,
             petition_threshold,
-          ),
+          )?,
           // send that value exactly back to this address.
-          payout.exact(this_addr, that_value, this_tx.outputs),
+          payout.exact(this_addr, that_value, this_tx.outputs)?,
           // single script input + many dreps; anything else being spent with this should fail
-          count.single_input_with_bypass(this_tx.inputs, this_addr, [drep_addr]),
+          count.single_input_with_bypass(this_tx.inputs, this_addr, [drep_addr])?,
           // single script output
-          count.outputs_by_addr(this_tx.outputs, this_addr, 1),
+          count.outputs_by_addr(this_tx.outputs, this_addr, 1)?,
         }
       }
       // anything else fails

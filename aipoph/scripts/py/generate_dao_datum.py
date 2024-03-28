@@ -75,36 +75,45 @@ def get_dao_data() -> dict:
     return dao_data
 
 
-def byte_map_map_element(name: str) -> dict:
+def byte_int_element(key: str, value: int) -> dict:
     return {
-        "k": {
-            "bytes": to_hex(name)
-        },
-        "v": {
-            "map": []
-        }
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": to_hex(key)
+            },
+            {
+                "int": value
+            }
+        ]
     }
 
 
-def byte_int_map_element(name: str, number: int) -> dict:
+def byte_byte_element(key: str, value: str) -> dict:
     return {
-        "k": {
-            "bytes": to_hex(name)
-        },
-        "v": {
-            "int": int(number)
-        }
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": to_hex(key)
+            },
+            {
+                "bytes": value
+            }
+        ]
     }
 
 
-def byte_byte_map_element(name: str, contract: str) -> dict:
+def new_data_element(name: str) -> dict:
     return {
-        "k": {
-            "bytes": to_hex(name)
-        },
-        "v": {
-            "bytes": contract
-        }
+        "constructor": 0,
+        "fields": [
+            {
+                "bytes": to_hex(name)
+            },
+            {
+                "list": []
+            }
+        ]
     }
 
 
@@ -146,33 +155,26 @@ def compute_contract_hash(contract_file: str) -> str:
 
 def generate_datum():
     base = {
-        "constructor": 0,
-        "fields": [
-            {
-                "map": []
-            },
-            {
-                "int": 1
-            }
-        ]
+        "list": []
     }
 
     dao_data = get_dao_data()
     for counter, outer_key in enumerate(dao_data):
         # print(outer_key)
         # map a byte map map lement
-        base['fields'][0]['map'].append(byte_map_map_element(outer_key))
+        # base['fields'][0]['map'].append(byte_map_map_element(outer_key))
         for inner_key in dao_data[outer_key]:
             # print(inner_key)
             value = dao_data[outer_key][inner_key]
             if isinstance(value, str):
                 # we need the byte_byte map element
-
-                contract_hash = compute_contract_hash(inner_key)
-                base['fields'][0]['map'][counter]['v']['map'].append(byte_byte_map_element(inner_key, contract_hash))
+                # contract_hash = compute_contract_hash(inner_key)
+                # base['fields'][0]['map'][counter]['v']['map'].append(byte_byte_map_element(inner_key, contract_hash))
+                pass
             elif isinstance(value, int):
                 # we need the byte_int map element
-                base['fields'][0]['map'][counter]['v']['map'].append(byte_int_map_element(inner_key, value))
+                # base['fields'][0]['map'][counter]['v']['map'].append(byte_int_map_element(inner_key, value))
+                pass
             else:
                 pass
     # Get the current script's directory (py folder)
