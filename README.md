@@ -2,7 +2,7 @@
 
 **AIPoPh** -> **A**n **I**nteracting **P**rotocol t**O** **P**rove **h**umanity
 
-- pronouched AI Pop (ə aɪ pɑp) with a silent *h*
+- pronounced AI Pop (ə aɪ pɑp) with a silent *h*
 
 
 **AIPoPh** is an innovative proof of humanity (PoH) system developed by NEWM, aimed at bolstering the security of smart contracts. This protocol integrates traditional approaches with cryptographic proofs and machine learning techniques to ensure that users are genuine humans rather than advanced AI entities.
