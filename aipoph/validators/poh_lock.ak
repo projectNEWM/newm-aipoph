@@ -90,9 +90,9 @@ validator(
             and {
               // must not have poh token already
               !values.prove_exact_nft(
+                this_value,
                 poh_pid,
                 token_names.poh_token_name,
-                this_value,
               )?,
               // the poh token is being minted
               minting.is_occurring(mint, poh_pid, token_names.poh_token_name)?,
@@ -130,9 +130,9 @@ validator(
             and {
               // the test must have been started via minting the poh token
               values.prove_exact_nft(
+                this_value,
                 poh_pid,
                 token_names.poh_token_name,
-                this_value,
               )?,
               // single script input
               count.inputs_by_addr(this_tx.inputs, this_addr, 1),
@@ -168,9 +168,9 @@ validator(
             if and {
               // this checks if the test started
               values.prove_exact_nft(
+                this_value,
                 poh_pid,
                 token_names.poh_token_name,
-                this_value,
               )?,
               // this proves you are a human via the question and answer
               prove.you_are_a_human(

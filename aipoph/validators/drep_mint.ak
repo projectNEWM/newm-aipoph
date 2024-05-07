@@ -73,9 +73,9 @@ validator(
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
+                dao_input.output.value,
                 pointer_pid,
                 pointer_tkn,
-                dao_input.output.value,
               ),
               // must not be spending from things you dont represent
               tx.not_being_spent_from(all_validator_hashes, this_tx.inputs),
@@ -98,9 +98,9 @@ validator(
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
+                dao_input.output.value,
                 pointer_pid,
                 pointer_tkn,
-                dao_input.output.value,
               ),
               // must not be spending from things you dont represent
               tx.not_being_spent_from(all_validator_hashes, this_tx.inputs),

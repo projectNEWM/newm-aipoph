@@ -15,7 +15,7 @@ pub type VerificationData {
 }
 
 pub fn value_has_pointer(this_value: Value, pointer: Token) -> Bool {
-  values.prove_exact_nft(pointer.pid, pointer.tkn, this_value)
+  values.prove_exact_nft(this_value, pointer.pid, pointer.tkn)
 }
 
 pub fn is_time_valid(validity: Moment, a_range: ValidityRange) -> Bool {

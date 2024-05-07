@@ -91,10 +91,10 @@ validator(
                     1,
                   )
                     |> value.add(
-                         poh_lock_datum.incentive.pid,
-                         poh_lock_datum.incentive.tkn,
-                         -poh_lock_datum.incentive.amt,
-                       )
+                        poh_lock_datum.incentive.pid,
+                        poh_lock_datum.incentive.tkn,
+                        -poh_lock_datum.incentive.amt,
+                      )
                     |> value.merge(value.negate(this_tx.fee))
                 //
                 // the threshold to start the test
@@ -151,9 +151,9 @@ validator(
                   )?,
                   // data reference must be holding correct pointer token
                   values.prove_exact_nft(
+                    dao_input.output.value,
                     pointer_pid,
                     pointer_tkn,
-                    dao_input.output.value,
                   )?,
                   // do the this_tx meet the threshold
                   tx.total_token_amount(
@@ -177,9 +177,9 @@ validator(
                 if and {
                   // this checks if the test started
                   values.prove_exact_nft(
+                    this_poh_lock_value,
                     own_currency_symbol,
                     token_names.poh_token_name,
-                    this_poh_lock_value,
                   ),
                   // prove you are a human
                   prove.you_are_a_human(
@@ -207,9 +207,9 @@ validator(
                     )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
+                      dao_input.output.value,
                       pointer_pid,
                       pointer_tkn,
-                      dao_input.output.value,
                     )?,
                   }
                 } else {
@@ -276,9 +276,9 @@ validator(
                     )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
+                      dao_input.output.value,
                       pointer_pid,
                       pointer_tkn,
-                      dao_input.output.value,
                     )?,
                   }
                 }
@@ -323,9 +323,9 @@ validator(
                     )?,
                     // data reference must be holding correct token
                     values.prove_exact_nft(
+                      dao_input.output.value,
                       pointer_pid,
                       pointer_tkn,
-                      dao_input.output.value,
                     )?,
                     // the deposit is sent to the vault
                     payout.at_least(

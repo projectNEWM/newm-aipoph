@@ -87,9 +87,9 @@ validator(
               outgoing.amt < 0,
               // the dao input value must be holding the dao pointer token
               values.prove_exact_nft(
+                dao_input.output.value,
                 pointer_pid,
                 pointer_tkn,
-                dao_input.output.value,
               ),
               // must be spending enough of the dao vote token
               tx.total_token_amount(

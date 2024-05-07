@@ -133,9 +133,9 @@ validator(
                   )?,
                   // the coh lock value must be holding the coh token
                   values.prove_exact_nft(
+                    coh_lock_value,
                     own_currency_symbol,
                     token_names.coh_token_name,
-                    coh_lock_value,
                   )?,
                   // must mint 1 coh pointer token
                   minting.exact(
@@ -146,9 +146,9 @@ validator(
                   )?,
                   // the coh lock value must be holding the coh pointer token
                   values.prove_exact_nft(
+                    coh_lock_value,
                     own_currency_symbol,
                     coh_pointer_token_name,
-                    coh_lock_value,
                   )?,
                   // do the this_tx meet the threshold
                   tx.total_token_amount(
@@ -250,9 +250,9 @@ validator(
                   ),
                   // data reference must be holding correct token
                   values.prove_exact_nft(
+                    dao_input.output.value,
                     pointer_pid,
                     pointer_tkn,
-                    dao_input.output.value,
                   ),
                 }
               // anything else fail

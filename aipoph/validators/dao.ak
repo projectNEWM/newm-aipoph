@@ -65,7 +65,7 @@ validator(
           // at least the initial state has to exist
           reference.does_the_intial_state_exist(this_addr, that_datum)?,
           // this value must be holding the pointer token
-          values.prove_exact_nft(pointer_pid, pointer_tkn, this_value)?,
+          values.prove_exact_nft(this_value, pointer_pid, pointer_tkn)?,
           // must be spending enough of the dao vote token
           tx.total_token_amount(
             this_tx.inputs,

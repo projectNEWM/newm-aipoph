@@ -1,5 +1,5 @@
 name = "newm/aipoph"
-version = "0.2.0"
+version = "0.2.1"
 license = "Apache-2.0"
 description = "Aiken contracts for project 'newm/aipoph'"
 
@@ -15,5 +15,5 @@ source = "github"
 
 [[dependencies]]
 name = "logicalmechanism/assist"
-version = "v0.4.6"
+version = "v0.4.8"
 source = "github"
