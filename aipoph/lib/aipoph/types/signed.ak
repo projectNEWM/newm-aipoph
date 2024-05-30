@@ -1,7 +1,7 @@
 use aiken/builtin
 use assist/types/hashes.{PublicKeyHash}
 
-/// A data type to prive a signature but also a method of bringing in signed 
+/// A data type to prove a signature but also a method of bringing in signed 
 /// data into a contract.
 pub type SignedData {
   verification_key: PublicKeyHash,
