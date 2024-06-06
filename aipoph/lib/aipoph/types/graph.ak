@@ -1,5 +1,4 @@
 use aiken/builtin.{blake2b_256, serialise_data}
-use aiken/list
 
 pub type Node =
   Int
@@ -125,23 +124,6 @@ pub fn prove_coloring(graph: Graph, coloring: Coloring) -> Bool {
   }
 }
 
-// the coloring needs to be between the minimum and the allowed threshold
-pub fn prove_minimum(minimum: Int, threshold: Int, coloring: Coloring) -> Bool {
-  let k: Int =
-    coloring
-      |> list.foldl(
-           0,
-           fn(n, max) {
-             if n > max {
-               n
-             } else {
-               max
-             }
-           },
-         )
-  minimum + threshold >= k
-}
-
 test good_coloring() {
   let g: Graph =
     [
@@ -156,12 +138,6 @@ test good_coloring() {
   let c: Coloring =
     [0, 1, 2, 0, 1]
   prove_coloring(g, c)
-}
-
-test good_minimum() {
-  let c: Coloring =
-    [0, 1, 2, 0, 1]
-  prove_minimum(3, 1, c)
 }
 
 test bad_color() fail {
