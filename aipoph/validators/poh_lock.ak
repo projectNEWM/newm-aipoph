@@ -85,7 +85,7 @@ validator(
             //
             // If the utxo doesnt have a poh token and is in the correct datum state
             // then mint a poh token to a UTxO and begin the test.
-            // This is ran with MintPohToken.
+            // This is ran with MintPohToken which holds value logic.
             //
             and {
               // must not have poh token already
