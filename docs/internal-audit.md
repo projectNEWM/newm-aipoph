@@ -42,7 +42,7 @@ The `expect` keyword should be used since it will auto fail instead of returning
 
 ### IA-2: *Transaction context should be destructured instead of using `.access`*
 
-#### Severity: Medium Risk
+#### Severity: Low Risk
 
 #### Status:
 
@@ -77,7 +77,7 @@ This greatly reduces execution costs when traces are turned off.
 
 ### IA-3: *Change dao validator into reference validator*
 
-#### Severity: Information
+#### Severity: Informational
 
 #### Status:
 
@@ -185,7 +185,7 @@ A simple fix is making any premature leave of the test result in a lost deposit 
 
 ### IA-9: *Potential collusion attack with the EndTest redeemer due to trust of web signer*
 
-#### Severity: Severe
+#### Severity: High Risk
 
 #### Status:
 
@@ -203,7 +203,7 @@ The website part of the test must be robust and fault tolerant to prevent this t
 
 ### IA-10: *Inability to prove that random data from the oracle is sufficently random*
 
-#### Severity: High
+#### Severity: High Risk
 
 #### Status:
 
@@ -221,7 +221,7 @@ A merkle-tree of values may be applicable but randomness may be reoccurring. Ver
 
 ### IA-11: *Destruct reference.get_data into two functions*
 
-#### Severity: Low
+#### Severity: Low Risk
 
 #### Status:
 
@@ -276,7 +276,7 @@ Add a couple of lines of documentation above the `and` statements in each valida
 
 ### IA-13: *Write Extensive tests for Moment calculations*
 
-#### Severity: High
+#### Severity: Medium Risk
 
 #### Status:
 
@@ -289,6 +289,124 @@ The Moment type is used extensively during the proof of humanity test phase. Any
 #### Recommendation:
 
 Write tests that prove that the Moment type works as expected that go well beyond the Assist library tests.
+
+---
+
+### IA-14: *Add Top Level comments to the validators*
+
+#### Severity: Informational
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+Write top level comments using `////` at the top of each validator that describes what the validator does and the point of it.
+
+#### Recommendation:
+
+Some validator already have them so the ones that do have them need to be reviewed.
+
+---
+
+### IA-15: *Some public functions should be private and not exposed*
+
+#### Severity: Low Risk
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+Some functions are defined to be public but they are only used as private helper functions. Find all public functions and make sure that they are actually supposed to be public else convert them to private functions.
+
+#### Recommendation:
+
+Remove `pub` from functions that are really just private.
+
+---
+
+### IA-16: *Remove all functions that are not used in the code base*
+
+#### Severity: Informational
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+There are functions that are defined but are never used anywhere.
+
+#### Recommendation:
+
+Find and remove all unused functions.
+
+---
+
+### IA-17: *Proving the vault is being spent has redundant logic*
+
+#### Severity: Low Risk
+
+#### Status:
+
+#### Files Affected: poh_mint.ak
+
+#### Description:
+
+When losing a deposit, the vault must be spent along with the burning of the poh token. The logic does a redundant self check as shown below.
+
+```rust
+let is_vault_being_spent: Bool =
+  when vault_redeemer is {
+    AddToVault { incoming } -> incoming == incoming
+    _ -> False
+  }
+```
+
+Proving that the incoming variable is equal to itself is redundant. This `when is` statement can be simplified into an `expect` such that the code will auto fail if the wrong redeemer is used.
+
+#### Recommendation:
+
+Either change the logic to just returning a true or remove the `when is` and replace it with an `expect` statement. The expect statement soluiton will be cheaper than simply returning a boolean.
+
+---
+
+### IA-18: *Replace PoHDatum integer state with token mint*
+
+#### Severity: Medium Risk
+
+#### Status:
+
+#### Files Affected: poh_lock.ak, poh_mint.ak
+
+#### Description:
+
+The StartTest redeemer does verify that the `datum.test_data.cur_stage` has the correct value. Holding state as an integer inside the datum is not recommended. State management should be governed by token possession.
+
+#### Recommendation:
+
+Remove cur_stage from the datum and replace it with a proof of holding exactly a nft validation function. The cur_stage is just indication that the test has moved from the on going test phase to the end test phase. The logic itself must be reviewed as it may be possible to remove this all together.
+
+---
+
+### IA-19: *Petition threshold protection against collusion attacks*
+
+#### Severity: High Risk
+
+#### Status:
+
+#### Files Affected: dao.ak
+
+#### Description:
+
+The only requirement for the petition threshold is that it has to be greater than zero. There does not exist any protections against increasing it or decreasing it to dangerous values. For example, reducing the threshold to 1 to allow anyone to petition resulting in potentially easily revoked coh tokens. Or the inverse, increasing it to a value larger than the total token supply resulting in an unupdatable datum.
+
+#### Recommendation:
+
+Review and investigate potential petition threshold restrictions. Knowledge of the dao token is limited to the policy id and token name. The total amount, contract closure, and distribution are hidden from the validator. 
 
 ---
 
