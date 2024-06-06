@@ -103,7 +103,7 @@ Change dao into reference for the validator, type, and scripts. The DAO token us
 
 #### Description:
 
-The explicit use of a Lovelace term inside the redeemer is redundant. It increases complexity and cost without gaiing any security benefits.
+The explicit use of a Lovelace term inside the redeemer is redundant. It increases complexity and cost without gaining any security benefits.
 
 #### Recommendation:
 
@@ -180,6 +180,115 @@ If a user does not place enough Lovelace onto the test UTxO then during the Veri
 #### Recommendation:
 
 A simple fix is making any premature leave of the test result in a lost deposit as if the user failed the test. Then not having enough gas will just throw the UTxO into the Quit state with a lost deposit and not a perma lock.
+
+---
+
+### IA-9: *Potential collusion attack with the EndTest redeemer due to trust of web signer*
+
+#### Severity: Severe
+
+#### Status:
+
+#### Files Affected: poh_lock.ak
+
+#### Description:
+
+A trusted website must host the graph coloring test. The site itself has to sign off on the data for the Answer type to be valid. If the web signer signs incorrect data, fails to sign the data, or refuses to sign the data then the test will always fail due to a bad web signer signature.
+
+#### Recommendation:
+
+The website part of the test must be robust and fault tolerant to prevent this type of attack from occurring during valid tests. Failing a test means the user loses their deposit. If the Answer is valid but the web signer signature fails then either the user should get their deposit back or the website should have some off-chain contesting feature that would allow the user to contact the test company.
+
+---
+
+### IA-10: *Inability to prove that random data from the oracle is sufficently random*
+
+#### Severity: High
+
+#### Status:
+
+#### Files Affected: oracle.ak, poh_lock.ak
+
+#### Description:
+
+The oracle requirement is that the new random data is different from the previous random data but it does not prevent reusing old data nor does it prove that the data itself is truely random. A bad oracle could reuse the same random values from a set of 2 or more values. This would generate a set of graphs of the same size as the number of unique random numbers. This could potentially make the coloring of these graphs trival, breaking the np-hardness of the coloring problem.
+
+#### Recommendation:
+
+A merkle-tree of values may be applicable but randomness may be reoccurring. Verifiable randomness would be nice but that primative is not available.
+
+---
+
+### IA-11: *Destruct reference.get_data into two functions*
+
+#### Severity: Low
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+There is not benefit to writing this function to return a tuple.
+
+```rust
+// get the dao reference utxo
+let (dao_datum, dao_input): (DAODatum, Input) = reference.get_data(this_tx.reference_inputs, dao_hash_data)
+```
+
+The dao_data_hash is not data either. It can be safely assumed to be a ValidatorHash. Which means the expect statement inside get_data is redundant.
+
+```rust
+expect dao_hash: ValidatorHash = dao_hash_data
+```
+
+This is expecting something to be in that type when it already is that type at the start.
+
+#### Recommendation:
+
+Deflat the function back into its parts.
+
+```rust
+let dao_addr: Address = credential.from_script(dao_hash)
+let dao_input: Input = find.input_by_addr(reference_inputs, dao_addr)
+expect dao_datum: DAODatum = data.input_datum(dao_input)
+```
+
+---
+
+### IA-12: *All validators need comments describing the validation above the `and` where applicable*
+
+#### Severity: Informational
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+It is very convienient to have a quick description above the `and{..}` statement inside a validator using simple language. Some validator have it but others don't.
+
+#### Recommendation:
+
+Add a couple of lines of documentation above the `and` statements in each validator describe what the and logic does for the validation.
+
+---
+
+### IA-13: *Write Extensive tests for Moment calculations*
+
+#### Severity: High
+
+#### Status:
+
+#### Files Affected: poh_lock.ak
+
+#### Description:
+
+The Moment type is used extensively during the proof of humanity test phase. Any issues associated with the Moment type will transfer to issues with the test resulting in lost deposits.
+
+#### Recommendation:
+
+Write tests that prove that the Moment type works as expected that go well beyond the Assist library tests.
 
 ---
 
