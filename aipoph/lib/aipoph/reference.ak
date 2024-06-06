@@ -47,16 +47,6 @@ pub fn does_the_intial_state_exist(
   }
 }
 
-pub fn does_petition_threshold_exist(dao_datum: DAODatum) -> Bool {
-  // this will fail if it doesn't exist
-  expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
-  // the threshold to change data
-  // this will fail if it doesn't exist
-  let petition_threshold: Int =
-    dao.find_threshold(threshold_data, keys.petition_threshold)
-  petition_threshold > 0
-}
-
 pub fn get_petition_threshold(dao_datum: DAODatum) -> Int {
   // this will fail if it doesn't exist
   expect threshold_data: Thresholds = dao.find_data(dao_datum, keys.thresholds)
@@ -134,20 +124,6 @@ pub fn get_poh_lock_contract(dao_datum: DAODatum) -> Address {
   let poh_contract_hash: ValidatorHash =
     dao.find_contract(contract_data, keys.poh_lock_contract)
   credential.from_script(poh_contract_hash)
-}
-
-pub fn get_coh_lock_contract(dao_datum: DAODatum) -> Address {
-  expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
-  let coh_contract_hash: ValidatorHash =
-    dao.find_contract(contract_data, keys.coh_lock_contract)
-  credential.from_script(coh_contract_hash)
-}
-
-pub fn get_oracle_contract(dao_datum: DAODatum) -> Address {
-  expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
-  let oracle_contract_hash: ValidatorHash =
-    dao.find_contract(contract_data, keys.oracle_contract)
-  credential.from_script(oracle_contract_hash)
 }
 
 pub fn get_poh_start_test_fee(dao_datum: DAODatum) -> Int {

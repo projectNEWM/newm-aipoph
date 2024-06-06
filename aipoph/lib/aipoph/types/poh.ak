@@ -85,10 +85,6 @@ pub fn end_test_datum_validation(
   }
 }
 
-pub type AnswerData {
-  answer: Answer,
-}
-
 pub type PoHLockRedeemer {
   StartTest
   EndTest(Answer)

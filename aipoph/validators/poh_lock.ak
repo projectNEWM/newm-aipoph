@@ -1,10 +1,7 @@
 //// this controls the locking of the poh pointer token and contains all of the
 //// poh test logic. a successful test will issue a certificate of humanity
 
-use aiken/interval.{
-  Finite, Interval, IntervalBound, NegativeInfinity, PositiveInfinity,
-}
-use aiken/transaction.{Input, ScriptContext, Spend, Transaction, ValidityRange}
+use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/token_names
@@ -18,33 +15,9 @@ use assist/find
 use assist/minting
 use assist/payout
 use assist/signing
-use assist/types/moment.{Moment}
+use assist/types/moment
 use assist/types/token.{Token}
 use assist/values
-
-pub fn is_contained2(m: Moment, vr: ValidityRange) -> Bool {
-  when vr.lower_bound.bound_type is {
-    // must be finite
-    NegativeInfinity -> fail @"lower bound neg inf"
-    // get the lower bound int
-    Finite(lower_bound) ->
-      when vr.upper_bound.bound_type is {
-        // must be finite
-        NegativeInfinity -> fail @"upper bound neg inf"
-        // get the upper bound int
-        Finite(upper_bound) -> and {
-            // the lower bound is greater than or equal the start of the moment
-            (m.start <= lower_bound)?,
-            // the upper bound is less or equal to the end of the moment
-            (upper_bound <= m.end)?,
-          }
-        // must be finite
-        PositiveInfinity -> fail @"upper bound pos inf"
-      }
-    // must be finite
-    PositiveInfinity -> fail @"lower bound pos inf"
-  }
-}
 
 validator(
   // the proof of humanity pid

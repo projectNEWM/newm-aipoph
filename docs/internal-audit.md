@@ -410,6 +410,24 @@ Review and investigate potential petition threshold restrictions. Knowledge of t
 
 ---
 
+### IA-20: *Website Hot Key needs to exist inside the datum and be checked against the answer during prove you are a human*
+
+#### Severity: High Risk
+
+#### Status:
+
+#### Files Affected: poh_lock.ak, poh_mint.ak, coh_lock.ak, coh_mint.ak
+
+#### Description:
+
+Only the website hot key can sign the answer data. The reference key exists in the code base but there is not validation checking if that key is actually used inside the answer data structure.
+
+#### Recommendation:
+
+Destruct the Answer data and check if the verification key used to sign the answer is the website hot key. A function to validation this case is already inside of prove.ak. It just needs to be used inside of `prove.you_are_a_human(..)`. There is already a funciton to find the correct keys as well.
+
+---
+
 ### IA-#: **
 
 #### Severity:
