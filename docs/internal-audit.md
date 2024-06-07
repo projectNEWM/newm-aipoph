@@ -10,7 +10,9 @@ The findings of our internal audit is below in no particular order.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/23
 
 #### Files Affected: All Validators
 
@@ -44,7 +46,9 @@ The `expect` keyword should be used since it will auto fail instead of returning
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/23
 
 #### Files Affected: All Validators
 
