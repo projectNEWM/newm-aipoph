@@ -81,7 +81,7 @@ test small_graph_graph_hash() {
   graph_hash(g) == #"b3064a26269668c85c14d735a77b3b225f5e30ad911870428d3d8daba85e486c"
 }
 
-fn get_color(coloring: Coloring, node: Int) -> Color {
+pub fn get_color(coloring: Coloring, node: Int) -> Color {
   do_get_color(coloring, node, 0)
 }
 
