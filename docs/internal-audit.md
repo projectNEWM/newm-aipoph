@@ -83,7 +83,9 @@ This greatly reduces execution costs when traces are turned off.
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/24
 
 #### Files Affected: dao.ak
 
