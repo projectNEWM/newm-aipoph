@@ -98,7 +98,7 @@ validator(
             extract_vault_threshold,
           ),
           // send that value to this address
-          payout.exact(this_addr, that_value, outputs),
+          payout.at_least(this_addr, that_value, outputs),
           // single script input + many dreps
           count.single_input_with_bypass(inputs, this_addr, [drep_addr]),
           // single script output
