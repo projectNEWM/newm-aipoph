@@ -1,4 +1,4 @@
-//// The DAO data types for `aipoph`
+//// The Reference data types for `aipoph`
 ////
 
 use aiken/builtin
@@ -11,11 +11,11 @@ pub type Petition {
 }
 
 // general dict data type for the data requried for aipoph
-pub type DAODatum =
+pub type ReferenceDatum =
   Pairs<ByteArray, Data>
 
-// find a data structure by a title inside the DAODatum data dictionary.
-pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
+// find a data structure by a title inside the ReferenceDatum data dictionary.
+pub fn find_data(data: ReferenceDatum, key: ByteArray) -> Data {
   when data is {
     [] -> fail @"Data Structure Not Found"
     [d, ..ds] ->
@@ -27,7 +27,7 @@ pub fn find_data(data: DAODatum, key: ByteArray) -> Data {
   }
 }
 
-// The threshold structure is a data structure in DAOData
+// The threshold structure is a data structure in ReferenceData
 pub type Thresholds =
   Pairs<ByteArray, Int>
 
@@ -44,7 +44,7 @@ pub fn find_threshold(thresholds: Thresholds, key: ByteArray) -> Int {
   }
 }
 
-// The contract structure is a data structure in DAOData
+// The contract structure is a data structure in ReferenceData
 pub type Contracts =
   Pairs<ByteArray, ValidatorHash>
 
@@ -77,7 +77,7 @@ pub fn delete_contract(
   }
 }
 
-// The fee structure is a data structure in DAOData
+// The fee structure is a data structure in ReferenceData
 pub type Fees =
   Pairs<ByteArray, Int>
 
@@ -100,7 +100,7 @@ pub fn is_valid_fee(this_fee: Value, fee: Int) -> Bool {
   fee > lovelace
 }
 
-// The contract structure is a data structure in DAOData
+// The contract structure is a data structure in ReferenceData
 pub type Keys =
   Pairs<ByteArray, PublicKeyHash>
 

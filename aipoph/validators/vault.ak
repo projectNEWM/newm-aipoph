@@ -3,8 +3,8 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/reference
-use aipoph/types/dao.{DAODatum}
+use aipoph/query
+use aipoph/types/reference.{ReferenceDatum}
 use aipoph/types/vault.{AddToVault, SubFromVault, VaultRedeemer}
 use assist/count
 use assist/find
@@ -13,14 +13,14 @@ use assist/tx
 use assist/values
 
 validator(
-  // the dao pointer token
+  // the pointer token
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao vote token
-  dao_pid: PolicyId,
-  dao_tkn: AssetName,
-  // the dao contract hash
-  dao_hash_data: Data,
+  // the action token
+  action_pid: PolicyId,
+  action_tkn: AssetName,
+  // the reference contract hash
+  reference_hash_data: Data,
 ) {
   fn params(
     _datum: Void,
@@ -62,39 +62,39 @@ validator(
           count.outputs_by_addr(outputs, this_addr, 1)?,
         }
       }
-      // only those with enough dao tokens may subtract from the vault
+      // only those with enough action tokens may subtract from the vault
       SubFromVault { outgoing } -> {
         // subtract the outgoing token data from this value
         let that_value: Value =
           value.add(this_value, outgoing.pid, outgoing.tkn, outgoing.amt)
-        // get the dao reference utxo
-        let (dao_datum, dao_input): (DAODatum, Input) =
-          reference.get_data(reference_inputs, dao_hash_data)
+        // get the reference utxo
+        let (reference_datum, reference_input): (ReferenceDatum, Input) =
+          query.get_data(reference_inputs, reference_hash_data)
         // the threshold to change data
         let extract_vault_threshold: Int =
-          reference.get_extract_vault_threshold(dao_datum)
+          query.get_extract_vault_threshold(reference_datum)
         // get the addresses that 
-        let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
+        let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
         //
         // Tokens can only be subtracted from the UTxO if and only if there
-        // is enough of the dao vote token being spent inside the transaction.
+        // is enough of the action token being spent inside the transaction.
         // The UTxO must always exist so some value has to come back to the
         // contract.
         //
         and {
           // can only subtract a token
           outgoing.amt < 0,
-          // the dao input value must be holding the dao pointer token
+          // the reference input value must be holding the pointer token
           values.prove_exact_nft(
-            dao_input.output.value,
+            reference_input.output.value,
             pointer_pid,
             pointer_tkn,
           ),
-          // must be spending enough of the dao vote token
+          // must be spending enough of the action token
           tx.total_token_amount(
             inputs,
-            dao_pid,
-            dao_tkn,
+            action_pid,
+            action_tkn,
             extract_vault_threshold,
           ),
           // send that value to this address

@@ -4,13 +4,13 @@ use aiken/transaction.{Input, Mint, Output, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
-use aipoph/reference
+use aipoph/query
 use aipoph/token_names
 use aipoph/types/coh.{
   BurnCoHToken, CoHDatum, CoHLockRedeemer, CoHMintRedeemer, MintCoHToken, Revoke,
 }
-use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/poh.{PoHDatum, PoHLockRedeemer, VerifyTest}
+use aipoph/types/reference.{Contracts, ReferenceDatum}
 use aipoph/types/vault.{AddToVault, VaultRedeemer}
 use assist/count
 use assist/data
@@ -27,11 +27,11 @@ validator(
   // the pointer token for pointing at
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao token for voting
-  dao_pid: PolicyId,
-  dao_tkn: AssetName,
-  // the dao contract hash
-  dao_hash_data: Data,
+  // the action token for voting
+  action_pid: PolicyId,
+  action_tkn: AssetName,
+  // the reference contract hash
+  reference_hash_data: Data,
 ) {
   fn params(redeemer: CoHMintRedeemer, context: ScriptContext) -> Bool {
     // must be minting
@@ -47,14 +47,15 @@ validator(
       validity_range,
       ..
     } = context.transaction
-    // get the dao reference utxo
-    let (dao_datum, dao_input): (DAODatum, Input) =
-      reference.get_data(reference_inputs, dao_hash_data)
+    // get the reference utxo
+    let (reference_datum, reference_input): (ReferenceDatum, Input) =
+      query.get_data(reference_inputs, reference_hash_data)
     // search the contracts for the coh lock
-    expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
+    expect contract_data: Contracts =
+      reference.find_data(reference_datum, keys.contracts)
     // this is the coh lock hash
     let coh_lock_hash: ValidatorHash =
-      dao.find_contract(contract_data, keys.coh_lock_contract)
+      reference.find_contract(contract_data, keys.coh_lock_contract)
     // build the lock address
     let coh_lock_addr: Address = credential.from_script(coh_lock_hash)
     // find the output being sent to the coh lock address
@@ -68,13 +69,13 @@ validator(
         |> value.from_minted_value()
         |> value.flatten()
     // the drep address that can be spent from
-    let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
+    let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
     when redeemer is {
       // mint the poh token
       MintCoHToken -> {
         // this is the poh lock hash
         let poh_lock_hash: ValidatorHash =
-          dao.find_contract(contract_data, keys.poh_lock_contract)
+          reference.find_contract(contract_data, keys.poh_lock_contract)
         // build the lock address
         let poh_lock_addr: Address = credential.from_script(poh_lock_hash)
         // find the input being spent from it
@@ -90,7 +91,7 @@ validator(
           VerifyTest -> {
             // the threshold to start the test
             let coh_mint_threshold: Int =
-              reference.get_coh_mint_threshold(dao_datum)
+              query.get_coh_mint_threshold(reference_datum)
             // this is a unique pointer inside the utxo
             let coh_pointer_token_name: AssetName =
               values.unique_token_name(
@@ -151,8 +152,8 @@ validator(
               // do the this_tx meet the threshold
               tx.total_token_amount(
                 inputs,
-                dao_pid,
-                dao_tkn,
+                action_pid,
+                action_tkn,
                 coh_mint_threshold,
               )?,
             }
@@ -176,7 +177,7 @@ validator(
           find.redeemer_by_ref(redeemers, coh_lock_input.output_reference)
         // the user will lose the ada to the vault
         let vault_hash: ValidatorHash =
-          dao.find_contract(contract_data, keys.vault_contract)
+          reference.find_contract(contract_data, keys.vault_contract)
         // build the vault address
         let vault_addr: Address = credential.from_script(vault_hash)
         // find the input being spent from it
@@ -200,8 +201,8 @@ validator(
           )
         // the threshold to start the test
         let coh_revoke_threshold: Int =
-          reference.get_revoke_coh_threshold(dao_datum)
-        let max_revoke_fee: Int = reference.get_coh_revoke_fee(dao_datum)
+          query.get_revoke_coh_threshold(reference_datum)
+        let max_revoke_fee: Int = query.get_coh_revoke_fee(reference_datum)
         when coh_lock_redeemer is {
           // the test is being verified
           Revoke -> and {
@@ -212,7 +213,7 @@ validator(
                 [drep_addr, vault_addr],
               ),
               // fee must be less then max fee
-              dao.is_valid_fee(fee, max_revoke_fee),
+              reference.is_valid_fee(fee, max_revoke_fee),
               // vault add needs to be called
               is_vault_being_spent,
               // the ada is sent to the vault
@@ -234,13 +235,13 @@ validator(
               // do the this_tx meet the threshold
               tx.total_token_amount(
                 inputs,
-                dao_pid,
-                dao_tkn,
+                action_pid,
+                action_tkn,
                 coh_revoke_threshold,
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
-                dao_input.output.value,
+                reference_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               ),
