@@ -187,7 +187,7 @@ A simple fix is making any premature leave of the test result in a lost deposit 
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Acknowledge
 
 #### Files Affected: poh_lock.ak
 
@@ -205,7 +205,7 @@ The website part of the test must be robust and fault tolerant to prevent this t
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Acknowledge
 
 #### Files Affected: oracle.ak, poh_lock.ak
 
@@ -436,7 +436,7 @@ Destruct the Answer data and check if the verification key used to sign the answ
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Acknowledge
 
 #### Files Affected: poh_lock.ak, poh_mint.ak
 
