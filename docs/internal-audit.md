@@ -314,7 +314,9 @@ Some validator already have them so the ones that do have them need to be review
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/22
 
 #### Files Affected: All Validators
 
