@@ -1,0 +1,32 @@
+{
+  "thresholds": {
+    "petition_threshold": 150000000,
+    "oracle_threshold": 150000000,
+    "start_poh_test_threshold": 150000000,
+    "mint_coh_threshold": 150000000,
+    "revoke_coh_threshold": 150000000,
+    "extract_vault_threshold": 150000000
+  },
+  "contracts": {
+    "drep_lock_contract": "39ef1797c3d1acc7a9b6941dd6f32da73f5e94775032487ce56e0aba",
+    "dao_contract": "cbc4095d587857d65f1283b15065b866452d2e916b9c713d8e8ff79c",
+    "oracle_contract": "32ef2a5fca54bd975af4d1b05fb10231c43469fd6d20972fe550a975",
+    "poh_lock_contract": "d9ef70fc5947792deb6e12553e46609ee546308e8a0fbfb604f9de0b",
+    "coh_lock_contract": "774deeed3a58904c96cbdcf991c93469d7b071eb9519b715eaeb5e67",
+    "vault_contract": "339fdff310a9220de14db381965b17e8823f95a895159fd8029fd3e0",
+    "drep_mint_contract": "d80f4baccbd1a28c907f51c0cf4f23458071f73c84cc46824300b7e0",
+    "poh_mint_contract": "ccbce8efcd00fd08ed30943d9c066a8454c07496073bcf3f704a2a48",
+    "coh_mint_contract": "4b45851ddde6f7622cca9b96d3338a5cf8a27d48dc121592af9831c7",
+    "reference_contract": "5ee7ab19e3292f5d022d6f567f804dcdff0642e157fcbab0b9acdd7a"
+  },
+  "fees": {
+    "poh_start_test": 1000000,
+    "poh_verify_success": 1000000,
+    "poh_verify_fail": 1000000,
+    "coh_revoke": 1000000,
+    "minimum_lovelace": 1500000
+  },
+  "keys": {
+    "website_key": "349be58c12c8724b9c705ecad06c435e0f9c7f0f9604833dba5fe95c37dbc9d3"
+  }
+}

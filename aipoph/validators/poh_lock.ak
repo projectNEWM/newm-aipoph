@@ -129,7 +129,7 @@ validator(
       }
       // A threshold actor will verify the test. This will result in either a coh token
       // being minted into the coh lock contract or the test deposit will be lost to the
-      // dao vault.
+      // vault.
       VerifyTest -> {
         // the test owner address
         let owner_address: Address =

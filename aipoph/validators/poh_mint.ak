@@ -6,15 +6,15 @@ use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
-use aipoph/reference
+use aipoph/query
 use aipoph/token_names
-use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/oracle.{OracleDatum}
 use aipoph/types/poh.{
   BurnPoHToken, MintPoHToken, PoHDatum, PoHLockRedeemer, PoHMintRedeemer, Quit,
   StartTest, VerifyTest,
 }
 use aipoph/types/prove
+use aipoph/types/reference.{Contracts, ReferenceDatum}
 use aipoph/types/vault.{AddToVault, VaultRedeemer}
 use assist/count
 use assist/data
@@ -29,11 +29,11 @@ validator(
   // the pointer token for pointing at
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao token for voting
-  dao_pid: PolicyId,
-  dao_tkn: AssetName,
-  // the dao contract hash
-  dao_hash_data: Data,
+  // the action token for voting
+  action_pid: PolicyId,
+  action_tkn: AssetName,
+  // the reference contract hash
+  reference_hash_data: Data,
 ) {
   fn params(redeemer: PoHMintRedeemer, context: ScriptContext) -> Bool {
     // must be minting
@@ -48,14 +48,15 @@ validator(
       redeemers,
       ..
     } = context.transaction
-    // get the dao reference utxo
-    let (dao_datum, dao_input): (DAODatum, Input) =
-      reference.get_data(reference_inputs, dao_hash_data)
+    // get the reference utxo
+    let (reference_datum, reference_input): (ReferenceDatum, Input) =
+      query.get_data(reference_inputs, reference_hash_data)
     // search the contracts for the poh lock
-    expect contract_data: Contracts = dao.find_data(dao_datum, keys.contracts)
+    expect contract_data: Contracts =
+      reference.find_data(reference_datum, keys.contracts)
     // this is the poh lock hash
     let poh_lock_hash: ValidatorHash =
-      dao.find_contract(contract_data, keys.poh_lock_contract)
+      reference.find_contract(contract_data, keys.poh_lock_contract)
     // build the lock address
     let poh_lock_addr: Address = credential.from_script(poh_lock_hash)
     // find the input being spent from it
@@ -72,7 +73,7 @@ validator(
     expect poh_lock_redeemer: PoHLockRedeemer =
       find.redeemer_by_ref(redeemers, poh_lock_input.output_reference)
     // the drep address that can be spent from
-    let drep_addr: Address = reference.get_drep_lock_contract(dao_datum)
+    let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
     when redeemer is {
       // Minting is designed for a threshold actor to come in and prepare a test for the owner.
       // They are paid an incentive and the fee for the tx is already on the utxo. The tx
@@ -101,13 +102,13 @@ validator(
             //
             // the threshold to start the test
             let start_poh_test_threshold: Int =
-              reference.get_poh_test_threshold(dao_datum)
+              query.get_poh_test_threshold(reference_datum)
             // maximum fee allowed in this tx
             let max_start_test_fee: Int =
-              reference.get_poh_start_test_fee(dao_datum)
+              query.get_poh_start_test_fee(reference_datum)
             // this is the oracle hash
             let oracle_hash: ValidatorHash =
-              dao.find_contract(contract_data, keys.oracle_contract)
+              reference.find_contract(contract_data, keys.oracle_contract)
             // build the oracle address
             let oracle_addr: Address = credential.from_script(oracle_hash)
             // find the oracle input being spent
@@ -129,7 +130,7 @@ validator(
               (that_poh_lock_datum.test_data.random.number == oracle_datum.number)?,
               (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,
               // fee must be less then max fee for starting the test
-              dao.is_valid_fee(fee, max_start_test_fee)?,
+              reference.is_valid_fee(fee, max_start_test_fee)?,
               // single script input + many dreps + oracle
               count.single_input_with_bypass(
                 inputs,
@@ -147,15 +148,15 @@ validator(
               )?,
               // data reference must be holding correct pointer token
               values.prove_exact_nft(
-                dao_input.output.value,
+                reference_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               )?,
               // do the this_tx meet the threshold
               tx.total_token_amount(
                 inputs,
-                dao_pid,
-                dao_tkn,
+                action_pid,
+                action_tkn,
                 start_poh_test_threshold,
               )?,
             }
@@ -186,14 +187,14 @@ validator(
               poh_lock_datum.test_data.cur_stage == 1,
             } {
               let max_success_fee: Int =
-                reference.get_poh_verify_success_fee(dao_datum)
+                query.get_poh_verify_success_fee(reference_datum)
               //
               // they passed as a human and finished the test
               // so burn the poh token
               //
               and {
                 // fee must be less then max fee
-                dao.is_valid_fee(fee, max_success_fee)?,
+                reference.is_valid_fee(fee, max_success_fee)?,
                 // must mint 1 reference token,
                 minting.exact(
                   mint_list,
@@ -203,7 +204,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  dao_input.output.value,
+                  reference_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,
@@ -212,7 +213,7 @@ validator(
               // they failed the test or didnt finish the test
               // the user will lose the deposit
               let vault_hash: ValidatorHash =
-                dao.find_contract(contract_data, keys.vault_contract)
+                reference.find_contract(contract_data, keys.vault_contract)
               // build the vault address
               let vault_addr: Address = credential.from_script(vault_hash)
               // find the input being spent from it
@@ -234,10 +235,10 @@ validator(
                   poh_lock_datum.deposit.amt,
                 )
               let max_fail_fee: Int =
-                reference.get_poh_verify_fail_fee(dao_datum)
+                query.get_poh_verify_fail_fee(reference_datum)
               // the drep address that can be spent from
               let drep_addr: Address =
-                reference.get_drep_lock_contract(dao_datum)
+                query.get_drep_lock_contract(reference_datum)
               //
               // the user will lose the deposit to the vault while
               // burning the poh token.
@@ -250,7 +251,7 @@ validator(
                   [drep_addr, vault_addr],
                 )?,
                 // fee must be less then max fee
-                dao.is_valid_fee(fee, max_fail_fee)?,
+                reference.is_valid_fee(fee, max_fail_fee)?,
                 // a vault needs to be spent
                 is_vault_being_spent,
                 // the deposit is sent to the vault
@@ -264,7 +265,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  dao_input.output.value,
+                  reference_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,
@@ -281,7 +282,7 @@ validator(
             } else {
               // the user failed the test and lost the deposit
               let vault_hash: ValidatorHash =
-                dao.find_contract(contract_data, keys.vault_contract)
+                reference.find_contract(contract_data, keys.vault_contract)
               // build the vault address
               let vault_addr: Address = credential.from_script(vault_hash)
               // find the input being spent from it
@@ -310,7 +311,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  dao_input.output.value,
+                  reference_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,

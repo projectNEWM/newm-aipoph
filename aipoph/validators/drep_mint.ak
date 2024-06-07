@@ -4,10 +4,10 @@ use aiken/transaction.{Input, Mint, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/keys
-use aipoph/reference
+use aipoph/query
 use aipoph/token_names
-use aipoph/types/dao.{Contracts, DAODatum}
 use aipoph/types/drep.{BurnRepTokens, DRepMintRedeemer, MintRepTokens}
+use aipoph/types/reference.{Contracts, ReferenceDatum}
 use assist/find
 use assist/minting
 use assist/payout
@@ -19,11 +19,11 @@ validator(
   // the pointer token for pointing at
   pointer_pid: PolicyId,
   pointer_tkn: AssetName,
-  // the dao token for voting
-  dao_pid: PolicyId,
-  dao_tkn: AssetName,
-  // the dao contract hash
-  dao_hash_data: Data,
+  // the reference token for voting
+  action_pid: PolicyId,
+  action_tkn: AssetName,
+  // the reference contract hash
+  reference_hash_data: Data,
 ) {
   fn params(redeemer: DRepMintRedeemer, context: ScriptContext) -> Bool {
     when context.purpose is {
@@ -32,18 +32,18 @@ validator(
         // the transaction being validated
         let this_tx: Transaction = context.transaction
         // get reference utxo
-        let (dao_datum, dao_input): (DAODatum, Input) =
-          reference.get_data(this_tx.reference_inputs, dao_hash_data)
+        let (reference_datum, reference_input): (ReferenceDatum, Input) =
+          query.get_data(this_tx.reference_inputs, reference_hash_data)
         // get the contract data
         expect contract_data: Contracts =
-          dao.find_data(dao_datum, keys.contracts)
+          reference.find_data(reference_datum, keys.contracts)
         // the lock script must be spent from
         let lock_hash: ValidatorHash =
-          dao.find_contract(contract_data, keys.drep_lock_contract)
+          reference.find_contract(contract_data, keys.drep_lock_contract)
         // we need to make sure nothing else officially is getting spent
         // so remove the lock hash since we need to spend that one here
         let all_validator_hashes: List<ValidatorHash> =
-          dao.delete_contract(contract_data, lock_hash, [])
+          reference.delete_contract(contract_data, lock_hash, [])
         // build the lock address
         let this_lock_addr: Address = credential.from_script(lock_hash)
         // find the input being spent from it
@@ -58,13 +58,13 @@ validator(
         when redeemer is {
           MintRepTokens { mint_amt } -> {
             let that_lock_value: Value =
-              value.add(this_lock_value, dao_pid, dao_tkn, mint_amt)
+              value.add(this_lock_value, action_pid, action_tkn, mint_amt)
             and {
               // must mint something
               mint_amt > 0,
               // make sure the lock is being spent from
               payout.exact(this_lock_addr, that_lock_value, this_tx.outputs),
-              // must mint 1:1 mirror tokens for dao token
+              // must mint 1:1 mirror tokens for reference token
               minting.exact(
                 mint,
                 own_currency_symbol,
@@ -73,7 +73,7 @@ validator(
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
-                dao_input.output.value,
+                reference_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               ),
@@ -83,13 +83,13 @@ validator(
           }
           BurnRepTokens { burn_amt } -> {
             let that_lock_value: Value =
-              value.add(this_lock_value, dao_pid, dao_tkn, burn_amt)
+              value.add(this_lock_value, action_pid, action_tkn, burn_amt)
             and {
               // must burn something
               burn_amt < 0,
               // make sure the bank lock is being spent from
               payout.exact(this_lock_addr, that_lock_value, this_tx.outputs),
-              // must burn 1:1 dao mirror tokens
+              // must burn 1:1 reference mirror tokens
               minting.exact(
                 mint,
                 own_currency_symbol,
@@ -98,7 +98,7 @@ validator(
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
-                dao_input.output.value,
+                reference_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               ),

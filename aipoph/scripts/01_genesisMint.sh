@@ -10,7 +10,7 @@ ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 # genesis contract
 dao_script_path="../contracts/dao_contract.plutus"
 dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
-dao_hash=$(cat ../hashes/dao.hash)
+dao_hash=$(cat ../hashes/reference.hash)
 
 drep_script_path="../contracts/drep_lock_contract.plutus"
 drep_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
