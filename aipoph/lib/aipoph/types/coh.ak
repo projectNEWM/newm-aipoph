@@ -14,11 +14,11 @@ pub type VerificationData {
   validity_range: Moment,
 }
 
-pub fn value_has_pointer(this_value: Value, pointer: Token) -> Bool {
+fn value_has_pointer(this_value: Value, pointer: Token) -> Bool {
   values.prove_exact_nft(this_value, pointer.pid, pointer.tkn)
 }
 
-pub fn is_time_valid(validity: Moment, a_range: ValidityRange) -> Bool {
+fn is_time_valid(validity: Moment, a_range: ValidityRange) -> Bool {
   and {
     moment.is_logical(validity)?,
     moment.is_contained(validity, a_range)?,
