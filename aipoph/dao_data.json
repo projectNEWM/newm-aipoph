@@ -11,12 +11,12 @@
     "drep_lock_contract": "1a6bc5ae12b467a5a0a6c9a95cec2e3246d0585cf45ae41713e9525e",
     "dao_contract": "cbc4095d587857d65f1283b15065b866452d2e916b9c713d8e8ff79c",
     "oracle_contract": "71b498144939c283afc3ebe1b7caf771387b0f6f9698265f6e1359d7",
-    "poh_lock_contract": "f5581c575b191ad3a3d7de51a3297ad8647f3916b4eb5b86476a3fc1",
-    "coh_lock_contract": "c656ade6adab46ad74d739a33386a51791f791ed37ad19b950afc925",
+    "poh_lock_contract": "052b79f28e4dcde2b1e3ee2bd189176202ff10376a31e033187e4c74",
+    "coh_lock_contract": "4d08386e850490d5c5e993b130b3a14accef37111a637e949ea25ecb",
     "vault_contract": "46f47d373dd61bf142fac6a0e006a81cda8b5cf76bc19d3d1e0e8fc3",
     "drep_mint_contract": "f1e56859b07a6e089c596dbdab48459750a2c44d5d00f89485074225",
     "poh_mint_contract": "69ffff793e987d84f105352442a6d9dda5826a7e6e13637f4e43769e",
-    "coh_mint_contract": "37a752ab5089db2dbb8470d39f9fbefeb8de560201734849fe87066f"
+    "coh_mint_contract": "66792cd10f305fc563382aa40fab502e432deb454327ef94266e9155"
   },
   "fees": {
     "poh_start_test": 1000000,
