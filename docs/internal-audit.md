@@ -332,7 +332,9 @@ Remove `pub` from functions that are really just private.
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/18
 
 #### Files Affected: All Validators
 
@@ -425,6 +427,24 @@ Only the website hot key can sign the answer data. The reference key exists in t
 #### Recommendation:
 
 Destruct the Answer data and check if the verification key used to sign the answer is the website hot key. A function to validation this case is already inside of prove.ak. It just needs to be used inside of `prove.you_are_a_human(..)`. There is already a funciton to find the correct keys as well.
+
+---
+
+### IA-21: *A Minerva timing attack on P-256 in python-ecdsa exists and can not be circumvented without writing a wrapper around OpenSSL.*
+
+#### Severity: High Risk
+
+#### Status:
+
+#### Files Affected: poh_lock.ak, poh_mint.ak
+
+#### Description:
+
+https://github.com/advisories/GHSA-wj6h-64fc-37mp
+
+#### Recommendation:
+
+Side channel attacks out of scope for the project and there is no planned fix.
 
 ---
 
