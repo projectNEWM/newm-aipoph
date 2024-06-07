@@ -330,7 +330,7 @@ Remove `pub` from functions that are really just private.
 
 ### IA-16: *Remove all functions that are not used in the code base*
 
-#### Severity: Informational
+#### Severity: Low Risk
 
 #### Status: Completed
 
