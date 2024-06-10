@@ -10,6 +10,7 @@ use assist/count
 use assist/find
 use assist/payout
 use assist/tx
+use assist/types/token
 use assist/values
 
 validator(
@@ -46,14 +47,14 @@ validator(
       AddToVault { incoming } -> {
         // add the incoming token data to this value
         let that_value: Value =
-          value.add(this_value, incoming.pid, incoming.tkn, incoming.amt)
+          this_value |> token.add_tokens_to_value(incoming)
         //
         // Tokens can only be added to the UTxO which may cause the minimum
         // required lovelace to increase.
         //
         and {
           // can only add a token
-          incoming.amt > 0,
+          token.addition_only(incoming),
           // send at least that value to this address
           payout.at_least(this_addr, that_value, outputs)?,
           // single script input
@@ -66,7 +67,7 @@ validator(
       SubFromVault { outgoing } -> {
         // subtract the outgoing token data from this value
         let that_value: Value =
-          value.add(this_value, outgoing.pid, outgoing.tkn, outgoing.amt)
+          this_value |> token.add_tokens_to_value(outgoing)
         // get the reference utxo
         let (reference_datum, reference_input): (ReferenceDatum, Input) =
           query.get_data(reference_inputs, reference_hash_data)
@@ -81,7 +82,7 @@ validator(
         //
         and {
           // can only subtract a token
-          outgoing.amt < 0,
+          token.subtraction_only(outgoing),
           // the reference input value must be holding the pointer token
           values.prove_exact_nft(
             reference_input.output.value,
