@@ -68,8 +68,6 @@ validator(
       mint
         |> value.from_minted_value()
         |> value.flatten()
-    // the drep address that can be spent from
-    let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
     when redeemer is {
       // mint the poh token
       MintCoHToken -> {
@@ -107,7 +105,7 @@ validator(
               }
             //
             // Mint a poh token to a UTxO if the threshold is met inside the
-            // transaction. Only the lock contract and dreps can be spent along
+            // transaction. Only the lock contract can be spent along
             // this mint action.
             //
             and {
@@ -119,8 +117,8 @@ validator(
                 coh_pointer_token,
                 validity_range,
               )?,
-              // single script input + many dreps
-              count.single_input_with_bypass(inputs, poh_lock_addr, [drep_addr])?,
+              // single script input
+              count.single_input_with_bypass(inputs, poh_lock_addr, [])?,
               // single script output to coh lock adddress
               count.outputs_by_addr(outputs, coh_lock_addr, 1)?,
               // must mint 1 coh token
@@ -206,11 +204,11 @@ validator(
         when coh_lock_redeemer is {
           // the test is being verified
           Revoke -> and {
-              // single script input + many dreps
+              // single script input
               count.single_input_with_bypass(
                 inputs,
                 coh_lock_addr,
-                [drep_addr, vault_addr],
+                [vault_addr],
               ),
               // fee must be less then max fee
               reference.is_valid_fee(fee, max_revoke_fee),

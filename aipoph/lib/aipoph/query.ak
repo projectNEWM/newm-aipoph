@@ -28,8 +28,6 @@ pub fn does_the_intial_state_exist(
     reference.find_data(reference_datum, keys.contracts)
   let reference_hash: ValidatorHash =
     reference.find_contract(contracts, keys.reference_contract)
-  let drep_hash: ValidatorHash =
-    reference.find_contract(contracts, keys.drep_lock_contract)
   // no stake
   let that_reference_addr: Address = credential.from_script(reference_hash)
   expect threshold_data: Thresholds =
@@ -46,8 +44,6 @@ pub fn does_the_intial_state_exist(
     reference_addr == that_reference_addr,
     // petition must exist and be positive
     petition_threshold > 0,
-    // drep hash has to exist
-    drep_hash == drep_hash,
   }
 }
 
@@ -120,14 +116,6 @@ pub fn get_extract_vault_threshold(reference_datum: ReferenceDatum) -> Int {
   let extract_vault_threshold: Int =
     reference.find_threshold(threshold_data, keys.extract_vault_threshold)
   extract_vault_threshold
-}
-
-pub fn get_drep_lock_contract(reference_datum: ReferenceDatum) -> Address {
-  expect contract_data: Contracts =
-    reference.find_data(reference_datum, keys.contracts)
-  let drep_contract_hash: ValidatorHash =
-    reference.find_contract(contract_data, keys.drep_lock_contract)
-  credential.from_script(drep_contract_hash)
 }
 
 pub fn get_poh_lock_contract(reference_datum: ReferenceDatum) -> Address {

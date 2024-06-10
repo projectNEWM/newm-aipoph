@@ -8,16 +8,14 @@
     "extract_vault_threshold": 150000000
   },
   "contracts": {
-    "drep_lock_contract": "39ef1797c3d1acc7a9b6941dd6f32da73f5e94775032487ce56e0aba",
     "dao_contract": "cbc4095d587857d65f1283b15065b866452d2e916b9c713d8e8ff79c",
-    "oracle_contract": "32ef2a5fca54bd975af4d1b05fb10231c43469fd6d20972fe550a975",
-    "poh_lock_contract": "d9ef70fc5947792deb6e12553e46609ee546308e8a0fbfb604f9de0b",
-    "coh_lock_contract": "774deeed3a58904c96cbdcf991c93469d7b071eb9519b715eaeb5e67",
-    "vault_contract": "339fdff310a9220de14db381965b17e8823f95a895159fd8029fd3e0",
-    "drep_mint_contract": "d80f4baccbd1a28c907f51c0cf4f23458071f73c84cc46824300b7e0",
-    "poh_mint_contract": "ccbce8efcd00fd08ed30943d9c066a8454c07496073bcf3f704a2a48",
-    "coh_mint_contract": "4b45851ddde6f7622cca9b96d3338a5cf8a27d48dc121592af9831c7",
-    "reference_contract": "5ee7ab19e3292f5d022d6f567f804dcdff0642e157fcbab0b9acdd7a"
+    "oracle_contract": "d07692c4020e86ae0cecd38ef79f5f2068a563cb9f2fddae0283658f",
+    "poh_lock_contract": "5264d45ca35f881226db8988acc49faf19f5ea0b386efee5b4b59522",
+    "coh_lock_contract": "d4485d3689742ac67095d0faf80e7fb5ac5fa4d251a01ddfe6b65dad",
+    "vault_contract": "d6088a94d1d22d1b99ec17695d78863b6501d691888dc9af7e189f31",
+    "poh_mint_contract": "76e4120738368b9240c7a4e1464f121c0714edc7bdcb0995b32ad53d",
+    "coh_mint_contract": "37f08c59aa9367d5351f5d30c3d9ed86f8e9207323d2a9db11a06b4c",
+    "reference_contract": "4f565d94305ce0dfdf26f357a47e9e27503afa10fc80be91b88df047"
   },
   "fees": {
     "poh_start_test": 1000000,

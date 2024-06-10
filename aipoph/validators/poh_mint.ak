@@ -72,8 +72,6 @@ validator(
     // this is endpoint specific so check for the correct redeemer
     expect poh_lock_redeemer: PoHLockRedeemer =
       find.redeemer_by_ref(redeemers, poh_lock_input.output_reference)
-    // the drep address that can be spent from
-    let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
     when redeemer is {
       // Minting is designed for a threshold actor to come in and prepare a test for the owner.
       // They are paid an incentive and the fee for the tx is already on the utxo. The tx
@@ -122,7 +120,7 @@ validator(
             // The question is generated off-chain to minimize cost and increase security.
             // 
             // Mint a poh token to a UTxO if the threshold is met inside the
-            // transaction. Only the lock contract and dreps can be spent along
+            // transaction. Only the lock contract can be spent along
             // this mint action.
             //
             and {
@@ -131,11 +129,11 @@ validator(
               (that_poh_lock_datum.test_data.random.string == oracle_datum.string)?,
               // fee must be less then max fee for starting the test
               reference.is_valid_fee(fee, max_start_test_fee)?,
-              // single script input + many dreps + oracle
+              // single script input + oracle
               count.single_input_with_bypass(
                 inputs,
                 poh_lock_addr,
-                [drep_addr, oracle_addr],
+                [oracle_addr],
               )?,
               // the continuing value must be sent to the lock address
               payout.exact(poh_lock_addr, that_poh_lock_value, outputs)?,
@@ -236,19 +234,16 @@ validator(
                 )
               let max_fail_fee: Int =
                 query.get_poh_verify_fail_fee(reference_datum)
-              // the drep address that can be spent from
-              let drep_addr: Address =
-                query.get_drep_lock_contract(reference_datum)
               //
               // the user will lose the deposit to the vault while
               // burning the poh token.
               //
               and {
-                // single script input + many dreps + vault
+                // single script input + vault
                 count.single_input_with_bypass(
                   inputs,
                   poh_lock_addr,
-                  [drep_addr, vault_addr],
+                  [vault_addr],
                 )?,
                 // fee must be less then max fee
                 reference.is_valid_fee(fee, max_fail_fee)?,
@@ -296,11 +291,11 @@ validator(
                   datum.deposit.amt,
                 )
               and {
-                // single script input + many dreps + vault
+                // single script input + vault
                 count.single_input_with_bypass(
                   inputs,
                   poh_lock_addr,
-                  [drep_addr, vault_addr],
+                  [vault_addr],
                 )?,
                 // must mint 1 reference token
                 minting.exact(
