@@ -103,7 +103,9 @@ Change dao into reference for the validator, type, and scripts. The DAO token us
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/25
 
 #### Files Affected: dao.ak
 
