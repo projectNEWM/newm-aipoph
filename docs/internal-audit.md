@@ -123,7 +123,9 @@ Use `value.without_lovelace` on this value from the dao contract then use an `pa
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/27
 
 #### Files Affected: dao.ak, oracle.ak, vault.ak, poh_mint.ak, coh_mint.ak
 
