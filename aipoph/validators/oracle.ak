@@ -45,8 +45,7 @@ validator(
       query.get_data(reference_inputs, reference_hash_data)
     // the threshold to change data
     let oracle_threshold: Int = query.get_oracle_threshold(reference_datum)
-    // the drep address that can be spent from
-    let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
+    // the poh locking address
     let poh_lock_addr: Address = query.get_poh_lock_contract(reference_datum)
     //
     // The value should never change and it just returns to the script.
@@ -67,12 +66,8 @@ validator(
       // datums must not equal, the value has to change
       this_datum.number != that_datum.number,
       this_datum.string != that_datum.string,
-      // single script input + many dreps + poh test generation
-      count.single_input_with_bypass(
-        inputs,
-        this_addr,
-        [drep_addr, poh_lock_addr],
-      ),
+      // single script input + poh test generation
+      count.single_input_with_bypass(inputs, this_addr, [poh_lock_addr]),
       // single script output
       count.outputs_by_addr(outputs, this_addr, 1),
     }

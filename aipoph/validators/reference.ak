@@ -42,8 +42,6 @@ validator(
     let that_value: Value = this_value |> value.without_lovelace()
     // the petition threshold to change data
     let petition_threshold: Int = query.get_petition_threshold(this_datum)
-    // the drep address to allow dreps to participate
-    let drep_addr: Address = query.get_drep_lock_contract(this_datum)
     //
     // check if the utxo is has the correct datum and that the petition threshold exists,
     // it must be holding the correct pointer token, the inputs must contain enough threshold,
@@ -58,8 +56,8 @@ validator(
       tx.total_token_amount(inputs, action_pid, action_tkn, petition_threshold)?,
       // send that value exactly back to this address.
       payout.at_least(this_addr, that_value, outputs)?,
-      // single script input + many dreps; anything else being spent with this should fail
-      count.single_input_with_bypass(inputs, this_addr, [drep_addr])?,
+      // single script input; anything else being spent with this should fail
+      count.single_input_with_bypass(inputs, this_addr, [])?,
       // single script output
       count.outputs_by_addr(outputs, this_addr, 1)?,
     }

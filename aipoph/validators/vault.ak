@@ -73,8 +73,6 @@ validator(
         // the threshold to change data
         let extract_vault_threshold: Int =
           query.get_extract_vault_threshold(reference_datum)
-        // get the addresses that 
-        let drep_addr: Address = query.get_drep_lock_contract(reference_datum)
         //
         // Tokens can only be subtracted from the UTxO if and only if there
         // is enough of the action token being spent inside the transaction.
@@ -99,8 +97,8 @@ validator(
           ),
           // send that value to this address
           payout.exact(this_addr, that_value, outputs),
-          // single script input + many dreps
-          count.single_input_with_bypass(inputs, this_addr, [drep_addr]),
+          // single script input
+          count.single_input_with_bypass(inputs, this_addr, []),
           // single script output
           count.outputs_by_addr(outputs, this_addr, 1),
         }

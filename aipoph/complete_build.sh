@@ -91,36 +91,6 @@ cardano-cli transaction policyid --script-file contracts/oracle_contract.plutus 
 echo -e "\033[1;33m Oracle Contract Hash: $(cat hashes/oracle.hash) \033[0m"
 jq --arg variable "$(cat hashes/oracle.hash)" '.contracts.oracle_contract=$variable' reference_data.json | sponge reference_data.json
 
-
-echo -e "\033[1;33m\nBuilding dRep Contract \033[0m"
-
-aiken blueprint apply -o plutus.json -v drep_mint.params "${pointer_pid_cbor}"
-aiken blueprint apply -o plutus.json -v drep_mint.params "${pointer_tkn_cbor}"
-aiken blueprint apply -o plutus.json -v drep_mint.params "${action_pid_cbor}"
-aiken blueprint apply -o plutus.json -v drep_mint.params "${action_tkn_cbor}"
-aiken blueprint apply -o plutus.json -v drep_mint.params "${reference_hash_cbor}"
-aiken blueprint convert -v drep_mint.params > contracts/drep_mint_contract.plutus
-
-
-# store the script hash
-# requires cardano-cli
-cardano-cli transaction policyid --script-file contracts/drep_mint_contract.plutus > hashes/drep_mint.hash
-echo -e "\033[1;33m dRep Mint Contract Hash: $(cat hashes/drep_mint.hash) \033[0m"
-jq --arg variable "$(cat hashes/drep_mint.hash)" '.contracts.drep_mint_contract=$variable' reference_data.json | sponge reference_data.json
-
-
-# the pointer token
-drep_pid=$(cat hashes/drep_mint.hash)
-drep_pid_cbor=$(python3 -c "import cbor2;hex_string='${drep_pid}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
-
-aiken blueprint apply -o plutus.json -v drep_lock.params "${drep_pid_cbor}"
-aiken blueprint convert -v drep_lock.params > contracts/drep_lock_contract.plutus
-
-cardano-cli transaction policyid --script-file contracts/drep_lock_contract.plutus > hashes/drep_lock.hash
-echo -e "\033[1;33m dRep Lock Contract Hash: $(cat hashes/drep_lock.hash) \033[0m"
-jq --arg variable "$(cat hashes/drep_lock.hash)" '.contracts.drep_lock_contract=$variable' reference_data.json | sponge reference_data.json
-
-
 echo -e "\033[1;33m\nBuilding Vault Contract \033[0m"
 
 aiken blueprint apply -o plutus.json -v vault.params "${pointer_pid_cbor}"

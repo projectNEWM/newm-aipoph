@@ -3,12 +3,6 @@
 
 use aiken/transaction/value.{AssetName}
 
-// Constants
-
-// dRep Contribution Token
-pub const drep_token_name: AssetName =
-  #"6452657020436f6e747269627574696f6e20546f6b656e"
-
 // _aipoph_
 pub const pointer_prefix: ByteArray = #"5f6169706f70685f"
 
