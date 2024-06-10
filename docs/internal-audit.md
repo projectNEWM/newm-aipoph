@@ -143,7 +143,9 @@ The contracts will still need to have a single input with a specific script bypa
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/28
 
 #### Files Affected: vault.ak
 
@@ -457,6 +459,24 @@ https://github.com/advisories/GHSA-wj6h-64fc-37mp
 #### Recommendation:
 
 Side channel attacks out of scope for the project and there is no planned fix.
+
+---
+
+### IA-22: *Change count inputs with bypass to just count inputs when no bypasses are required*
+
+#### Severity: Low Risk
+
+#### Status:
+
+#### Files Affected: All Validators
+
+#### Description:
+
+The removal of the drep system resulted in empty bypasses for counting inputs with a bypass like `count.single_input_with_bypass(inputs, this_addr, [])`. This now created redundant code that is not required.
+
+#### Recommendation:
+
+Change all `count.single_input_with_bypass(inputs, this_addr, [])` into `count.inputs_by_addr(inputs, this_addr, 1)`.
 
 ---
 
