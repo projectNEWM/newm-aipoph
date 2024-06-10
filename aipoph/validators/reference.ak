@@ -6,7 +6,7 @@ use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
 use aipoph/query
-use aipoph/types/reference.{Petition, ReferenceDatum}
+use aipoph/types/reference.{ReferenceDatum}
 use assist/count
 use assist/find
 use assist/payout
@@ -23,15 +23,12 @@ validator(
 ) {
   fn params(
     this_datum: ReferenceDatum,
-    redeemer: Petition,
+    _redeemer: Void,
     context: ScriptContext,
   ) -> Bool {
     expect Spend(output_reference) = context.purpose
     // the transaction being validated
     let Transaction { inputs, outputs, .. } = context.transaction
-    // This brings `lovelace` into scope to adjust the required lovelace 
-    // on the utxo being spent
-    let Petition(lovelace) = redeemer
     // the input being spent
     let this_input: Input = find.input_by_ref(inputs, output_reference)
     // this value being spent
@@ -42,8 +39,7 @@ validator(
     expect that_datum: ReferenceDatum =
       find.output_datum_by_addr(outputs, this_addr)
     // add or subtract from the required lovelace if necessary
-    let that_value: Value =
-      value.add(this_value, value.ada_policy_id, value.ada_asset_name, lovelace)
+    let that_value: Value = this_value |> value.without_lovelace()
     // the petition threshold to change data
     let petition_threshold: Int = query.get_petition_threshold(this_datum)
     // the drep address to allow dreps to participate
@@ -61,7 +57,7 @@ validator(
       // must be spending enough of the action vote token
       tx.total_token_amount(inputs, action_pid, action_tkn, petition_threshold)?,
       // send that value exactly back to this address.
-      payout.exact(this_addr, that_value, outputs)?,
+      payout.at_least(this_addr, that_value, outputs)?,
       // single script input + many dreps; anything else being spent with this should fail
       count.single_input_with_bypass(inputs, this_addr, [drep_addr])?,
       // single script output

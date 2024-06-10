@@ -5,11 +5,6 @@ use aiken/builtin
 use aiken/transaction/value.{Value}
 use assist/types/hashes.{PublicKeyHash, ValidatorHash}
 
-// Petition may change the required lovelace on the utxo
-pub type Petition {
-  lovelace: Int,
-}
-
 // general dict data type for the data requried for aipoph
 pub type ReferenceDatum =
   Pairs<ByteArray, Data>
