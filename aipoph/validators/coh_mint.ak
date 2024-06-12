@@ -106,9 +106,9 @@ validator(
                 amt: 1,
               }
             //
-            // Mint a poh token to a UTxO if the threshold is met inside the
-            // transaction. Only the lock contract can be spent along
-            // this mint action.
+            // Mints a coh token and a pointer token into the coh lock 
+            // contract. The poh datum is transferred into the coh datum. The
+            // value validation is implicit and only proving exact nft is used.
             //
             and {
               // Need to make sure the coh datum is set up correctly
@@ -204,7 +204,11 @@ validator(
           query.get_revoke_coh_threshold(ref_data_datum)
         let max_revoke_fee: Int = query.get_coh_revoke_fee(ref_data_datum)
         when coh_lock_redeemer is {
-          // the test is being verified
+          //
+          // Revoking a coh means burning the pointer and coh token then 
+          // sending the remaining value to the vault. The transaction fee
+          // must be less than the maximum fee for revoking a coh.
+          //
           Revoke -> and {
               // single script input
               count.single_input_with_bypass(

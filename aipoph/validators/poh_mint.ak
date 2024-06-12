@@ -189,8 +189,8 @@ validator(
               let max_success_fee: Int =
                 query.get_poh_verify_success_fee(ref_data_datum)
               //
-              // they passed as a human and finished the test
-              // so burn the poh token
+              // They passed as a human and finished the test
+              // so burn the poh token.
               //
               and {
                 // fee must be less then max fee
@@ -237,8 +237,8 @@ validator(
               let max_fail_fee: Int =
                 query.get_poh_verify_fail_fee(ref_data_datum)
               //
-              // the user will lose the deposit to the vault while
-              // burning the poh token.
+              // The user did not pass the test and will lose the deposit to 
+              // the vault while burning the poh token.
               //
               and {
                 // single script input + vault
@@ -292,6 +292,11 @@ validator(
                   datum.deposit.tkn,
                   datum.deposit.amt,
                 )
+              //
+              // Quiting and burning means the test was live and the user left
+              // prematurely. Quitting while the test is live is an automatic
+              // lost of deposit. The deposit is sent to the vault.
+              //
               and {
                 // single script input + vault
                 count.single_input_with_bypass(

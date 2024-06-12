@@ -53,7 +53,7 @@ validator(
     let poh_lock_addr: Address = query.get_poh_lock_contract(ref_data_datum)
     //
     // The value should never change and it just returns to the script.
-    // The oracle threshold must be met and something always has to change
+    // The oracle threshold must be met and the datum always has to change
     // when using the oracle.
     //
     and {

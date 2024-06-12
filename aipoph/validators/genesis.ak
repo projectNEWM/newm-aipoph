@@ -55,7 +55,7 @@ validator(
     // build the reference address, no staking
     let ref_data_addr: Address = credential.from_script(ref_data_hash)
     //
-    // check if the intial conditions exist, prove that the txid is actually
+    // Check if the intial conditions exist, prove that the txid is actually
     // being spent, and mint exactly one pointer onto the reference address.
     //
     and {
