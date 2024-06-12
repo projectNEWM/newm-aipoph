@@ -9,7 +9,13 @@ pub type SignedData {
   signature: ByteArray,
 }
 
-// this should do cip8 verification
+/// This is the on-chain equalivant of CIP8 signature verification using the
+/// ed25519 elliptic curve. This is used to verify the user signed into the
+/// website and that the website hot key witnessed the user take the test.
+///
+/// ```aiken
+/// signed.ed25519(this_signed_data)
+/// ```
 pub fn ed25519(sd: SignedData) -> Bool {
   builtin.verify_ed25519_signature(
     sd.verification_key,
