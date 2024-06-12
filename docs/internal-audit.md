@@ -374,7 +374,9 @@ Find and remove all unused functions.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/34
 
 #### Files Affected: poh_mint.ak
 
