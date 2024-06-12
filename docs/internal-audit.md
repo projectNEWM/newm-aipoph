@@ -472,7 +472,9 @@ Side channel attacks out of scope for the project and there is no planned fix.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/32
 
 #### Files Affected: All Validators
 
