@@ -278,7 +278,9 @@ expect dao_datum: DAODatum = data.input_datum(dao_input)
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/33
 
 #### Files Affected: All Validators
 
