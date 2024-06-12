@@ -163,7 +163,9 @@ Switch the Token type into Tokens, and make sure all the Tokens are adding or su
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/29
 
 #### Files Affected: types/prove.ak, types/graph.ak, types/coh.ak, types/dao.ak types/poh.ak reference.ak
 
