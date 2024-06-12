@@ -57,7 +57,7 @@ validator(
       // send that value exactly back to this address.
       payout.at_least(this_addr, that_value, outputs)?,
       // single script input; anything else being spent with this should fail
-      count.single_input_with_bypass(inputs, this_addr, [])?,
+      count.inputs_by_addr(inputs, this_addr, 1)?,
       // single script output
       count.outputs_by_addr(outputs, this_addr, 1)?,
     }
