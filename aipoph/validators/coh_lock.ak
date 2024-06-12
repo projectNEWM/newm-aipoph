@@ -37,7 +37,8 @@ validator(
         expect that_datum: CoHDatum =
           find.output_datum_by_addr(outputs, this_addr)
         //
-        // Just send the value back to itself and run the auth function.
+        // Send the UTxO back to the contract and run the authenticity
+        // verification function. Anyone can run this at any time.
         //
         and {
           // datum stays constant
@@ -64,7 +65,8 @@ validator(
             |> value.from_minted_value()
             |> value.flatten()
         //
-        // The user submits what they think the answer is.
+        // A certificate of humanity is revoke for some reason. The pointer and
+        // the coh are burned and left over UTxO value is sent to the vault.
         //
         and {
           // single script output

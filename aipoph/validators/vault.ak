@@ -43,7 +43,6 @@ validator(
     // the datum going back to the vault
     // implicit data validation, prevents empty datum attacks
     expect _: Void = find.output_datum_by_addr(outputs, this_addr)
-    //
     when redeemer is {
       // anyone can add funds to the vault
       AddToVault { incoming } -> {
