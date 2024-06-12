@@ -256,53 +256,30 @@ validator(
         } else {
           //
           // The poh token is on the utxo so the test did start.
-          // Is the test currently live?
+          // Leaving the test for any reason after it started will result in a 
+          // loss of the deposit.
           //
-          if
-          moment.is_after(this_datum.test_data.validity_range, validity_range){
-          
-            //
-            // The test period is over.
-            // Did the user end their test?
-            if this_datum.test_data.cur_stage == 1 {
-              //
-              // The user must wait for their test to be verified by a threshold actor.
-              //
-              fail @"No Leaving During Verification"
-            } else {
-              //
-              // The user failed to submit an answer during the test period.
-              // Send the deposit to the vault and burn the poh token.
-              let deposit: Token = this_datum.deposit
-              // remove the poh token and take the deposit
-              let owner_value: Value =
-                value.add(this_value, poh_pid, token_names.poh_token_name, -1)
-                  |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
-              //
-              // The user loses their deposit due to never finishing the test.
-              // The poh token will be burned and the owner must sign it.
-              // 
-              //
-              and {
-                // single script output
-                count.outputs_by_addr(outputs, this_addr, 0)?,
-                // burn the poh token
-                minting.is_occurring(
-                  mint_list,
-                  poh_pid,
-                  token_names.poh_token_name,
-                ),
-                // the owner gets the left over value
-                payout.exact(owner_address, owner_value, outputs),
-                // owner must sign it
-                signing.verify_sig(extra_signatories, this_datum.owner.pkh),
-              }
-            }
-          } else {
-            //
-            // The test is currently live, The user must take the test.
-            //
-            fail @"No Leaving During A Test"
+          //
+          // Send the deposit to the vault and burn the poh token.
+          let deposit: Token = this_datum.deposit
+          // remove the poh token and take the deposit
+          let owner_value: Value =
+            value.add(this_value, poh_pid, token_names.poh_token_name, -1)
+              |> value.add(deposit.pid, deposit.tkn, -deposit.amt)
+          //
+          // The user loses their deposit due to never finishing the test.
+          // The poh token will be burned and the owner must sign it.
+          // 
+          //
+          and {
+            // single script output
+            count.outputs_by_addr(outputs, this_addr, 0)?,
+            // burn the poh token
+            minting.is_occurring(mint_list, poh_pid, token_names.poh_token_name),
+            // the owner gets the left over value
+            payout.exact(owner_address, owner_value, outputs),
+            // owner must sign it
+            signing.verify_sig(extra_signatories, this_datum.owner.pkh),
           }
         }
       }
