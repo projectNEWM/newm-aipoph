@@ -183,7 +183,9 @@ Add in some `///` top level function comments to all public functions.
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/30
 
 #### Files Affected: poh_lock.ak
 
