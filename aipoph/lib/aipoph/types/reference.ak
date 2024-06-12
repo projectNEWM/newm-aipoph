@@ -9,7 +9,12 @@ use assist/types/hashes.{PublicKeyHash, ValidatorHash}
 pub type ReferenceDatum =
   Pairs<ByteArray, Data>
 
-// find a data structure by a title inside the ReferenceDatum data dictionary.
+/// Find a data structure by some key inside the ReferenceDatum if the data
+/// structure is found then return just the data else fail.
+///
+/// ```aiken
+/// reference.find_data(this_datum, contract_key)
+/// ```
 pub fn find_data(data: ReferenceDatum, key: ByteArray) -> Data {
   when data is {
     [] -> fail @"Data Structure Not Found"
@@ -26,7 +31,12 @@ pub fn find_data(data: ReferenceDatum, key: ByteArray) -> Data {
 pub type Thresholds =
   Pairs<ByteArray, Int>
 
-// find a threshold by some key inside the thresholds dictionary.
+/// Find an action token threshold by some key inside the Thresholds data
+/// structure. If a threshold is found then return the integer value else fail.
+///
+/// ```aiken
+/// reference.find_threshold(these_thresholds, start_test_threshold_key)
+/// ```
 pub fn find_threshold(thresholds: Thresholds, key: ByteArray) -> Int {
   when thresholds is {
     [] -> fail @"Threshold Not Found"
@@ -43,7 +53,12 @@ pub fn find_threshold(thresholds: Thresholds, key: ByteArray) -> Int {
 pub type Contracts =
   Pairs<ByteArray, ValidatorHash>
 
-// find a contract by title inside the contract dictionary.
+/// Find a contract validator hash by some key inside the Contracts data
+/// structure. If a contract is found then return the validator hash else fail.
+///
+/// ```aiken
+/// reference.find_contract(these_contracts, oracle_contract_key)
+/// ```
 pub fn find_contract(contracts: Contracts, key: ByteArray) -> ValidatorHash {
   when contracts is {
     [] -> fail @"Contract Not Found"
@@ -56,27 +71,16 @@ pub fn find_contract(contracts: Contracts, key: ByteArray) -> ValidatorHash {
   }
 }
 
-pub fn delete_contract(
-  contracts: Contracts,
-  elem: ValidatorHash,
-  holder: List<ValidatorHash>,
-) -> List<ValidatorHash> {
-  when contracts is {
-    [] -> holder
-    [x, ..xs] ->
-      if builtin.snd_pair(x) == elem {
-        delete_contract(xs, elem, holder)
-      } else {
-        delete_contract(xs, elem, [builtin.snd_pair(x), ..holder])
-      }
-  }
-}
-
 // The fee structure is a data structure in ReferenceData
 pub type Fees =
   Pairs<ByteArray, Int>
 
-// find a fee by title inside the fee dictionary.
+/// Find a maximum fee bound for some redeemer by some key inside the Fee data
+/// structure. If a fee is found then return the integer value else fail.
+///
+/// ```aiken
+/// reference.find_fee(these_fees, start_test_fee_key)
+/// ```
 pub fn find_fee(fees: Fees, key: ByteArray) -> Int {
   when fees is {
     [] -> fail @"Fee Not Found"
@@ -89,17 +93,25 @@ pub fn find_fee(fees: Fees, key: ByteArray) -> Int {
   }
 }
 
-pub fn is_valid_fee(this_fee: Value, fee: Int) -> Bool {
-  let lovelace: Int =
-    value.quantity_of(this_fee, value.ada_policy_id, value.ada_asset_name)
-  fee > lovelace
+/// Check that the transaction fee is less than or equal to the maximum allowed
+/// fee for that redeemer. This prevents fee drain attacks by making sure a
+/// transaction does not exceed the maximum allowed gas cost.
+pub fn is_valid_fee(this_fee_value: Value, max_fee: Int) -> Bool {
+  let this_fee: Int =
+    value.quantity_of(this_fee_value, value.ada_policy_id, value.ada_asset_name)
+  this_fee <= max_fee
 }
 
-// The contract structure is a data structure in ReferenceData
+// The keys structure is a data structure in ReferenceData
 pub type Keys =
   Pairs<ByteArray, PublicKeyHash>
 
-// find a contract by title inside the contract dictionary.
+/// Find a public key hash by some key inside the Keys data structure. If a key
+/// is found then return the public key hash else fail.
+///
+/// ```aiken
+/// reference.find_key(these_keys, website_pkh_key)
+/// ```
 pub fn find_key(keys: Keys, key: ByteArray) -> PublicKeyHash {
   when keys is {
     [] -> fail @"Public Key Hash Not Found"
