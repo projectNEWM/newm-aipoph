@@ -120,7 +120,7 @@ validator(
                 validity_range,
               )?,
               // single script input
-              count.single_input_with_bypass(inputs, poh_lock_addr, [])?,
+              count.inputs_by_addr(inputs, poh_lock_addr, 1)?,
               // single script output to coh lock adddress
               count.outputs_by_addr(outputs, coh_lock_addr, 1)?,
               // must mint 1 coh token

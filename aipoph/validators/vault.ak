@@ -103,7 +103,7 @@ validator(
           // send that value to this address
           payout.exact(this_addr, that_value, outputs),
           // single script input
-          count.single_input_with_bypass(inputs, this_addr, []),
+          count.inputs_by_addr(inputs, this_addr, 1),
           // single script output
           count.outputs_by_addr(outputs, this_addr, 1),
         }
