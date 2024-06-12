@@ -223,7 +223,7 @@ validator(
                 find.redeemer_by_ref(redeemers, vault_input.output_reference)
               let is_vault_being_spent: Bool =
                 when vault_redeemer is {
-                  AddToVault { incoming } -> incoming == incoming
+                  AddToVault(_) -> True
                   _ -> False
                 }
               let vault_value: Value = vault_input.output.value
