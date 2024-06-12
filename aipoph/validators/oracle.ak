@@ -7,9 +7,11 @@ use aipoph/query
 use aipoph/types/oracle.{OracleDatum}
 use aipoph/types/reference.{ReferenceDatum}
 use assist/count
+use assist/data
 use assist/find
 use assist/payout
 use assist/tx
+use assist/types/hashes.{ValidatorHash}
 use assist/values
 
 validator(
@@ -20,7 +22,7 @@ validator(
   action_pid: PolicyId,
   action_tkn: AssetName,
   // the reference contract hash
-  reference_hash_data: Data,
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(
     this_datum: OracleDatum,
@@ -40,13 +42,15 @@ validator(
     // that datum must have the correct data structure
     expect that_datum: OracleDatum =
       find.output_datum_by_addr(outputs, this_addr)
-    // get the reference reference utxo
-    let (reference_datum, reference_input): (ReferenceDatum, Input) =
-      query.get_data(reference_inputs, reference_hash_data)
+    // get the reference utxo and datum
+    let ref_data_addr: Address = credential.from_script(ref_data_hash)
+    let ref_data_input: Input =
+      find.input_by_addr(reference_inputs, ref_data_addr)
+    expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
     // the threshold to change data
-    let oracle_threshold: Int = query.get_oracle_threshold(reference_datum)
+    let oracle_threshold: Int = query.get_oracle_threshold(ref_data_datum)
     // the poh locking address
-    let poh_lock_addr: Address = query.get_poh_lock_contract(reference_datum)
+    let poh_lock_addr: Address = query.get_poh_lock_contract(ref_data_datum)
     //
     // The value should never change and it just returns to the script.
     // The oracle threshold must be met and something always has to change
@@ -57,7 +61,7 @@ validator(
       payout.exact(this_addr, this_value, outputs),
       // the reference input value must be holding the pointer token
       values.prove_exact_nft(
-        reference_input.output.value,
+        ref_data_input.output.value,
         pointer_pid,
         pointer_tkn,
       ),

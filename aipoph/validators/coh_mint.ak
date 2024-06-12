@@ -31,7 +31,7 @@ validator(
   action_pid: PolicyId,
   action_tkn: AssetName,
   // the reference contract hash
-  reference_hash_data: Data,
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(redeemer: CoHMintRedeemer, context: ScriptContext) -> Bool {
     // must be minting
@@ -47,12 +47,14 @@ validator(
       validity_range,
       ..
     } = context.transaction
-    // get the reference utxo
-    let (reference_datum, reference_input): (ReferenceDatum, Input) =
-      query.get_data(reference_inputs, reference_hash_data)
+    // get the reference utxo and datum
+    let ref_data_addr: Address = credential.from_script(ref_data_hash)
+    let ref_data_input: Input =
+      find.input_by_addr(reference_inputs, ref_data_addr)
+    expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
     // search the contracts for the coh lock
     expect contract_data: Contracts =
-      reference.find_data(reference_datum, keys.contracts)
+      reference.find_data(ref_data_datum, keys.contracts)
     // this is the coh lock hash
     let coh_lock_hash: ValidatorHash =
       reference.find_contract(contract_data, keys.coh_lock_contract)
@@ -89,7 +91,7 @@ validator(
           VerifyTest -> {
             // the threshold to start the test
             let coh_mint_threshold: Int =
-              query.get_coh_mint_threshold(reference_datum)
+              query.get_coh_mint_threshold(ref_data_datum)
             // this is a unique pointer inside the utxo
             let coh_pointer_token_name: AssetName =
               values.unique_token_name(
@@ -199,8 +201,8 @@ validator(
           )
         // the threshold to start the test
         let coh_revoke_threshold: Int =
-          query.get_revoke_coh_threshold(reference_datum)
-        let max_revoke_fee: Int = query.get_coh_revoke_fee(reference_datum)
+          query.get_revoke_coh_threshold(ref_data_datum)
+        let max_revoke_fee: Int = query.get_coh_revoke_fee(ref_data_datum)
         when coh_lock_redeemer is {
           // the test is being verified
           Revoke -> and {
@@ -239,7 +241,7 @@ validator(
               ),
               // data reference must be holding correct token
               values.prove_exact_nft(
-                reference_input.output.value,
+                ref_data_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               ),

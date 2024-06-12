@@ -33,7 +33,7 @@ validator(
   action_pid: PolicyId,
   action_tkn: AssetName,
   // the reference contract hash
-  reference_hash_data: Data,
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(redeemer: PoHMintRedeemer, context: ScriptContext) -> Bool {
     // must be minting
@@ -48,12 +48,14 @@ validator(
       redeemers,
       ..
     } = context.transaction
-    // get the reference utxo
-    let (reference_datum, reference_input): (ReferenceDatum, Input) =
-      query.get_data(reference_inputs, reference_hash_data)
+    // get the reference utxo and datum
+    let ref_data_addr: Address = credential.from_script(ref_data_hash)
+    let ref_data_input: Input =
+      find.input_by_addr(reference_inputs, ref_data_addr)
+    expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
     // search the contracts for the poh lock
     expect contract_data: Contracts =
-      reference.find_data(reference_datum, keys.contracts)
+      reference.find_data(ref_data_datum, keys.contracts)
     // this is the poh lock hash
     let poh_lock_hash: ValidatorHash =
       reference.find_contract(contract_data, keys.poh_lock_contract)
@@ -100,10 +102,10 @@ validator(
             //
             // the threshold to start the test
             let start_poh_test_threshold: Int =
-              query.get_poh_test_threshold(reference_datum)
+              query.get_poh_test_threshold(ref_data_datum)
             // maximum fee allowed in this tx
             let max_start_test_fee: Int =
-              query.get_poh_start_test_fee(reference_datum)
+              query.get_poh_start_test_fee(ref_data_datum)
             // this is the oracle hash
             let oracle_hash: ValidatorHash =
               reference.find_contract(contract_data, keys.oracle_contract)
@@ -146,7 +148,7 @@ validator(
               )?,
               // data reference must be holding correct pointer token
               values.prove_exact_nft(
-                reference_input.output.value,
+                ref_data_input.output.value,
                 pointer_pid,
                 pointer_tkn,
               )?,
@@ -185,7 +187,7 @@ validator(
               poh_lock_datum.test_data.cur_stage == 1,
             } {
               let max_success_fee: Int =
-                query.get_poh_verify_success_fee(reference_datum)
+                query.get_poh_verify_success_fee(ref_data_datum)
               //
               // they passed as a human and finished the test
               // so burn the poh token
@@ -202,7 +204,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  reference_input.output.value,
+                  ref_data_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,
@@ -233,7 +235,7 @@ validator(
                   poh_lock_datum.deposit.amt,
                 )
               let max_fail_fee: Int =
-                query.get_poh_verify_fail_fee(reference_datum)
+                query.get_poh_verify_fail_fee(ref_data_datum)
               //
               // the user will lose the deposit to the vault while
               // burning the poh token.
@@ -260,7 +262,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  reference_input.output.value,
+                  ref_data_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,
@@ -306,7 +308,7 @@ validator(
                 )?,
                 // data reference must be holding correct token
                 values.prove_exact_nft(
-                  reference_input.output.value,
+                  ref_data_input.output.value,
                   pointer_pid,
                   pointer_tkn,
                 )?,

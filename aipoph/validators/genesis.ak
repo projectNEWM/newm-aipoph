@@ -50,24 +50,24 @@ validator(
     expect contract_data: Contracts =
       reference.find_data(that_datum, keys.contracts)
     // the reference hash must exist inside of that datum
-    let reference_hash: ValidatorHash =
+    let ref_data_hash: ValidatorHash =
       reference.find_contract(contract_data, keys.reference_contract)
     // build the reference address, no staking
-    let reference_addr: Address = credential.from_script(reference_hash)
+    let ref_data_addr: Address = credential.from_script(ref_data_hash)
     //
     // check if the intial conditions exist, prove that the txid is actually
     // being spent, and mint exactly one pointer onto the reference address.
     //
     and {
       // petition must exist and be positive
-      query.does_the_intial_state_exist(reference_addr, that_datum)?,
+      query.does_the_intial_state_exist(ref_data_addr, that_datum)?,
       // these inputs must be spending this output reference
       tx.is_spending_input(inputs, this_out_ref)?,
       // mint exactly 1 pointer token
       minting.exact(mint_list, currency_symbol, token_name, 1)?,
       // must send the reference address at least the pointer token
       payout.at_least(
-        reference_addr,
+        ref_data_addr,
         value.from_asset(currency_symbol, token_name, 1),
         outputs,
       )?,
