@@ -239,7 +239,9 @@ A merkle-tree of values may be applicable but randomness may be reoccurring. Ver
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/31
 
 #### Files Affected: All Validators
 
