@@ -7,9 +7,11 @@ use aipoph/query
 use aipoph/types/reference.{ReferenceDatum}
 use aipoph/types/vault.{AddToVault, SubFromVault, VaultRedeemer}
 use assist/count
+use assist/data
 use assist/find
 use assist/payout
 use assist/tx
+use assist/types/hashes.{ValidatorHash}
 use assist/types/token
 use assist/values
 
@@ -21,7 +23,7 @@ validator(
   action_pid: PolicyId,
   action_tkn: AssetName,
   // the reference contract hash
-  reference_hash_data: Data,
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(
     _datum: Void,
@@ -68,12 +70,14 @@ validator(
         // subtract the outgoing token data from this value
         let that_value: Value =
           this_value |> token.add_tokens_to_value(outgoing)
-        // get the reference utxo
-        let (reference_datum, reference_input): (ReferenceDatum, Input) =
-          query.get_data(reference_inputs, reference_hash_data)
+        // get the reference utxo and datum
+        let ref_data_addr: Address = credential.from_script(ref_data_hash)
+        let ref_data_input: Input =
+          find.input_by_addr(reference_inputs, ref_data_addr)
+        expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
         // the threshold to change data
         let extract_vault_threshold: Int =
-          query.get_extract_vault_threshold(reference_datum)
+          query.get_extract_vault_threshold(ref_data_datum)
         //
         // Tokens can only be subtracted from the UTxO if and only if there
         // is enough of the action token being spent inside the transaction.
@@ -85,7 +89,7 @@ validator(
           token.subtraction_only(outgoing),
           // the reference input value must be holding the pointer token
           values.prove_exact_nft(
-            reference_input.output.value,
+            ref_data_input.output.value,
             pointer_pid,
             pointer_tkn,
           ),

@@ -1,28 +1,7 @@
-use aiken/transaction.{Input}
 use aiken/transaction/credential.{Address}
 use aipoph/keys
 use aipoph/types/reference.{Contracts, Fees, ReferenceDatum, Thresholds}
-use assist/data
-use assist/find
 use assist/types/hashes.{ValidatorHash}
-
-/// Get the reference data from the reference inputs and return a tuple of the
-/// datum and the input itself.
-///
-/// ```aiken
-/// query.get_data(ref_inputs, ref_hash)
-/// ```
-pub fn get_data(
-  reference_inputs: List<Input>,
-  reference_hash_data: Data,
-) -> (ReferenceDatum, Input) {
-  expect reference_hash: ValidatorHash = reference_hash_data
-  let reference_addr: Address = credential.from_script(reference_hash)
-  let reference_input: Input =
-    find.input_by_addr(reference_inputs, reference_addr)
-  expect reference_datum: ReferenceDatum = data.input_datum(reference_input)
-  (reference_datum, reference_input)
-}
 
 /// This is a logical validation to make the genesis contract work. It is an 
 /// attempt to solve the genesis problem which is caused by some form of trust
