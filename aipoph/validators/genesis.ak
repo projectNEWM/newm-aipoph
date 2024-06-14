@@ -1,5 +1,7 @@
 //// This create an output utxo that contains a pointer token and the reference
-//// datum. This can only be used once.
+//// datum. This can only be used once as it is compiled to a specific UTxO 
+//// that has to be spent.
+////
 
 use aiken/transaction.{Mint, OutputReference, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}

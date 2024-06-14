@@ -1,5 +1,11 @@
-//// this controls the locking of the poh pointer token and contains all of the
-//// poh test logic. a successful test will issue a certificate of humanity
+//// This controls the locking of the proof of humanity token and contains all
+//// of the proof of humanity test logic. A user with a successful test will be
+//// issued a certificate of humanity inside the coh lock contract. The test
+//// taking process is interactive and requires interacting with a external 
+//// website for the actual test taking part. A failed test or leaving 
+//// prematurely from an acive test results in a lost deposit that is sent to
+//// the vault.
+////
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}

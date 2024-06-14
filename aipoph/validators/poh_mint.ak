@@ -1,5 +1,11 @@
-//// this controls the minter for the proof of humanity test. It is used to uniquely
-//// identify a specific test.
+//// This controls the minter for the proof of humanity pointer token. The 
+//// token is used to uniquely identify a specific test and indicates that a 
+//// test is currently live and active. The minting of the token can only 
+//// occur during the StartTest endpoint. The burning of the token can occur
+//// during the VerifyTest or the Quit endpoint. If a user burns the token 
+//// during the Quit endpoint then the deposit is sent to the vault as the user
+//// is prematurely leaving a live test. If a user fails the test then the 
+//// token is burned and the deposit goes to the vault.
 ////
 
 use aiken/transaction.{Input, Mint, ScriptContext, Transaction}

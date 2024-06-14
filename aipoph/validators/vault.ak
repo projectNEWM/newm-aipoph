@@ -1,4 +1,8 @@
-//// This is a lost deposit vault.
+//// This is a lost deposit vault. Each UTxO stores tokens and lovelace that
+//// were lost due to prematurely leaving a live test or failing a test. Anyone
+//// may add to the vault as many tokens as they want but only users with 
+//// enough action tokens may subtract from the vault.
+////
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}

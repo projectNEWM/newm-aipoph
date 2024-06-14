@@ -1,6 +1,9 @@
-//// This is a threshold-based reference datum script. Users with enough action
-//// tokens may perform a datum update. The Datum is generalized to allow for
-//// infinite undateablililty.
+//// This is a threshold-based action token dependent reference datum script. 
+//// Users with enough action tokens may perform a datum update. The Datum is
+//// generalized to allow for infinite undateablililty. The only requirement
+//// for the datum is that the petition threshold, used to check if a user may
+//// update the datum, must exist and be non-negative.
+////
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
