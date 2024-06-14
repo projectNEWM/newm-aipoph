@@ -219,40 +219,40 @@ validator(
                 inputs,
                 coh_lock_addr,
                 [vault_addr],
-              ),
+              )?,
               // fee must be less then max fee
-              reference.is_valid_fee(fee, max_revoke_fee),
+              reference.is_valid_fee(fee, max_revoke_fee)?,
               // vault add needs to be called
-              is_vault_being_spent,
+              is_vault_being_spent?,
               // the ada is sent to the vault
-              payout.at_least(vault_addr, cont_vault_value, outputs),
+              payout.at_least(vault_addr, cont_vault_value, outputs)?,
               // must mint 1 coh pointer token
               minting.exact(
                 mint_list,
                 currency_symbol,
                 coh_lock_datum.verification.pointer.tkn,
                 -1,
-              ),
+              )?,
               // must mint 1 coh token
               minting.exact(
                 mint_list,
                 currency_symbol,
                 token_names.coh_token_name,
                 -1,
-              ),
+              )?,
               // do the this_tx meet the threshold
               tx.total_token_amount(
                 inputs,
                 action_pid,
                 action_tkn,
                 coh_revoke_threshold,
-              ),
+              )?,
               // data reference must be holding correct token
               values.prove_exact_nft(
                 ref_data_input.output.value,
                 pointer_pid,
                 pointer_tkn,
-              ),
+              )?,
             }
           // anything else fail
           _ -> fail @"Incorrect CoH Redeemer"

@@ -8,17 +8,26 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aipoph/keys
+use aipoph/query
 use aipoph/token_names
 use aipoph/types/coh.{CoHDatum, CoHLockRedeemer, Revoke, Verify}
+use aipoph/types/poh.{PoHDatum}
+use aipoph/types/prove
+use aipoph/types/reference.{Contracts, ReferenceDatum}
 use assist/count
+use assist/data
 use assist/find
 use assist/minting
 use assist/payout
+use assist/types/hashes.{ValidatorHash}
 use assist/types/token.{Token}
 
 validator(
   // the certificate of humanity pid
   coh_pid: PolicyId,
+  // the reference contract hash
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(
     this_datum: CoHDatum,
@@ -27,8 +36,14 @@ validator(
   ) -> Bool {
     expect Spend(output_reference) = context.purpose
     // the transaction being validated
-    let Transaction { inputs, outputs, mint, validity_range, .. } =
-      context.transaction
+    let Transaction {
+      inputs,
+      outputs,
+      reference_inputs,
+      mint,
+      validity_range,
+      ..
+    } = context.transaction
     // the input being spent
     let this_input: Input = find.input_by_ref(inputs, output_reference)
     // this address being spent from
@@ -38,6 +53,23 @@ validator(
     when redeemer is {
       // verify that the coh is real
       Verify -> {
+        // get the reference utxo and datum
+        let ref_data_addr: Address = credential.from_script(ref_data_hash)
+        let ref_data_input: Input =
+          find.input_by_addr(reference_inputs, ref_data_addr)
+        expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
+        // search the contracts for the poh lock
+        expect contract_data: Contracts =
+          reference.find_data(ref_data_datum, keys.contracts)
+        // this is the poh lock hash
+        let poh_lock_hash: ValidatorHash =
+          reference.find_contract(contract_data, keys.poh_lock_contract)
+        // build the lock address
+        let poh_lock_addr: Address = credential.from_script(poh_lock_hash)
+        // find the input being spent from it
+        let poh_lock_input: Input = find.input_by_addr(inputs, poh_lock_addr)
+        // get the datum from the lock utxo
+        expect poh_lock_datum: PoHDatum = data.input_datum(poh_lock_input)
         // that datum cont must be correct structure
         expect that_datum: CoHDatum =
           find.output_datum_by_addr(outputs, this_addr)
@@ -47,19 +79,25 @@ validator(
         //
         and {
           // datum stays constant
-          this_datum == that_datum,
+          (this_datum == that_datum)?,
           // this value must go back to this address
-          payout.exact(this_addr, this_value, outputs),
+          payout.exact(this_addr, this_value, outputs)?,
           // single script input
-          count.inputs_by_addr(inputs, this_addr, 1),
+          count.inputs_by_addr(inputs, this_addr, 1)?,
           // single script output
-          count.outputs_by_addr(outputs, this_addr, 1),
+          count.outputs_by_addr(outputs, this_addr, 1)?,
           // pass authentication
           coh.authenticity_of_verification_data(
             this_datum.verification,
             this_value,
             validity_range,
-          ),
+          )?,
+          // prove that the answer is signed correctly
+          prove.correct_signers(
+            poh_lock_datum.test_data.answer,
+            poh_lock_datum.owner.pkh,
+            query.get_website_hot_key(ref_data_datum),
+          )?,
         }
       }
       // this will end a test with the user submitting an answer
@@ -75,15 +113,15 @@ validator(
         //
         and {
           // single script output
-          count.outputs_by_addr(outputs, this_addr, 0),
+          count.outputs_by_addr(outputs, this_addr, 0)?,
           // must burn the pointer
           minting.is_occurring(
             mint_list,
             coh_pid,
             this_datum.verification.pointer.tkn,
-          ),
+          )?,
           // must burn the coh token
-          minting.is_occurring(mint_list, coh_pid, token_names.coh_token_name),
+          minting.is_occurring(mint_list, coh_pid, token_names.coh_token_name)?,
         }
       }
     }

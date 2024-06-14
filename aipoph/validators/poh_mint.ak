@@ -189,6 +189,12 @@ validator(
                 poh_lock_datum.test_data.question,
                 poh_lock_datum.test_data.answer,
               ),
+              // prove that the answer is signed correctly
+              prove.correct_signers(
+                poh_lock_datum.test_data.answer,
+                poh_lock_datum.owner.pkh,
+                query.get_website_hot_key(ref_data_datum),
+              ),
               // test must have ended
               poh_lock_datum.test_data.cur_stage == 1,
             } {
@@ -256,7 +262,7 @@ validator(
                 // fee must be less then max fee
                 reference.is_valid_fee(fee, max_fail_fee)?,
                 // a vault needs to be spent
-                is_vault_being_spent,
+                is_vault_being_spent?,
                 // the deposit is sent to the vault
                 payout.at_least(vault_addr, that_vault_value, outputs)?,
                 // must mint 1 reference token
@@ -279,53 +285,48 @@ validator(
           Quit -> {
             // get the datum from the lock utxo
             expect datum: PoHDatum = data.input_datum(poh_lock_input)
-            if datum.test_data.cur_stage == 1 {
-              // The user must wait for their test to be verified
-              fail @"No Leaving During Verification"
-            } else {
-              // the user failed the test and lost the deposit
-              let vault_hash: ValidatorHash =
-                reference.find_contract(contract_data, keys.vault_contract)
-              // build the vault address
-              let vault_addr: Address = credential.from_script(vault_hash)
-              // find the input being spent from it
-              let vault_input: Input = find.input_by_addr(inputs, vault_addr)
-              let vault_value: Value = vault_input.output.value
-              let that_vault_value: Value =
-                value.add(
-                  vault_value,
-                  datum.deposit.pid,
-                  datum.deposit.tkn,
-                  datum.deposit.amt,
-                )
-              //
-              // Quiting and burning means the test was live and the user left
-              // prematurely. Quitting while the test is live is an automatic
-              // lost of deposit. The deposit is sent to the vault.
-              //
-              and {
-                // single script input + vault
-                count.single_input_with_bypass(
-                  inputs,
-                  poh_lock_addr,
-                  [vault_addr],
-                )?,
-                // must mint 1 reference token
-                minting.exact(
-                  mint_list,
-                  currency_symbol,
-                  token_names.poh_token_name,
-                  -1,
-                )?,
-                // data reference must be holding correct token
-                values.prove_exact_nft(
-                  ref_data_input.output.value,
-                  pointer_pid,
-                  pointer_tkn,
-                )?,
-                // the deposit is sent to the vault
-                payout.at_least(vault_addr, that_vault_value, outputs)?,
-              }
+            // the user failed the test and lost the deposit
+            let vault_hash: ValidatorHash =
+              reference.find_contract(contract_data, keys.vault_contract)
+            // build the vault address
+            let vault_addr: Address = credential.from_script(vault_hash)
+            // find the input being spent from it
+            let vault_input: Input = find.input_by_addr(inputs, vault_addr)
+            let vault_value: Value = vault_input.output.value
+            let that_vault_value: Value =
+              value.add(
+                vault_value,
+                datum.deposit.pid,
+                datum.deposit.tkn,
+                datum.deposit.amt,
+              )
+            //
+            // Quiting and burning means the test was live and the user left
+            // prematurely. Quitting while the test is live is an automatic
+            // lost of deposit. The deposit is sent to the vault.
+            //
+            and {
+              // single script input + vault
+              count.single_input_with_bypass(
+                inputs,
+                poh_lock_addr,
+                [vault_addr],
+              )?,
+              // must mint 1 reference token
+              minting.exact(
+                mint_list,
+                currency_symbol,
+                token_names.poh_token_name,
+                -1,
+              )?,
+              // data reference must be holding correct token
+              values.prove_exact_nft(
+                ref_data_input.output.value,
+                pointer_pid,
+                pointer_tkn,
+              )?,
+              // the deposit is sent to the vault
+              payout.at_least(vault_addr, that_vault_value, outputs)?,
             }
           }
           // anything else fail

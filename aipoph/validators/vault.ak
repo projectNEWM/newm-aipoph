@@ -59,7 +59,7 @@ validator(
         //
         and {
           // can only add a token
-          token.addition_only(incoming),
+          token.addition_only(incoming)?,
           // send at least that value to this address
           payout.at_least(this_addr, that_value, outputs)?,
           // single script input
@@ -89,26 +89,26 @@ validator(
         //
         and {
           // can only subtract a token
-          token.subtraction_only(outgoing),
+          token.subtraction_only(outgoing)?,
           // the reference input value must be holding the pointer token
           values.prove_exact_nft(
             ref_data_input.output.value,
             pointer_pid,
             pointer_tkn,
-          ),
+          )?,
           // must be spending enough of the action token
           tx.total_token_amount(
             inputs,
             action_pid,
             action_tkn,
             extract_vault_threshold,
-          ),
+          )?,
           // send that value to this address
-          payout.exact(this_addr, that_value, outputs),
+          payout.exact(this_addr, that_value, outputs)?,
           // single script input
-          count.inputs_by_addr(inputs, this_addr, 1),
+          count.inputs_by_addr(inputs, this_addr, 1)?,
           // single script output
-          count.outputs_by_addr(outputs, this_addr, 1),
+          count.outputs_by_addr(outputs, this_addr, 1)?,
         }
       }
     }
