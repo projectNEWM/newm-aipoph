@@ -2,6 +2,7 @@
 //// action can only occur during the VerifyTest endpoint. The burning action
 //// during the Revoke endpoint. When burning a certificate of humanity the
 //// leftover value on the UTxO is sent to the vault.
+////
 
 use aiken/transaction.{Input, Mint, Output, ScriptContext, Transaction}
 use aiken/transaction/credential.{Address}

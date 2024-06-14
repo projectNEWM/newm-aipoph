@@ -5,6 +5,7 @@
 //// website for the actual test taking part. A failed test or leaving 
 //// prematurely from an acive test results in a lost deposit that is sent to
 //// the vault.
+////
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
