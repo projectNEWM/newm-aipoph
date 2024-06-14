@@ -1,4 +1,7 @@
-//// This is a random integer and bytearray oracle.
+//// This is a random integer and bytearray oracle. It can only be used by a
+//// user with enough action tokens. The only requirement for the oracle is the
+//// previous values for the integer and bytearray are changed into some new
+//// value. Proving and verifying the oracle's randomness is not included.
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
