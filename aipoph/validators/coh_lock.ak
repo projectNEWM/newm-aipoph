@@ -1,4 +1,8 @@
-//// this controls the locking of a certificate of humanity.
+//// This controls the locking of a certificate of humanity. It allows any user
+//// to verify the certificate by running the Verify endpoint. Any user with
+//// action tokens may revoke a certificate of humanity for any reason at any
+//// time. The leftover lovelace from a cerificate of humanity UTxO is sent to
+//// the vault upon a successfull revoke.
 
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
