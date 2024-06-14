@@ -23,6 +23,8 @@ validator(
   // the action token that already exists
   action_pid: PolicyId,
   action_tkn: AssetName,
+  // maximum quantity of the action token
+  action_max: Int,
 ) {
   fn params(
     this_datum: ReferenceDatum,
@@ -52,7 +54,7 @@ validator(
     // 
     and {
       // at least the initial state has to exist
-      query.does_the_intial_state_exist(this_addr, that_datum)?,
+      query.does_the_intial_state_exist(this_addr, that_datum, action_max)?,
       // this value must be holding the pointer token
       values.prove_exact_nft(this_value, pointer_pid, pointer_tkn)?,
       // must be spending enough of the action vote token

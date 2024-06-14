@@ -19,6 +19,7 @@ use assist/types/hashes.{ValidatorHash}
 pub fn does_the_intial_state_exist(
   reference_addr: Address,
   reference_datum: ReferenceDatum,
+  max_petition_threshold: Int,
 ) -> Bool {
   // these will fail if the data doesn't exist
   expect contracts: Contracts =
@@ -41,6 +42,8 @@ pub fn does_the_intial_state_exist(
     reference_addr == that_reference_addr,
     // petition must exist and be positive
     petition_threshold > 0,
+    // must and less than or equal to the maximum value
+    petition_threshold <= max_petition_threshold,
   }
 }
 

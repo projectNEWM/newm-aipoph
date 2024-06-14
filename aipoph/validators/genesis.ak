@@ -23,6 +23,8 @@ validator(
   tx_id_hash: TxHash,
   // transaction id index
   tx_id_idx: Int,
+  // maximum quantity of the action token
+  action_max: Int,
 ) {
   fn params(_redeemer: Void, context: ScriptContext) -> Bool {
     // must be minting
@@ -62,7 +64,7 @@ validator(
     //
     and {
       // petition must exist and be positive
-      query.does_the_intial_state_exist(ref_data_addr, that_datum)?,
+      query.does_the_intial_state_exist(ref_data_addr, that_datum, action_max)?,
       // these inputs must be spending this output reference
       tx.is_spending_input(inputs, this_out_ref)?,
       // mint exactly 1 pointer token
