@@ -298,7 +298,11 @@ Add a couple of lines of documentation above the `and` statements in each valida
 
 #### Severity: Medium Risk
 
-#### Status:
+#### Status: Completed as an Addition to Assist, Using v0.4.10
+
+https://github.com/logicalmechanism/assist/pull/87
+
+https://github.com/logicalmechanism/assist/releases/tag/v0.4.10
 
 #### Files Affected: poh_lock.ak
 
