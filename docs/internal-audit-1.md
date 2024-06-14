@@ -1,10 +1,10 @@
-# AIPoPh Internal Audit
+# AIPoPh Internal Audit 1
 
-The aim of this internal audit is to conduct thorough system testing on AIPoPh to ensure it functions as intended, identify any potential vulnerabilities, analyze performance across various scenarios, assess system robustness, and verify compliance with privacy regulations. The audit will result in a detailed report outlining our findings, proposed strategies for addressing any issues uncovered, and potential mitigations.
+The aim of this first internal audit is to conduct thorough system testing on AIPoPh to ensure it functions as intended, identify any potential vulnerabilities, analyze performance across various scenarios, assess system robustness, and verify compliance with privacy regulations. The audit will result in a detailed report outlining our findings, proposed strategies for addressing any issues uncovered, and potential mitigations.
 
 ## Findings
 
-The findings of our internal audit is below in no particular order.
+The findings of our first internal audit is below in no particular order.
 
 ### IA-1: *All single validators need to switch from `when is` into `expect`*
 
@@ -450,7 +450,9 @@ Review and investigate potential petition threshold restrictions. Knowledge of t
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/37
 
 #### Files Affected: poh_lock.ak, poh_mint.ak, coh_lock.ak, coh_mint.ak
 
@@ -502,20 +504,8 @@ Change all `count.single_input_with_bypass(inputs, this_addr, [])` into `count.i
 
 ---
 
-### IA-#: **
-
-#### Severity:
-
-#### Status:
-
-#### Files Affected: All Validators
-
-#### Description:
-
-#### Recommendation:
-
----
-
 ## Conclusion
 
-- TODO
+The first audit resulted in 22 findings in total with 18 findings being addressed and 4 being acknowledged. There were 4 informational, 9 low risk, 2 medium risk, and 7 high risk issues. Out of the 4 acknowledged findings, 3 of them where high risk and 1 was medium risk. All completed findings have their github pull request linked under the status section. Each pull request was merged into a single first audit branch that will be merged into the milestone 3 branch.
+
+This first audit served as a great stepping stone for this project. Each validator was inspected to ensure it functions as intended and many potential vulnerabilities were circumvented. The system complies with privacy regulations as the only identifying information leaked about the user is their wallet address. The next step is the second audit which will focus on the happy path to analyze performance, functionality, and robustness.

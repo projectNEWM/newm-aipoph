@@ -19,7 +19,6 @@ echo -e "\033[1;34m\nBuilding Contracts \033[0m"
 # keep the traces for testing if required
 aiken build --trace-level verbose --filter-traces all
 
-
 # the locking token information
 tx_id_hash=$(jq -r '.tx_id_hash' config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' config.json)
@@ -58,7 +57,6 @@ pointer_tkn_cbor=$(python3 -c "import cbor2;hex_string='${pointer_tkn}';data=byt
 action_pid=$(jq -r '.action_pid' config.json)
 action_tkn=$(jq -r '.action_tkn' config.json)
 
-
 # one liner for correct cbor
 # requires cbor2
 action_pid_cbor=$(python3 -c "import cbor2;hex_string='${action_pid}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
@@ -72,13 +70,11 @@ aiken blueprint apply -o plutus.json -v reference.params "${action_tkn_cbor}"
 aiken blueprint apply -o plutus.json -v reference.params "${action_max_cbor}"
 aiken blueprint convert -v reference.params > contracts/reference_contract.plutus
 
-
 # store the script hash
 # requires cardano-cli
 cardano-cli transaction policyid --script-file contracts/reference_contract.plutus > hashes/reference.hash
 echo -e "\033[1;33m REFERENCE Contract Hash: $(cat hashes/reference.hash) \033[0m"
 jq --arg variable "$(cat hashes/reference.hash)" '.contracts.reference_contract=$variable' reference_data.json | sponge reference_data.json
-
 
 echo -e "\033[1;33m\nBuilding Oracle Contract \033[0m"
 
@@ -154,16 +150,17 @@ echo -e "\033[1;33m\nBuilding Proof Of Humanity Lock Contract \033[0m"
 
 aiken blueprint apply -o plutus.json -v poh_lock.params "${poh_pid_cbor}"
 aiken blueprint apply -o plutus.json -v poh_lock.params "${coh_pid_cbor}"
+aiken blueprint apply -o plutus.json -v poh_lock.params "${reference_hash_cbor}"
 aiken blueprint convert -v poh_lock.params > contracts/poh_lock_contract.plutus
 
 cardano-cli transaction policyid --script-file contracts/poh_lock_contract.plutus > hashes/poh_lock.hash
 echo -e "\033[1;33m Proof of Humanity Lock Contract Hash: $(cat hashes/poh_lock.hash) \033[0m"
 jq --arg variable "$(cat hashes/poh_lock.hash)" '.contracts.poh_lock_contract=$variable' reference_data.json | sponge reference_data.json
 
-
 echo -e "\033[1;33m\nBuilding Certificate Of Humanity Lock Contract \033[0m"
 
 aiken blueprint apply -o plutus.json -v coh_lock.params "${coh_pid_cbor}"
+aiken blueprint apply -o plutus.json -v coh_lock.params "${reference_hash_cbor}"
 aiken blueprint convert -v coh_lock.params > contracts/coh_lock_contract.plutus
 
 cardano-cli transaction policyid --script-file contracts/coh_lock_contract.plutus > hashes/coh_lock.hash
