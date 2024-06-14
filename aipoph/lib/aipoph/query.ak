@@ -1,7 +1,7 @@
 use aiken/transaction/credential.{Address}
 use aipoph/keys
-use aipoph/types/reference.{Contracts, Fees, ReferenceDatum, Thresholds}
-use assist/types/hashes.{ValidatorHash}
+use aipoph/types/reference.{Contracts, Fees, Keys, ReferenceDatum, Thresholds}
+use assist/types/hashes.{PublicKeyHash, ValidatorHash}
 
 /// This is a logical validation to make the genesis contract work. It is an 
 /// attempt to solve the genesis problem which is caused by some form of trust
@@ -194,4 +194,14 @@ pub fn get_poh_verify_fail_fee(reference_datum: ReferenceDatum) -> Int {
 pub fn get_coh_revoke_fee(reference_datum: ReferenceDatum) -> Int {
   expect fee_data: Fees = reference.find_data(reference_datum, keys.fees)
   reference.find_fee(fee_data, keys.coh_revoke)
+}
+
+/// Get the website public key hash from the reference datum or fail.
+///
+/// ```aiken
+/// query.get_website_hot_key(ref_datum)
+/// ```
+pub fn get_website_hot_key(reference_datum: ReferenceDatum) -> PublicKeyHash {
+  expect keys_data: Keys = reference.find_data(reference_datum, keys.keys)
+  reference.find_key(keys_data, keys.website_key)
 }

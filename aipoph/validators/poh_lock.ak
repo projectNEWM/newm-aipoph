@@ -10,17 +10,21 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
+use aipoph/query
 use aipoph/token_names
 use aipoph/types/poh.{
   EndTest, PoHDatum, PoHLockRedeemer, Quit, StartTest, VerifyTest,
 }
 use aipoph/types/prove
+use aipoph/types/reference.{ReferenceDatum}
 use assist/addresses
 use assist/count
+use assist/data
 use assist/find
 use assist/minting
 use assist/payout
 use assist/signing
+use assist/types/hashes.{ValidatorHash}
 use assist/types/moment
 use assist/types/token.{Token}
 use assist/values
@@ -30,6 +34,8 @@ validator(
   poh_pid: PolicyId,
   // the certificate of humanity pid
   coh_pid: PolicyId,
+  // the reference contract hash
+  ref_data_hash: ValidatorHash,
 ) {
   fn params(
     this_datum: PoHDatum,
@@ -41,6 +47,7 @@ validator(
     let Transaction {
       inputs,
       outputs,
+      reference_inputs,
       mint,
       extra_signatories,
       validity_range,
@@ -117,13 +124,13 @@ validator(
             token_names.poh_token_name,
           )?,
           // single script input
-          count.inputs_by_addr(inputs, this_addr, 1),
+          count.inputs_by_addr(inputs, this_addr, 1)?,
           // single script output
-          count.outputs_by_addr(outputs, this_addr, 1),
+          count.outputs_by_addr(outputs, this_addr, 1)?,
           // owner must sign it
-          signing.verify_sig(extra_signatories, this_datum.owner.pkh),
+          signing.verify_sig(extra_signatories, this_datum.owner.pkh)?,
           // this value must go back to this address
-          payout.exact(this_addr, this_value, outputs),
+          payout.exact(this_addr, this_value, outputs)?,
           // the datum must change into the end test state
           poh.end_test_datum_validation(this_datum, that_datum, answer)?,
           // test period must still be valid
@@ -137,6 +144,11 @@ validator(
       // being minted into the coh lock contract or the test deposit will be lost to the
       // vault.
       VerifyTest -> {
+        // get the reference utxo and datum
+        let ref_data_addr: Address = credential.from_script(ref_data_hash)
+        let ref_data_input: Input =
+          find.input_by_addr(reference_inputs, ref_data_addr)
+        expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
         // the test owner address
         let owner_address: Address =
           addresses.create_address(this_datum.owner.pkh, this_datum.owner.sc)
@@ -147,14 +159,20 @@ validator(
             this_value,
             poh_pid,
             token_names.poh_token_name,
-          )?,
+          ),
           // this proves you are a human via the question and answer
           prove.you_are_a_human(
             this_datum.test_data.question,
             this_datum.test_data.answer,
-          )?,
+          ),
+          // prove that the answer is signed correctly
+          prove.correct_signers(
+            this_datum.test_data.answer,
+            this_datum.owner.pkh,
+            query.get_website_hot_key(ref_data_datum),
+          ),
           // this means the test must have ended
-          (this_datum.test_data.cur_stage == 1)?,
+          this_datum.test_data.cur_stage == 1,
         } {
           //
           // The user passed!
@@ -251,13 +269,13 @@ validator(
           //
           and {
             // single script input
-            count.inputs_by_addr(inputs, this_addr, 1),
+            count.inputs_by_addr(inputs, this_addr, 1)?,
             // single script output
-            count.outputs_by_addr(outputs, this_addr, 0),
+            count.outputs_by_addr(outputs, this_addr, 0)?,
             // send this value back to the owner address
-            payout.exact(owner_address, this_value, outputs),
+            payout.exact(owner_address, this_value, outputs)?,
             // owner must sign it
-            signing.verify_sig(extra_signatories, this_datum.owner.pkh),
+            signing.verify_sig(extra_signatories, this_datum.owner.pkh)?,
           }
         } else {
           //
@@ -281,11 +299,11 @@ validator(
             // single script output
             count.outputs_by_addr(outputs, this_addr, 0)?,
             // burn the poh token
-            minting.is_occurring(mint_list, poh_pid, token_names.poh_token_name),
+            minting.is_occurring(mint_list, poh_pid, token_names.poh_token_name)?,
             // the owner gets the left over value
-            payout.exact(owner_address, owner_value, outputs),
+            payout.exact(owner_address, owner_value, outputs)?,
             // owner must sign it
-            signing.verify_sig(extra_signatories, this_datum.owner.pkh),
+            signing.verify_sig(extra_signatories, this_datum.owner.pkh)?,
           }
         }
       }

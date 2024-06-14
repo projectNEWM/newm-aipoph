@@ -62,22 +62,22 @@ validator(
     //
     and {
       // send back this value to this address
-      payout.exact(this_addr, this_value, outputs),
+      payout.exact(this_addr, this_value, outputs)?,
       // the reference input value must be holding the pointer token
       values.prove_exact_nft(
         ref_data_input.output.value,
         pointer_pid,
         pointer_tkn,
-      ),
+      )?,
       // must be spending enough of the action token
-      tx.total_token_amount(inputs, action_pid, action_tkn, oracle_threshold),
+      tx.total_token_amount(inputs, action_pid, action_tkn, oracle_threshold)?,
       // datums must not equal, the value has to change
-      this_datum.number != that_datum.number,
-      this_datum.string != that_datum.string,
+      (this_datum.number != that_datum.number)?,
+      (this_datum.string != that_datum.string)?,
       // single script input + poh test generation
-      count.single_input_with_bypass(inputs, this_addr, [poh_lock_addr]),
+      count.single_input_with_bypass(inputs, this_addr, [poh_lock_addr])?,
       // single script output
-      count.outputs_by_addr(outputs, this_addr, 1),
+      count.outputs_by_addr(outputs, this_addr, 1)?,
     }
   }
 }
