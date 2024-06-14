@@ -320,7 +320,9 @@ Write tests that prove that the Moment type works as expected that go well beyon
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/35
 
 #### Files Affected: All Validators
 
