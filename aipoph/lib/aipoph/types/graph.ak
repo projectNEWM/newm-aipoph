@@ -1,5 +1,4 @@
 use aiken/builtin.{blake2b_256, serialise_data}
-use aiken/list
 
 pub type Node =
   Int
@@ -18,6 +17,14 @@ pub type Color =
 pub type Coloring =
   List<Color>
 
+/// This produces a hash of the cbor representation of the Coloring data type.
+/// This is used inside of prove.ak so the web site hot key can sign off on the
+/// users answer. It helps prove that the user actually took the test on the
+/// website and did not fake the test taking procedure.
+///
+/// ```aiken
+/// graph.coloring_hash(this_coloring)
+/// ```
 pub fn coloring_hash(coloring: Coloring) -> ByteArray {
   coloring |> serialise_data |> blake2b_256
 }
@@ -40,6 +47,14 @@ test real_coloring_hash() {
   coloring_hash(c) == #"935f929a7e28b70857580a6e6de7969c7cc3bc5a6c516836ab2620412b3d8c4c"
 }
 
+/// This produces the hash of the cbor representation of the Graph data type.
+/// This is used inside of prove.ak and as the hash to sign to log into the web
+/// site to take the test. It verifies that the user is taking the test given
+/// to them during the StartTest endpoint.
+///
+/// ```aiken
+/// graph.graph_hash(that_graph)
+/// ```
 pub fn graph_hash(graph: Graph) -> ByteArray {
   graph |> serialise_data |> blake2b_256
 }
@@ -82,7 +97,7 @@ test small_graph_graph_hash() {
   graph_hash(g) == #"b3064a26269668c85c14d735a77b3b225f5e30ad911870428d3d8daba85e486c"
 }
 
-pub fn get_color(coloring: Coloring, node: Int) -> Color {
+fn get_color(coloring: Coloring, node: Int) -> Color {
   do_get_color(coloring, node, 0)
 }
 
@@ -100,6 +115,14 @@ fn do_get_color(coloring: Coloring, node: Int, counter: Int) -> Color {
   }
 }
 
+/// Given a graph and a coloring of that graph prove that the coloring is a
+/// valid solution. If any edge inside a graph have the same color or a
+/// non-existent color then it returns False else it will return True. This
+/// function scales with E edges times N nodes, E*N.
+///
+/// ```aiken
+/// graph.prove_coloring(this_graph, that_coloring)
+/// ```
 pub fn prove_coloring(graph: Graph, coloring: Coloring) -> Bool {
   when graph is {
     // The graph is colored
@@ -125,23 +148,6 @@ pub fn prove_coloring(graph: Graph, coloring: Coloring) -> Bool {
   }
 }
 
-// the coloring needs to be between the minimum and the allowed threshold
-pub fn prove_minimum(minimum: Int, threshold: Int, coloring: Coloring) -> Bool {
-  let k: Int =
-    coloring
-      |> list.foldl(
-           0,
-           fn(n, max) {
-             if n > max {
-               n
-             } else {
-               max
-             }
-           },
-         )
-  minimum + threshold >= k
-}
-
 test good_coloring() {
   let g: Graph =
     [
@@ -156,12 +162,6 @@ test good_coloring() {
   let c: Coloring =
     [0, 1, 2, 0, 1]
   prove_coloring(g, c)
-}
-
-test good_minimum() {
-  let c: Coloring =
-    [0, 1, 2, 0, 1]
-  prove_minimum(3, 1, c)
 }
 
 test bad_color() fail {

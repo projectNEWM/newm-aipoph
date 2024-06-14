@@ -1,16 +1,18 @@
-# AIPoPh Internal Audit
+# AIPoPh Internal Audit 1
 
-The aim of this internal audit is to conduct thorough system testing on AIPoPh to ensure it functions as intended, identify any potential vulnerabilities, analyze performance across various scenarios, assess system robustness, and verify compliance with privacy regulations. The audit will result in a detailed report outlining our findings, proposed strategies for addressing any issues uncovered, and potential mitigations.
+The aim of this first internal audit is to conduct thorough system testing on AIPoPh to ensure it functions as intended, identify any potential vulnerabilities, analyze performance across various scenarios, assess system robustness, and verify compliance with privacy regulations. The audit will result in a detailed report outlining our findings, proposed strategies for addressing any issues uncovered, and potential mitigations.
 
 ## Findings
 
-The findings of our internal audit is below in no particular order.
+The findings of our first internal audit is below in no particular order.
 
 ### IA-1: *All single validators need to switch from `when is` into `expect`*
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/23
 
 #### Files Affected: All Validators
 
@@ -44,7 +46,9 @@ The `expect` keyword should be used since it will auto fail instead of returning
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/23
 
 #### Files Affected: All Validators
 
@@ -79,7 +83,9 @@ This greatly reduces execution costs when traces are turned off.
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/24
 
 #### Files Affected: dao.ak
 
@@ -97,7 +103,9 @@ Change dao into reference for the validator, type, and scripts. The DAO token us
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/25
 
 #### Files Affected: dao.ak
 
@@ -115,7 +123,9 @@ Use `value.without_lovelace` on this value from the dao contract then use an `pa
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/27
 
 #### Files Affected: dao.ak, oracle.ak, vault.ak, poh_mint.ak, coh_mint.ak
 
@@ -133,7 +143,9 @@ The contracts will still need to have a single input with a specific script bypa
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/28
 
 #### Files Affected: vault.ak
 
@@ -151,7 +163,9 @@ Switch the Token type into Tokens, and make sure all the Tokens are adding or su
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/29
 
 #### Files Affected: types/prove.ak, types/graph.ak, types/coh.ak, types/dao.ak types/poh.ak reference.ak
 
@@ -169,7 +183,9 @@ Add in some `///` top level function comments to all public functions.
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/30
 
 #### Files Affected: poh_lock.ak
 
@@ -187,7 +203,7 @@ A simple fix is making any premature leave of the test result in a lost deposit 
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Acknowledge
 
 #### Files Affected: poh_lock.ak
 
@@ -205,7 +221,7 @@ The website part of the test must be robust and fault tolerant to prevent this t
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Acknowledge
 
 #### Files Affected: oracle.ak, poh_lock.ak
 
@@ -223,7 +239,9 @@ A merkle-tree of values may be applicable but randomness may be reoccurring. Ver
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/31
 
 #### Files Affected: All Validators
 
@@ -260,7 +278,9 @@ expect dao_datum: DAODatum = data.input_datum(dao_input)
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/33
 
 #### Files Affected: All Validators
 
@@ -278,7 +298,11 @@ Add a couple of lines of documentation above the `and` statements in each valida
 
 #### Severity: Medium Risk
 
-#### Status:
+#### Status: Completed as an Addition to Assist, Using v0.4.10
+
+https://github.com/logicalmechanism/assist/pull/87
+
+https://github.com/logicalmechanism/assist/releases/tag/v0.4.10
 
 #### Files Affected: poh_lock.ak
 
@@ -296,7 +320,9 @@ Write tests that prove that the Moment type works as expected that go well beyon
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/35
 
 #### Files Affected: All Validators
 
@@ -314,7 +340,9 @@ Some validator already have them so the ones that do have them need to be review
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/22
 
 #### Files Affected: All Validators
 
@@ -330,9 +358,11 @@ Remove `pub` from functions that are really just private.
 
 ### IA-16: *Remove all functions that are not used in the code base*
 
-#### Severity: Informational
+#### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/18
 
 #### Files Affected: All Validators
 
@@ -350,7 +380,9 @@ Find and remove all unused functions.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/34
 
 #### Files Affected: poh_mint.ak
 
@@ -378,7 +410,9 @@ Either change the logic to just returning a true or remove the `when is` and rep
 
 #### Severity: Medium Risk
 
-#### Status:
+#### Status: Acknowledge
+
+Starting a test forces the state to be zero, ending the test forces the state to be one, and verifying the test drops the state all together. This is OK and should not cause any halted states nor stuck UTxOs.
 
 #### Files Affected: poh_lock.ak, poh_mint.ak
 
@@ -396,7 +430,9 @@ Remove cur_stage from the datum and replace it with a proof of holding exactly a
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/36
 
 #### Files Affected: dao.ak
 
@@ -410,20 +446,66 @@ Review and investigate potential petition threshold restrictions. Knowledge of t
 
 ---
 
-### IA-#: **
+### IA-20: *Website Hot Key needs to exist inside the datum and be checked against the answer during prove you are a human*
 
-#### Severity:
+#### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/37
+
+#### Files Affected: poh_lock.ak, poh_mint.ak, coh_lock.ak, coh_mint.ak
+
+#### Description:
+
+Only the website hot key can sign the answer data. The reference key exists in the code base but there is not validation checking if that key is actually used inside the answer data structure.
+
+#### Recommendation:
+
+Destruct the Answer data and check if the verification key used to sign the answer is the website hot key. A function to validation this case is already inside of prove.ak. It just needs to be used inside of `prove.you_are_a_human(..)`. There is already a funciton to find the correct keys as well.
+
+---
+
+### IA-21: *A Minerva timing attack on P-256 in python-ecdsa exists and can not be circumvented without writing a wrapper around OpenSSL.*
+
+#### Severity: High Risk
+
+#### Status: Acknowledge
+
+#### Files Affected: poh_lock.ak, poh_mint.ak
+
+#### Description:
+
+https://github.com/advisories/GHSA-wj6h-64fc-37mp
+
+#### Recommendation:
+
+Side channel attacks out of scope for the project and there is no planned fix.
+
+---
+
+### IA-22: *Change count inputs with bypass to just count inputs when no bypasses are required*
+
+#### Severity: Low Risk
+
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/32
 
 #### Files Affected: All Validators
 
 #### Description:
 
+The removal of the drep system resulted in empty bypasses for counting inputs with a bypass like `count.single_input_with_bypass(inputs, this_addr, [])`. This now created redundant code that is not required.
+
 #### Recommendation:
+
+Change all `count.single_input_with_bypass(inputs, this_addr, [])` into `count.inputs_by_addr(inputs, this_addr, 1)`.
 
 ---
 
 ## Conclusion
 
-- TODO
+The first audit resulted in 22 findings in total with 18 findings being addressed and 4 being acknowledged. There were 4 informational, 9 low risk, 2 medium risk, and 7 high risk issues. Out of the 4 acknowledged findings, 3 of them where high risk and 1 was medium risk. All completed findings have their github pull request linked under the status section. Each pull request was merged into a single first audit branch that will be merged into the milestone 3 branch.
+
+This first audit served as a great stepping stone for this project. Each validator was inspected to ensure it functions as intended and many potential vulnerabilities were circumvented. The system complies with privacy regulations as the only identifying information leaked about the user is their wallet address. The next step is the second audit which will focus on the happy path to analyze performance, functionality, and robustness.

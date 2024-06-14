@@ -30,6 +30,15 @@ pub type PoHDatum {
   test_data: TestData,
 }
 
+/// Before a test starts the poh datum must be in the correct state. The goal
+/// here is to prevent stuck UTxOs during the VerifyTest endpoint. Besides
+/// obvious datum continuity validation, some logic checks must be done on the
+/// validity range and test data. This prevents illogical testing periods and
+/// forces the random state to not be set by the user.
+///
+/// ```aiken
+/// poh.start_test_datum_validation(this_datum, that_datum)
+/// ```
 pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   // the test_data.question is left to change into whatever here
   and {
@@ -58,6 +67,14 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   }
 }
 
+/// This checks for datum continuity when a user submit their Answer to the 
+/// Question. The most important is that the answer is applied to the new datum,
+/// the stage is incremented, and the old data does not change. Perserving the
+/// data is essential to a fair test verification.
+///
+/// ```aiken
+/// poh.end_test_datum_validation(this_datum, that_datum, my_answer)
+/// ```
 pub fn end_test_datum_validation(
   a: PoHDatum,
   b: PoHDatum,
@@ -83,10 +100,6 @@ pub fn end_test_datum_validation(
     // the randomness cant change
     a.test_data.random == b.test_data.random,
   }
-}
-
-pub type AnswerData {
-  answer: Answer,
 }
 
 pub type PoHLockRedeemer {
