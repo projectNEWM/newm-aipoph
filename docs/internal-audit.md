@@ -410,7 +410,9 @@ Either change the logic to just returning a true or remove the `when is` and rep
 
 #### Severity: Medium Risk
 
-#### Status:
+#### Status: Acknowledge
+
+Starting a test forces the state to be zero, ending the test forces the state to be one, and verifying the test drops the state all together. This is OK and should not cause any halted states nor stuck UTxOs.
 
 #### Files Affected: poh_lock.ak, poh_mint.ak
 
@@ -428,7 +430,9 @@ Remove cur_stage from the datum and replace it with a proof of holding exactly a
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/36
 
 #### Files Affected: dao.ak
 
