@@ -33,7 +33,7 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **implementing the proof validation system**
 - [ ] **Quality-Control Stage**
   - [ ] **internal system testing**
-  - [ ] **potential vulnerabilities testing**
+  - [x] **potential vulnerabilities testing**
   - [ ] **provide detailed documention**
 - [ ] **User Product Testing**
   - [ ] **Collect user feedback regarding usability, performance, and overall UX**
