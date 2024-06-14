@@ -29,9 +29,14 @@ tx_id_idx=$(jq -r '.tx_id_idx' config.json)
 tx_id_hash_cbor=$(python3 -c "import cbor2;hex_string='${tx_id_hash}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
 tx_id_idx_cbor=$(python3 -c "import cbor2;encoded=cbor2.dumps(${tx_id_idx});print(encoded.hex())")
 
+# maximum quantity of the action token
+action_max=$(jq -r '.action_max' config.json)
+action_max_cbor=$(python3 -c "import cbor2;encoded=cbor2.dumps(${action_max});print(encoded.hex())")
+
 echo -e "\033[1;33m\nBuilding Genesis Contract \033[0m"
 aiken blueprint apply -o plutus.json -v genesis.params "${tx_id_hash_cbor}"
 aiken blueprint apply -o plutus.json -v genesis.params "${tx_id_idx_cbor}"
+aiken blueprint apply -o plutus.json -v genesis.params "${action_max_cbor}"
 aiken blueprint convert -v genesis.params > contracts/genesis_contract.plutus
 
 # store the script hash
@@ -53,6 +58,7 @@ pointer_tkn_cbor=$(python3 -c "import cbor2;hex_string='${pointer_tkn}';data=byt
 action_pid=$(jq -r '.action_pid' config.json)
 action_tkn=$(jq -r '.action_tkn' config.json)
 
+
 # one liner for correct cbor
 # requires cbor2
 action_pid_cbor=$(python3 -c "import cbor2;hex_string='${action_pid}';data=bytes.fromhex(hex_string);encoded=cbor2.dumps(data);print(encoded.hex())")
@@ -63,6 +69,7 @@ aiken blueprint apply -o plutus.json -v reference.params "${pointer_pid_cbor}"
 aiken blueprint apply -o plutus.json -v reference.params "${pointer_tkn_cbor}"
 aiken blueprint apply -o plutus.json -v reference.params "${action_pid_cbor}"
 aiken blueprint apply -o plutus.json -v reference.params "${action_tkn_cbor}"
+aiken blueprint apply -o plutus.json -v reference.params "${action_max_cbor}"
 aiken blueprint convert -v reference.params > contracts/reference_contract.plutus
 
 
