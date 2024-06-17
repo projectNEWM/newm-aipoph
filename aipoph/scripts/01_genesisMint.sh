@@ -12,10 +12,6 @@ dao_script_path="../contracts/dao_contract.plutus"
 dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
 dao_hash=$(cat ../hashes/reference.hash)
 
-drep_script_path="../contracts/drep_lock_contract.plutus"
-drep_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
-drep_hash=$(cat ../hashes/drep_lock.hash)
-
 # bundle sale contract
 genesis_script_path="../contracts/genesis_contract.plutus"
 
@@ -56,9 +52,6 @@ jq --argjson petition_amount "$petition_amount" '.list[0].fields[1].list[0].fiel
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
 jq --arg dao_hash "$dao_hash" '.list[1].fields[1].list[0].fields[1].bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
-mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
-
-jq --arg drep_hash "$drep_hash" '.list[1].fields[1].list[1].fields[1].bytes=$drep_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
 # the pointer token
