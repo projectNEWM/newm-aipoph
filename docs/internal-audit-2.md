@@ -12,7 +12,9 @@ The findings of our second internal audit is below in no particular order.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/40
 
 #### Files Affected: All Scripts
 
