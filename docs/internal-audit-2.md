@@ -1,4 +1,4 @@
-# AIPoPh Internal Audit 2
+# AIPoPh Internal Audit 2 -  Happy Path Audit
 
 The aim of this second internal audit is to conduct thorough end-to-end system test on AIPoPh, ensuring the happy path functions as intended. The audit will result in a detailed report outlining our findings, proposed strategies for addressing any issues uncovered, and potential mitigations.
 
