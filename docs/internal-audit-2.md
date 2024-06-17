@@ -32,7 +32,9 @@ Change all `#!/bin/bash` into `#!/usr/bin/env bash`.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/41
 
 #### Files Affected: 01_genesisMint.sh
 
