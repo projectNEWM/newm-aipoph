@@ -36,8 +36,6 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --protocol-params-file ../tmp/protocol.json \
     --tx-out-inline-datum-file ../data/vault/vault-datum.json \
     --tx-out="${vault_script_address} + 5000000" | tr -dc '0-9')
-
-
 #
 # exit
 #

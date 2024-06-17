@@ -1,9 +1,9 @@
 {
     "__comment1__": "TxId for Genesis",
-    "tx_id_hash": "d939a04648414b9d1ae63e10d6921ed119b8d911195da9467c642c51774c0644",
-    "tx_id_idx": 0,
+    "tx_id_hash": "d4ab4f769a11144a4b9da644f5996c66b9b4ef2098dd56daf6a90c4ae05e2c2f",
+    "tx_id_idx": 1,
     "__comment2__": "This will be the action token for voting",
-    "action_pid": "015d83f25700c83d708fbf8ad57783dc257b01a932ffceac9dcd0c3d",
-    "action_tkn": "43757272656e6379",
-    "action_max": 9223372036854775807
+    "action_pid": "d7904b71609348dfcf165789b6ea07108cfcb73dd85984a7f9e60c8e",
+    "action_tkn": "2834343429002c28bf1cc21d1f70c8d1d60741544cb124387eb039123a05c1f8",
+    "action_max": 100000000
   }
