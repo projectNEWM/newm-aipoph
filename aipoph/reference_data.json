@@ -1,11 +1,11 @@
 {
   "thresholds": {
-    "petition_threshold": 150000000,
-    "oracle_threshold": 150000000,
-    "start_poh_test_threshold": 150000000,
-    "mint_coh_threshold": 150000000,
-    "revoke_coh_threshold": 150000000,
-    "extract_vault_threshold": 150000000
+    "petition_threshold": 100000000,
+    "oracle_threshold": 100000000,
+    "start_poh_test_threshold": 100000000,
+    "mint_coh_threshold": 100000000,
+    "revoke_coh_threshold": 100000000,
+    "extract_vault_threshold": 100000000
   },
   "contracts": {
     "dao_contract": "cbc4095d587857d65f1283b15065b866452d2e916b9c713d8e8ff79c",
