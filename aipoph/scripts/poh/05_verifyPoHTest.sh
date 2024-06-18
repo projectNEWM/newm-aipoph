@@ -35,16 +35,19 @@ voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
 
 poh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/poh_mint_contract.plutus)
+poh_token_name=$(jq -r '.poh_token_name' ../../config.json)
 coh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/coh_mint_contract.plutus)
+coh_token_name=$(jq -r '.coh_token_name' ../../config.json)
+
 
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
-pointer_prefix="5f6169706f70685f"
+pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
-poh_token="-1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
-coh_token="1 ${coh_policy_id}.436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e"
+poh_token="-1 ${poh_policy_id}.${poh_token_name}"
+coh_token="1 ${coh_policy_id}.${poh_token_name}"
 
 # get script utxo
 echo -e "\033[0;36m Gathering PoH UTxO Information  \033[0m"
@@ -65,7 +68,7 @@ IFS='#' read -ra array <<< "$string"
 
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
-pointer_prefix="5f6169706f70685f"
+pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
