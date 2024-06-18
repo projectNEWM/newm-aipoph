@@ -37,8 +37,8 @@ voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/v
 poh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/poh_mint_contract.plutus)
 coh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/coh_mint_contract.plutus)
 
-tx_id_hash=$(jq -r '.tx_id_hash' ../../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../../start_info.json)
+tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
 pointer_prefix="5f6169706f70685f"
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
@@ -63,8 +63,8 @@ echo "PoH Lock UTxO:" $poh_lock_tx_in
 string=${poh_lock_tx_in}
 IFS='#' read -ra array <<< "$string"
 
-tx_id_hash=$(jq -r '.tx_id_hash' ../../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../../start_info.json)
+tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
 pointer_prefix="5f6169706f70685f"
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
