@@ -52,7 +52,9 @@ Remove anything related to the drep system.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/42
 
 #### Files Affected: All Scripts
 
