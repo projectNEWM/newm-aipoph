@@ -48,15 +48,15 @@ echo "Genesis UTxO:" $genesis_tx_in
 
 # # this is set in the reference data
 petition_amount=$(jq -r '.thresholds.petition_threshold' ../reference_data.json)
-jq --argjson petition_amount "$petition_amount" '.list[0].fields[1].list[0].fields[1].int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --argjson petition_amount "$petition_amount" '.map[0].v.map[0].v.int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg reference_hash "$reference_hash" '.list[1].fields[1].list[0].fields[1].bytes=$reference_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --arg reference_hash "$reference_hash" '.map[1].v.map[0].v.bytes=$reference_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
 # the locking token information
-tx_id_hash=$(jq -r '.tx_id_hash' ../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../start_info.json)
+tx_id_hash=$(jq -r '.tx_id_hash' ../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../config.json)
 
 # the pointer token
 pointer_prefix="5f6169706f70685f"
@@ -64,8 +64,7 @@ pointer_pid=$(cat ../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
 mint_asset="1 ${pointer_pid}.${pointer_tkn}"
-
-# echo Minting: ${mint_asset}
+echo Minting: ${mint_asset}
 
 utxo_value=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
