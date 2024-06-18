@@ -72,7 +72,9 @@ Update dao into reference where applicable.
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/43
 
 #### Files Affected: README.md
 
