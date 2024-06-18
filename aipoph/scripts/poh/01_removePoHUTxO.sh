@@ -25,7 +25,7 @@ user_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/us
 
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
-pointer_prefix="5f6169706f70685f"
+pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 

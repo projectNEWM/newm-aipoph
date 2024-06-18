@@ -28,17 +28,18 @@ user_address=$(cat ../wallets/user-wallet/payment.addr)
 user_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/user-wallet/payment.vkey)
 
 poh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/poh_mint_contract.plutus)
+poh_token_name=$(jq -r '.poh_token_name' ../../config.json)
 
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
-pointer_prefix="5f6169706f70685f"
+pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
 # asset to trade
 # the locking token information
 
-poh_token="-1 ${poh_policy_id}.426567696e205468652050726f6f66204f662048756d616e6974792054657374"
+poh_token="-1 ${poh_policy_id}.${poh_token_name}"
 
 # incentive, deposit, and poh token
 worst_case_tokens="9223372036854775807 632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b.632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000
