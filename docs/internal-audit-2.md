@@ -132,7 +132,9 @@ Update all occurrances of `start_info.json` into `config.json`.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/46
 
 #### Files Affected: All Scripts
 
