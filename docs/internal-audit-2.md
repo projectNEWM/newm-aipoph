@@ -92,7 +92,9 @@ A quick write is all that is needed here.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/44
 
 #### Files Affected: .env.preview
 
