@@ -112,7 +112,9 @@ Create a `.env.preview` file for the preview network.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/45
 
 #### Files Affected: All Scripts
 
