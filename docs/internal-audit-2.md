@@ -162,7 +162,9 @@ pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/47
 
 #### Files Affected: add-redeemer.json, sub-redeemer.json
 
