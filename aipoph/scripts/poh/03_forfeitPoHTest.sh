@@ -11,9 +11,9 @@ ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 poh_lock_script_path="../../contracts/poh_lock_contract.plutus"
 poh_lock_script_address=$(${cli} address build --payment-script-file ${poh_lock_script_path} ${network})
 
-# dao script
-dao_script_path="../../contracts/dao_contract.plutus"
-dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
+# reference script
+reference_script_path="../../contracts/reference_contract.plutus"
+reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
 
 # vault script
 vault_script_path="../../contracts/vault_contract.plutus"
@@ -88,19 +88,19 @@ echo "User OUTPUT: "${user_address_out}
 
 
 # get script utxo
-echo -e "\033[0;36m Gathering DAO UTxO Information  \033[0m"
+echo -e "\033[0;36m Gathering Reference UTxO Information  \033[0m"
 ${cli} query utxo \
-    --address ${dao_script_address} \
+    --address ${reference_script_address} \
     ${network} \
     --out-file ../tmp/script_utxo.json
 TXNS=$(jq length ../tmp/script_utxo.json)
 if [ "${TXNS}" -eq "0" ]; then
-   echo -e "\n \033[0;31m NO UTxOs Found At ${dao_script_address} \033[0m \n";
+   echo -e "\n \033[0;31m NO UTxOs Found At ${reference_script_address} \033[0m \n";
 .   exit;
 fi
 alltxin=""
 TXIN=$(jq -r --arg alltxin "" --arg policy_id "$pointer_pid" --arg token_name "$pointer_tkn" 'to_entries[] | select(.value.value[$policy_id][$token_name] == 1) | .key | . + $alltxin + " --tx-in"' ../tmp/script_utxo.json)
-dao_tx_in=${TXIN::-8}
+reference_tx_in=${TXIN::-8}
 
 # get script utxo
 echo -e "\033[0;36m Gathering Vault UTxO Information  \033[0m"
@@ -150,7 +150,7 @@ FEE=$(${cli} transaction build \
     --invalid-before ${current_slot} \
     --invalid-hereafter ${final_slot} \
     --change-address ${user_address} \
-    --read-only-tx-in-reference ${dao_tx_in} \
+    --read-only-tx-in-reference ${reference_tx_in} \
     --tx-in-collateral ${collat_tx_in} \
     --tx-in ${user_tx_in} \
     --tx-in ${poh_lock_tx_in} \

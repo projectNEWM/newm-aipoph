@@ -8,9 +8,9 @@ source .env
 ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 
 # genesis contract
-dao_script_path="../contracts/dao_contract.plutus"
-dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
-dao_hash=$(cat ../hashes/reference.hash)
+reference_script_path="../contracts/reference_contract.plutus"
+reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
+reference_hash=$(cat ../hashes/reference.hash)
 
 # bundle sale contract
 genesis_script_path="../contracts/genesis_contract.plutus"
@@ -46,18 +46,19 @@ genesis_tx_in=${TXIN::-8}
 
 echo "Genesis UTxO:" $genesis_tx_in
 
-# # this is set in the dao data
-petition_amount=$(jq -r '.thresholds.petition_threshold' ../dao_data.json)
+# # this is set in the reference data
+petition_amount=$(jq -r '.thresholds.petition_threshold' ../reference_data.json)
 jq --argjson petition_amount "$petition_amount" '.list[0].fields[1].list[0].fields[1].int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg dao_hash "$dao_hash" '.list[1].fields[1].list[0].fields[1].bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --arg reference_hash "$reference_hash" '.list[1].fields[1].list[0].fields[1].bytes=$reference_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-# the pointer token
 # the locking token information
 tx_id_hash=$(jq -r '.tx_id_hash' ../start_info.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../start_info.json)
+
+# the pointer token
 pointer_prefix="5f6169706f70685f"
 pointer_pid=$(cat ../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
@@ -70,10 +71,10 @@ utxo_value=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file tmp/protocol.json \
     --tx-out-inline-datum-file data/genesis/genesis-datum.json \
-    --tx-out="${dao_script_address} + 5000000 + ${mint_asset}" | tr -dc '0-9')
-dao_script_out="${dao_script_address} + ${utxo_value} + ${mint_asset}"
+    --tx-out="${reference_script_address} + 5000000 + ${mint_asset}" | tr -dc '0-9')
+reference_script_out="${reference_script_address} + ${utxo_value} + ${mint_asset}"
 
-echo "Genesis OUTPUT:" ${dao_script_out}
+echo "Genesis OUTPUT:" ${reference_script_out}
 #
 # exit
 #
@@ -99,7 +100,7 @@ FEE=$(${cli} transaction build \
     --change-address ${change_address} \
     --tx-in-collateral="${collat_utxo}" \
     --tx-in ${genesis_tx_in} \
-    --tx-out="${dao_script_out}" \
+    --tx-out="${reference_script_out}" \
     --tx-out-inline-datum-file data/genesis/genesis-datum.json \
     --required-signer-hash ${collat_pkh} \
     --required-signer-hash ${genesis_pkh} \
@@ -135,4 +136,4 @@ ${cli} transaction submit \
 tx=$(cardano-cli transaction txid --tx-file tmp/tx.signed)
 echo "Tx Hash:" $tx
 
-cp data/genesis/genesis-datum.json data/dao/dao-datum.json
+cp data/genesis/genesis-datum.json data/reference/reference-datum.json
