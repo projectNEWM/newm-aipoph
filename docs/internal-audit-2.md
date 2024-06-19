@@ -182,7 +182,9 @@ The Tokens type is a list of Token types. Update the data structure to the new t
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/48
 
 #### Files Affected: All Scripts
 
