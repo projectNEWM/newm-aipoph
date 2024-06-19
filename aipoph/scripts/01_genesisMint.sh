@@ -23,13 +23,13 @@ genesis_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/ge
 collat_address=$(cat wallets/collat-wallet/payment.addr)
 collat_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/collat-wallet/payment.vkey)
 
-# return ada address
-change_address="addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+# return leftover ada address
+change_address=$(jq -r '.change_address' ../config.json)
 
 # the minting script policy
 policy_id=$(cat ../hashes/genesis.hash)
 
-echo -e "\033[0;36m Gathering NEWM UTxO Information  \033[0m"
+echo -e "\033[0;36m Gathering Genesis UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
     --address ${genesis_address} \

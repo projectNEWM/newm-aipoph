@@ -21,8 +21,7 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/col
 voter_address=$(cat wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/voter-wallet/payment.vkey)
 
-# asset to trade
-# the locking token information
+# the genesis pointer token information
 tx_id_hash=$(jq -r '.tx_id_hash' ../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../config.json)
 pointer_prefix=$(jq -r '.pointer_prefix' ../config.json)
@@ -59,7 +58,6 @@ min_utxo=${updated_min_utxo}
 # update the difference
 variable=${difference}; jq --argjson variable "$variable" '.fields[0].int=$variable' data/reference/petition-redeemer.json > data/reference/petition-redeemer-new.json
 mv data/reference/petition-redeemer-new.json data/reference/petition-redeemer.json
-
 
 reference_script_out="${script_address} + ${min_utxo} + ${asset}"
 echo "Script OUTPUT: "${reference_script_out}

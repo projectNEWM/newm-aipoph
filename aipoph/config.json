@@ -11,5 +11,7 @@
     "__comment4__": "Proof of Humanity token name",
     "poh_token_name": "426567696e205468652050726f6f66204f662048756d616e6974792054657374",
     "__comment5__": "Cerificate of Humanity token name",
-    "coh_token_name": "436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e"
+    "coh_token_name": "436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e",
+    "__comment6__": "Genesis change address",
+    "change_address": "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
   }

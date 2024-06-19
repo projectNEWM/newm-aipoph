@@ -7,17 +7,13 @@ source ../.env
 # get params
 ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 
-# oracle script
+# poh lock script
 poh_lock_script_path="../../contracts/poh_lock_contract.plutus"
 poh_lock_script_address=$(${cli} address build --payment-script-file ${poh_lock_script_path} ${network})
 
 # reference script
 reference_script_path="../../contracts/reference_contract.plutus"
 reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
-
-# oracle script
-oracle_script_path="../../contracts/oracle_contract.plutus"
-oracle_script_address=$(${cli} address build --payment-script-file ${oracle_script_path} ${network})
 
 # collat
 collat_address=$(cat ../wallets/collat-wallet/payment.addr)
@@ -27,13 +23,12 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/
 user_address=$(cat ../wallets/user-wallet/payment.addr)
 user_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/user-wallet/payment.vkey)
 
-# voter
-voter_address=$(cat ../wallets/voter-wallet/payment.addr)
-voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
-
+# proof of humanity token information
 poh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/poh_mint_contract.plutus)
 poh_token_name=$(jq -r '.poh_token_name' ../../config.json)
+poh_token="1 ${poh_policy_id}.${poh_token_name}"
 
+# genesis pointer token information
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
 pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
@@ -53,11 +48,8 @@ g = generate(10, 12, ${cur_rand_num});
 c = find_minimal_coloring(g);
 print(coloring_to_datum(list(c.values())))")
 
-variable=${coloring}; jq --argjson variable "$variable" '.fields[0].fields[0].list=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-
-variable=${coloring}; jq --argjson variable "$variable" '.fields[4].fields[3].fields[0].list=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${coloring}; jq --argjson variable "$variable" '.fields[0].fields[0].list=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json 
+variable=${coloring}; jq --argjson variable "$variable" '.fields[4].fields[3].fields[0].list=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 graph_hash=$(../py/k-coloring-test/venv/bin/python -c "
 import sys;
@@ -90,22 +82,16 @@ print(signature)
 
 pkh=$(cat ../wallets/website-wallet/payment.vkey)
 echo Graph Pkh: $pkh
-variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[1].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[1].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 echo Graph Hash: $graph_hash
-variable=${graph_hash}; jq --arg variable "$variable" '.fields[0].fields[1].fields[1].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${graph_hash}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${graph_hash}; jq --arg variable "$variable" '.fields[0].fields[1].fields[1].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${graph_hash}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 echo Graph Sig: $graph_sig
-variable=${graph_sig}; jq --arg variable "$variable" '.fields[0].fields[1].fields[2].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${graph_sig}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[2].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${graph_sig}; jq --arg variable "$variable" '.fields[0].fields[1].fields[2].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${graph_sig}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[2].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 color_sig=$(python -c "
 import sys;
@@ -117,28 +103,22 @@ print(signature)
 ")
 
 echo Color Pkh: $pkh
-variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[2].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
+variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[2].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 
 echo Color Hash: $color_hash
-variable=${color_hash}; jq --arg variable "$variable" '.fields[0].fields[2].fields[1].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${color_hash}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${color_hash}; jq --arg variable "$variable" '.fields[0].fields[2].fields[1].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${color_hash}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[1].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 echo Color Sig: $color_sig
-variable=${color_sig}; jq --arg variable "$variable" '.fields[0].fields[2].fields[2].bytes=$variable' ../data/poh/end-test-redeemer.json > ../data/poh/end-test-redeemer-new.json
-mv ../data/poh/end-test-redeemer-new.json ../data/poh/end-test-redeemer.json
-variable=${color_sig}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[2].bytes=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=${color_sig}; jq --arg variable "$variable" '.fields[0].fields[2].fields[2].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
+variable=${color_sig}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[2].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
-variable=1; jq --argjson variable "$variable" '.fields[4].fields[4].int=$variable' ../data/poh/updated-poh-datum.json > ../data/poh/updated-poh-datum-new.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
+variable=1; jq --argjson variable "$variable" '.fields[4].fields[4].int=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 
-poh_token="1 ${poh_policy_id}.${poh_token_name}"
+
 
 # get user utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
@@ -191,19 +171,6 @@ echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 
 # exit
 
-# get script utxo
-echo -e "\033[0;36m Gathering Oracle UTxO Information  \033[0m"
-${cli} query utxo \
-    --address ${oracle_script_address} \
-    ${network} \
-    --out-file ../tmp/script_utxo.json
-TXNS=$(jq length ../tmp/script_utxo.json)
-if [ "${TXNS}" -eq "0" ]; then
-   echo -e "\n \033[0;31m NO UTxOs Found At ${oracle_script_address} \033[0m \n";
-.   exit;
-fi
-oracle_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
-
 # collat info
 echo -e "\033[0;36m Gathering Collateral UTxO Information  \033[0m"
 ${cli} query utxo \
@@ -220,17 +187,9 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 
 poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contract.plutus.signed )
 
-# echo $collat_tx_in
-# echo $reference_tx_in
-# echo $user_tx_in
-# echo $poh_lock_tx_in
-# echo $user_address
-# echo $poh_lock_ref_utxo
-
-current_slot=$(${cli} query tip ${network} | jq .slot)
-final_slot=$(($current_slot + 55))
-
-echo $current_slot $final_slot
+slot=$(${cli} query tip ${network} | jq .slot)
+current_slot=$(($slot - 1))
+final_slot=$(($slot + 750))
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \

@@ -4,7 +4,7 @@ set -e
 # SET UP VARS HERE
 source .env
 
-# cip 68 contract
+# reference contract
 reference_script_path="../contracts/reference_contract.plutus"
 reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
 
