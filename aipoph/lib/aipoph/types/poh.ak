@@ -87,18 +87,20 @@ pub fn end_test_datum_validation(
     a.deposit == b.deposit,
     // incentive cant change
     a.incentive == b.incentive,
+    // this is the minium lovelace required for the coh token
+    (a.min_lovelace == b.min_lovelace)?,
     // the validitiy range cant change
     a.test_data.validity_range == b.test_data.validity_range,
-    // the current stage is zeroth
-    a.test_data.cur_stage == 0,
-    // the next stage is first
-    b.test_data.cur_stage == 1,
+    // the randomness cant change
+    a.test_data.random == b.test_data.random,
     // question cant change
     a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
     (b.test_data.answer == answer)?,
-    // the randomness cant change
-    a.test_data.random == b.test_data.random,
+    // the current stage is zeroth
+    a.test_data.cur_stage == 0,
+    // the next stage is first
+    b.test_data.cur_stage == 1,
   }
 }
 

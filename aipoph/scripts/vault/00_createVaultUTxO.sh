@@ -7,7 +7,7 @@ source ../.env
 # get params
 ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 
-# oracle script
+# vault script
 vault_script_path="../../contracts/vault_contract.plutus"
 vault_script_address=$(${cli} address build --payment-script-file ${vault_script_path} ${network})
 
@@ -18,9 +18,6 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/
 # voter
 voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
-
-# asset to trade
-# the locking token information
 
 min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
@@ -33,7 +30,6 @@ echo "Vault OUTPUT: "${vault_script_out}
 #
 # exit
 #
-# get deleg utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \

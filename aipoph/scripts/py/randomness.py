@@ -8,10 +8,12 @@ def number() -> int:
     Returns:
         int: A random number within the specified range.
     """
-    # Generate a random 64-bit number
+    # Generate a random 64-bit number but bound by the max datum int size
     n = secrets.randbits(64)
-    print(n)
-    return n
+    if n <= pow(2, 63) - 1:
+        return n
+    else:
+        return number()
 
 
 def string() -> str:
@@ -22,6 +24,4 @@ def string() -> str:
         str: A random hex string of length 64.
     """
     # Generate a 64-length hex string (32 bytes, each byte represented by 2 hex digits)
-    s = secrets.token_hex(32)
-    print(s)
-    return s
+    return secrets.token_hex(32)

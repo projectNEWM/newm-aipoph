@@ -23,23 +23,16 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/
 voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
 
-# asset to trade
-# the locking token information
+# the genesis pointer token information
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
 tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
 pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
-min_utxo=$(${cli} transaction calculate-min-required-utxo \
-    --babbage-era \
-    --protocol-params-file ../tmp/protocol.json \
-    --tx-out-inline-datum-file ../data/vault/vault-datum.json \
-    --tx-out="${vault_script_address} + 5000000" | tr -dc '0-9')
 #
 # exit
 #
-# get deleg utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
@@ -55,7 +48,7 @@ alltxin=""
 TXIN=$(jq -r --arg alltxin "" 'keys[] | . + $alltxin + " --tx-in"' ../tmp/voter_utxo.json)
 voter_tx_in=${TXIN::-8}
 
-# get script utxo
+# get reference script utxo
 echo -e "\033[0;36m Gathering Reference UTxO Information  \033[0m"
 ${cli} query utxo \
     --address ${reference_script_address} \
@@ -70,7 +63,7 @@ alltxin=""
 TXIN=$(jq -r --arg alltxin "" --arg policy_id "$pointer_pid" --arg token_name "$pointer_tkn" 'to_entries[] | select(.value.value[$policy_id][$token_name] == 1) | .key | . + $alltxin + " --tx-in"' ../tmp/script_utxo.json)
 reference_tx_in=${TXIN::-8}
 
-# get script utxo
+# get vault script utxo
 echo -e "\033[0;36m Gathering Vault UTxO Information  \033[0m"
 ${cli} query utxo \
     --address ${vault_script_address} \
@@ -151,5 +144,3 @@ ${cli} transaction submit \
 
 tx=$(cardano-cli transaction txid --tx-file ../tmp/tx.signed)
 echo "Tx Hash:" $tx
-
-cp ../data/oracle/updated-oracle-datum.json ../data/oracle/oracle-datum.json
