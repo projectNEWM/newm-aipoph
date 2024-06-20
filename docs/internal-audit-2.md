@@ -222,7 +222,9 @@ Add in an extra explicit tx out to the transactions that accounts for the voter 
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Acknowledged
+
+All lovelace amounts should be based off of the utxo state. The only amounts are the assumed happy path values like the default 1 ada test for vault or the 2 ada for fees.
 
 #### Files Affected: All Scripts
 
@@ -250,7 +252,9 @@ lovelace_value=$(jq -r '.[].value.lovelace' ../tmp/script_utxo.json)
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Acknowledged
+
+TxSimulation relies on Koios. Koios updated their API from v0 to v1. A simple version change fixed this.
 
 #### Files Affected: 02_startPoHTest.sh, 05_verifyPoHTest.sh
 
@@ -268,7 +272,7 @@ Update to the newest version of TxSimulation.
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Acknowledged; Solved in IA-09
 
 #### Files Affected: All Scripts
 
@@ -286,7 +290,7 @@ Review each happy path script and make sure each contract defined at the top lev
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Acknowledged; Solved in IA-07
 
 #### Files Affected: All Scripts
 
