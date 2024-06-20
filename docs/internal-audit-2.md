@@ -202,7 +202,9 @@ Remove the useless data copies, review all the echo statements, and fix the comm
 
 #### Severity: Low Risk
 
-#### Status:
+#### Status: Acknowledged
+
+The user pays for things the user does and when applicable the voter just sends their value back to themselves.
 
 #### Files Affected: All Scripts
 
