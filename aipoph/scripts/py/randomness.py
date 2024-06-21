@@ -10,7 +10,7 @@ def number() -> int:
     """
     # Generate a random 64-bit number but bound by the max datum int size
     n = secrets.randbits(64)
-    if n <= pow(2, 63) - 1:
+    if n <= pow(2, 64) - 1:
         return n
     else:
         return number()
