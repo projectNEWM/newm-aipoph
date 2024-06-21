@@ -251,6 +251,12 @@ ${cli} transaction build-raw \
 python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
 cat ../data/poh/exe_units.json
+if [ "$(cat ../data/poh/exe_units.json)" = '[{}]' ]; then
+    echo "Validation Failed."
+    exit 1
+else
+    echo "Validation Success."
+fi
 # execution units need to be applied in lexicographical order
 pl_index=$(python3 -c "import sys; sys.path.append('../py/'); from lexico_order import compare_strings; x = compare_strings('${poh_lock_tx_in}', '${oracle_tx_in}'); print(x)")
 o_index=$((1 - ${pl_index}))

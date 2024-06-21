@@ -9,11 +9,11 @@
   },
   "contracts": {
     "oracle_contract": "eeb4ccf6e67164adf6316f6cb1f369e6b15800e5434d7682c0ba1ac4",
-    "poh_lock_contract": "cf86269e00aeeff3e80aa63efc4c8fbbb9ff2c3121882fa0ccd1e444",
-    "coh_lock_contract": "016a300e87e3409304c5b4721dfcd6b371fa96d627df58c67e860949",
+    "poh_lock_contract": "abdf07c88760783affc5c815b2897bb728497630cb9143d4b451b383",
+    "coh_lock_contract": "9c7edc4d3abb3408828d0ae23e3d4cbc32ded34449f9977937011b1a",
     "vault_contract": "2089aa9b3bd9be261b1fe0f409276bac68fded78817c0f42472d2160",
     "poh_mint_contract": "3cfef574ef2ea88c1d9b4e4eb3f431143853ce922ccd88ce79cc9be8",
-    "coh_mint_contract": "7380ff1123433ef8625e884b69cca5436774c845b64ccb59a2761b9f",
+    "coh_mint_contract": "ec196d149ae50a846f5a23e749213804941560b8cc8bf6b0e6d24ae8",
     "reference_contract": "535053c2c85e22ffe3715dca24780063c7874d3a4958d5b5a6138934"
   },
   "fees": {

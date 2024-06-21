@@ -170,7 +170,7 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 cpu_steps=0
 mem_steps=0
 
-sale_execution_unts="(${cpu_steps}, ${mem_steps})"
+execution_units="(${cpu_steps}, ${mem_steps})"
 
 # script reference utxo
 
@@ -284,11 +284,11 @@ ${cli} transaction build-raw \
     --spending-tx-in-reference="${poh_lock_ref_utxo}#1" \
     --spending-plutus-script-v2 \
     --spending-reference-tx-in-inline-datum-present \
-    --spending-reference-tx-in-execution-units="${sale_execution_unts}" \
+    --spending-reference-tx-in-execution-units="${execution_units}" \
     --spending-reference-tx-in-redeemer-file ../data/poh/verify-test-redeemer.json \
-    --tx-out="${owner_script_out}" \
     --tx-out="${coh_lock_script_out}" \
     --tx-out-inline-datum-file ../data/coh/coh-datum.json \
+    --tx-out="${owner_script_out}" \
     --tx-in ${voter_tx_in} \
     --tx-out="${voter_out}" \
     --required-signer-hash ${user_pkh} \
@@ -298,19 +298,24 @@ ${cli} transaction build-raw \
     --mint-tx-in-reference="${poh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
-    --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
+    --mint-reference-tx-in-execution-units="${execution_units}" \
     --mint-reference-tx-in-redeemer-file ../data/poh/burn-redeemer.json \
     --mint-tx-in-reference="${coh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${coh_policy_id}" \
-    --mint-reference-tx-in-execution-units="${sale_execution_unts}" \
+    --mint-reference-tx-in-execution-units="${execution_units}" \
     --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee 0
 
+
 python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
-
 cat ../data/poh/exe_units.json
-
+if [ "$(cat ../data/poh/exe_units.json)" = '[{}]' ]; then
+    echo "Validation Failed."
+    exit 1
+else
+    echo "Validation Success."
+fi
 # echo ${poh_lock_tx_in}
 # echo ${poh_policy_id}
 # echo ${coh_policy_id}
