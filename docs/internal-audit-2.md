@@ -308,7 +308,9 @@ Add the token names to the `config.json` file then use a jq statement to query t
 
 #### Severity: High Risk
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/49
 
 #### Files Affected: coh related
 
