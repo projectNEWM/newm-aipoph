@@ -75,12 +75,12 @@ graph_sig=$(python -c "
 import sys;
 sys.path.append('../py/data-signing');
 from signature import sign;
-skey_path = '../wallets/website-wallet/payment.skey';
+skey_path = '../wallets/user-wallet/signing.skey';
 signature = sign(skey_path, '${graph_hash}');
 print(signature)
 ")
 
-pkh=$(cat ../wallets/website-wallet/payment.vkey)
+pkh=$(cat ../wallets/user-wallet/signing.vkey)
 echo Graph Pkh: $pkh
 variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[1].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
 variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[1].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
@@ -105,7 +105,6 @@ print(signature)
 echo Color Pkh: $pkh
 variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[2].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
 variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
-mv ../data/poh/updated-poh-datum-new.json ../data/poh/updated-poh-datum.json
 
 echo Color Hash: $color_hash
 variable=${color_hash}; jq --arg variable "$variable" '.fields[0].fields[2].fields[1].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
@@ -116,9 +115,6 @@ variable=${color_sig}; jq --arg variable "$variable" '.fields[0].fields[2].field
 variable=${color_sig}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[2].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 
 variable=1; jq --argjson variable "$variable" '.fields[4].fields[4].int=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
-
-
-
 
 # get user utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
@@ -189,7 +185,7 @@ poh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-poh_lock_contr
 
 slot=$(${cli} query tip ${network} | jq .slot)
 current_slot=$(($slot - 1))
-final_slot=$(($slot + 750))
+final_slot=$(($slot + 150))
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \
@@ -217,7 +213,7 @@ IFS=' ' read -ra FEE <<< "${VALUE[1]}"
 FEE=${FEE[1]}
 echo -e "\033[1;32m Fee: \033[0m" $FEE
 #
-# exit
+exit
 #
 echo -e "\033[0;36m Signing \033[0m"
 ${cli} transaction sign \

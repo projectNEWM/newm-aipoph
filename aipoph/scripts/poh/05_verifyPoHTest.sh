@@ -136,6 +136,20 @@ if [ "${TXNS}" -eq "0" ]; then
 fi
 poh_lock_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
 
+# check if the test is still ongoing
+test_end_time=$(jq -r '.[].inlineDatum.fields[4].fields[0].fields[1].int' ../tmp/script_utxo.json)
+cur_time=$(echo `expr $(echo $(date +%s%3N))`)
+
+if [ "$cur_time" -le "$test_end_time" ]; then
+  echo "Test Is Live!"
+  time_diff_ms=$((test_end_time - cur_time))
+  time_diff_min=$((time_diff_ms / 60000))
+  echo "There are $time_diff_min minutes left in the test."
+  exit 1
+else
+  echo "Test Is Over!"
+fi
+
 # collat info
 echo -e "\033[0;36m Gathering Collateral UTxO Information  \033[0m"
 ${cli} query utxo \
@@ -166,6 +180,10 @@ coh_mint_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-coh_mint_contr
 slot=$(${cli} query tip ${network} | jq .slot)
 current_slot=$(($slot - 1))
 final_slot=$(($slot + 750))
+
+
+echo Validity Range:
+echo $current_slot "<->" $final_slot
 
 # asset to trade
 cur_rand_num=$(jq -r '.fields[4].fields[1].fields[0].int' ../data/poh/poh-datum.json)
@@ -251,7 +269,6 @@ variable=${color_sig}; jq --arg variable "$variable" '.fields[1].fields[1].field
 variable=${coh_policy_id}; jq --arg variable "$variable" '.fields[1].fields[2].fields[0].bytes=$variable' ../data/coh/coh-datum.json | sponge ../data/coh/coh-datum.json
 variable=${coh_pointer_tkn}; jq --arg variable "$variable" '.fields[1].fields[2].fields[1].bytes=$variable' ../data/coh/coh-datum.json | sponge ../data/coh/coh-datum.json
 
-# exit
 echo -e "\033[0;36m Building Tx \033[0m"
 ${cli} transaction build-raw \
     --babbage-era \
@@ -288,10 +305,16 @@ ${cli} transaction build-raw \
     --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee 0
 
-python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
+python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=True);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
+exit
 
 cat ../data/poh/exe_units.json
-# exit
+
+echo ${poh_lock_tx_in}
+echo ${poh_policy_id}
+echo ${coh_policy_id}
+
+exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
@@ -322,9 +345,9 @@ pm_computation_fee_int=$(printf "%.0f" "$pm_computation_fee")
 total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${pm_computation_fee_int}))
 echo FEE: $total_fee
 owner_script_out="${user_address} + $((${required_lovelace} - ${incentive_amt} - ${coh_min_lovelace} - ${total_fee}))"
-# exit
-current_slot=$current_slot2
-final_slot=$(($current_slot2 + 355))
+exit
+
+
 ${cli} transaction build-raw \
     --babbage-era \
     --protocol-params-file ../tmp/protocol.json \

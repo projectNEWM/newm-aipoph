@@ -7,6 +7,7 @@
 //// the vault.
 ////
 
+use aiken/cbor
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
@@ -93,11 +94,11 @@ validator(
           // this datum must be in a specific state to start the test
           poh.start_test_datum_validation(this_datum, that_datum)?,
           // must have the deposit
-          values.contains(values.from_token(this_datum.deposit), this_value)?,
+          values.contains(this_value, values.from_token(this_datum.deposit))?,
           // must have 2 units of incentive for start test and verify test
           values.contains(
-            values.from_token(this_datum.incentive) |> values.multiply(2),
             this_value,
+            values.from_token(this_datum.incentive) |> values.multiply(2),
           )?,
           // owner must sign it to prevent miss starts,
           signing.verify_sig(extra_signatories, this_datum.owner.pkh)?,
@@ -116,6 +117,9 @@ validator(
         // into the test ended state and the user will wait for a threshold
         // actor to verify the result.
         //
+        trace @"ending"
+        trace cbor.diagnostic(this_datum.test_data.validity_range)
+        trace cbor.diagnostic(validity_range)
         and {
           // the test must have been started via minting the poh token
           values.prove_exact_nft(
@@ -159,20 +163,20 @@ validator(
             this_value,
             poh_pid,
             token_names.poh_token_name,
-          ),
+          )?,
           // this proves you are a human via the question and answer
           prove.you_are_a_human(
             this_datum.test_data.question,
             this_datum.test_data.answer,
-          ),
+          )?,
           // prove that the answer is signed correctly
           prove.correct_signers(
             this_datum.test_data.answer,
             this_datum.owner.pkh,
             query.get_website_hot_key(ref_data_datum),
-          ),
+          )?,
           // this means the test must have ended
-          this_datum.test_data.cur_stage == 1,
+          (this_datum.test_data.cur_stage == 1)?,
         } {
           //
           // The user passed!
@@ -197,6 +201,9 @@ validator(
           // The deposit is not taken here and the test utxo goes back to
           // the owner automatically. The incentive is left open for the taking.
           //
+          trace @"passing"
+          trace cbor.diagnostic(this_datum.test_data.validity_range)
+          trace cbor.diagnostic(validity_range)
           and {
             // test needs to be over
             moment.is_after(this_datum.test_data.validity_range, validity_range)?,
@@ -231,6 +238,9 @@ validator(
           // The deposit is taken here and sent to the vault. The test utxo goes back
           // to the owner automatically.
           //
+          trace @"failing"
+          trace cbor.diagnostic(this_datum.test_data.validity_range)
+          trace cbor.diagnostic(validity_range)
           and {
             // test needs to be over
             moment.is_after(this_datum.test_data.validity_range, validity_range)?,

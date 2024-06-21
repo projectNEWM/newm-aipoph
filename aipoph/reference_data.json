@@ -9,7 +9,7 @@
   },
   "contracts": {
     "oracle_contract": "eeb4ccf6e67164adf6316f6cb1f369e6b15800e5434d7682c0ba1ac4",
-    "poh_lock_contract": "fd4fc1c3c437de8cae4aa76d8f1bdf6cb3cc671a8a86cb51e3f05517",
+    "poh_lock_contract": "3f7b7e6ffb554a7d36afac79b6558a6ff971cdb0cde7644032ea3335",
     "coh_lock_contract": "b490664e96578a99dc2827dcc20d1f0c1ee52baf894a0032a9eb76e0",
     "vault_contract": "2089aa9b3bd9be261b1fe0f409276bac68fded78817c0f42472d2160",
     "poh_mint_contract": "5a6d3d982256c46ebe0864f995a75e410e2077c97a2291c09ed3b309",

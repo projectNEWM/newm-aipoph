@@ -68,6 +68,7 @@ if [ "${TXNS}" -eq "0" ]; then
 fi
 poh_lock_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
 
+# do not remove fee here
 poh_lovelace_value=$(jq -r '.[].value.lovelace' ../tmp/script_utxo.json)
 poh_lock_script_out="${poh_lock_script_address} + $((${poh_lovelace_value} - ${incentive_amt})) + ${poh_token}"
 echo "PoH OUTPUT: "${poh_lock_script_out}
@@ -163,9 +164,6 @@ sale_execution_unts="(${cpu_steps}, ${mem_steps})"
 
 # we need to update the oracle datum and the poh datum
 
-rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
-rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
-
 cur_rand_num=$(jq -r '.fields[0].int' ../data/oracle/oracle-datum.json)
 cur_rand_str=$(jq -r '.fields[1].bytes' ../data/oracle/oracle-datum.json)
 echo Seed For Graph: ${cur_rand_num}
@@ -174,9 +172,10 @@ echo Seed For Graph: ${cur_rand_num}
 # A thirty (30) minute window would be 30 * 60 * 1000  = 1,800,000.
 # set the time for the test
 cur_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 0)`)
-new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 1800000)`)
+new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 300000)`)
+# new_time=$(echo `expr $(echo $(date +%s%3N)) + $(echo 1800000)`)
 
-graph=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
+# graph=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
 
 edges=$(../py/k-coloring-test/venv/bin/python -c "
 import sys; sys.path.append('../py/k-coloring-test');
@@ -190,14 +189,16 @@ variable=${edges}; jq --argjson variable "$variable" '.fields[4].fields[2].field
 
 ../py/k-coloring-test/venv/bin/python -c "import sys; sys.path.append('../py/k-coloring-test');from src.generate import generate; from src.coloring import find_minimal_coloring; c = find_minimal_coloring(generate(10, 12, ${cur_rand_num}));print(list(c.values()))"
 
-# exit
+echo "Updating Oracle Values"
+# use randomness to generate new random data
+rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; n = number(); print(n)")
+rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; s = string(); print(s)")
 
 # update the random number
 jq --argjson variable "$rand_num" '.fields[0].int=$variable' ../data/oracle/updated-oracle-datum.json | sponge ../data/oracle/updated-oracle-datum.json
 
 # update the random string
 jq --arg variable "$rand_str" '.fields[1].bytes=$variable' ../data/oracle/updated-oracle-datum.json | sponge ../data/oracle/updated-oracle-datum.json
-
 
 variable=${cur_time}; jq --argjson variable "$variable" '.fields[4].fields[0].fields[0].int=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
 variable=${new_time}; jq --argjson variable "$variable" '.fields[4].fields[0].fields[1].int=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
@@ -251,17 +252,16 @@ python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation impo
 
 cat ../data/poh/exe_units.json
 # execution units need to be applied in lexicographical order
-echo poh lock ${poh_lock_tx_in}
-echo oracle ${oracle_tx_in}
-# exit
+pl_index=$(python3 -c "import sys; sys.path.append('../py/'); from lexico_order import compare_strings; x = compare_strings('${poh_lock_tx_in}', '${oracle_tx_in}'); print(x)")
+o_index=$((1 - ${pl_index}))
 
 # poh lock
-plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
-plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
+plcpu=$(jq -r --argjson index "$pl_index" '.[$index].cpu' ../data/poh/exe_units.json)
+plmem=$(jq -r --argjson index "$pl_index" '.[$index].mem' ../data/poh/exe_units.json)
 
 # oracle
-ocpu=$(jq -r '.[1].cpu' ../data/poh/exe_units.json)
-omem=$(jq -r '.[1].mem' ../data/poh/exe_units.json)
+ocpu=$(jq -r --argjson index "$o_index" '.[$index].cpu' ../data/poh/exe_units.json)
+omem=$(jq -r --argjson index "$o_index" '.[$index].mem' ../data/poh/exe_units.json)
 
 # poh mint
 pmcpu=$(jq -r '.[2].cpu' ../data/poh/exe_units.json)
@@ -286,7 +286,7 @@ pm_computation_fee_int=$(printf "%.0f" "$pm_computation_fee")
 
 total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${pm_computation_fee_int}))
 echo FEE: $total_fee
-required_lovelace=$((${poh_lovelace_value} - ${incentive_amt}- ${total_fee}))
+required_lovelace=$((${poh_lovelace_value} - ${incentive_amt} - ${total_fee}))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace} + ${poh_token}"
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 
