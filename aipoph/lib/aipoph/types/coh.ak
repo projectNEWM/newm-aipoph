@@ -48,6 +48,8 @@ pub fn authenticity_of_verification_data(
 pub type CoHDatum {
   owner: Wallet,
   verification: VerificationData,
+  // this is the publicKey for signing data
+  public_key: ByteArray,
 }
 
 pub type CoHLockRedeemer {
@@ -81,5 +83,6 @@ pub fn poh_into_coh(
     (a.test_data.answer == b.verification.answer)?,
     (b.verification.pointer == t)?,
     is_time_valid(b.verification.validity_range, r)?,
+    (a.public_key == b.public_key)?,
   }
 }

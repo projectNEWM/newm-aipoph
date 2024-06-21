@@ -71,6 +71,7 @@ IFS='#' read -ra array <<< "$string"
 callable="ca11ab1e"
 coh_pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${array[0]}', ${array[1]}, '${callable}')")
 coh_pointer_token="1 ${coh_policy_id}.${coh_pointer_tkn}"
+echo -n ${coh_pointer_token} > ../data/coh/coh-token.name
 
 coh_min_lovelace=$(jq -r '.fields[3].int' ../data/poh/poh-datum.json)
 mint_token="${coh_token} + ${coh_pointer_token}"
