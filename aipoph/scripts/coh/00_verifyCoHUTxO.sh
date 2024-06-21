@@ -33,7 +33,7 @@ pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_tok
 # coh token information
 coh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/coh_mint_contract.plutus)
 coh_token_name=$(jq -r '.coh_token_name' ../../config.json)
-coh_pointer_token=$(cat ../data/coh/coh-token.name)
+coh_pointer_tkn=$(cat ../data/coh/coh-token.name)
 coh_token="1 ${coh_policy_id}.${coh_token_name}"
 coh_pointer_token="1 ${coh_policy_id}.${coh_pointer_tkn}"
 
@@ -104,10 +104,16 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 # script reference utxo
 coh_lock_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-coh_lock_contract.plutus.signed )
 
+slot=$(${cli} query tip ${network} | jq .slot)
+current_slot=$(($slot - 1))
+final_slot=$(($slot + 150))
+
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \
     --babbage-era \
     --out-file ../tmp/tx.draft \
+    --invalid-before ${current_slot} \
+    --invalid-hereafter ${final_slot} \
     --change-address ${user_address} \
     --read-only-tx-in-reference ${reference_tx_in} \
     --tx-in-collateral ${collat_tx_in} \
@@ -128,7 +134,7 @@ IFS=' ' read -ra FEE <<< "${VALUE[1]}"
 FEE=${FEE[1]}
 echo -e "\033[1;32m Fee: \033[0m" $FEE
 #
-exit
+# exit
 #
 echo -e "\033[0;36m Signing \033[0m"
 ${cli} transaction sign \
@@ -147,5 +153,3 @@ ${cli} transaction submit \
 
 tx=$(cardano-cli transaction txid --tx-file ../tmp/tx.signed)
 echo "Tx Hash:" $tx
-
-cp ../data/oracle/updated-oracle-datum.json ../data/oracle/oracle-datum.json
