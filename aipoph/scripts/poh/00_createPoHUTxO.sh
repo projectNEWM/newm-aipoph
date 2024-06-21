@@ -24,10 +24,12 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --protocol-params-file ../tmp/protocol.json \
     --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
-
 # 2 ada for fees; starting and verifying
+incentive_amt=2000000
+deposit=1000000
+total_fees=2000000
 coh_min_lovelace=$(jq -r '.fields[3].int' ../data/poh/poh-datum.json)
-required_lovelace=$((${min_utxo} + 2000000 + ${coh_min_lovelace}))
+required_lovelace=$((${min_utxo} + ${total_fees} + ${coh_min_lovelace} + ${deposit} + ${incentive_amt}))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace}"
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 #

@@ -28,6 +28,8 @@ pub type PoHDatum {
   min_lovelace: Int,
   // the test data 
   test_data: TestData,
+  // this is the publicKey for signing data
+  public_key: ByteArray,
 }
 
 /// Before a test starts the poh datum must be in the correct state. The goal

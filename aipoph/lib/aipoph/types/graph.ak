@@ -47,6 +47,12 @@ test real_coloring_hash() {
   coloring_hash(c) == #"935f929a7e28b70857580a6e6de7969c7cc3bc5a6c516836ab2620412b3d8c4c"
 }
 
+test real_coloring_hash2() {
+  let c: Coloring =
+    [0, 0, 0, 1, 2, 1, 0, 2, 1, 1]
+  coloring_hash(c) == #"b3fd9c74ab1de814f7bf72ec07631af786f816bd960af0e53e126c3f540ad367"
+}
+
 /// This produces the hash of the cbor representation of the Graph data type.
 /// This is used inside of prove.ak and as the hash to sign to log into the web
 /// site to take the test. It verifies that the user is taking the test given

@@ -29,35 +29,12 @@ pointer_pid=$(cat ../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 asset="1 ${pointer_pid}.${pointer_tkn}"
 
-current_min_utxo=$(${cli} transaction calculate-min-required-utxo \
-    --babbage-era \
-    --protocol-params-file tmp/protocol.json \
-    --tx-out-inline-datum-file data/reference/reference-datum.json \
-    --tx-out="${script_address} + 5000000 + ${asset}" | tr -dc '0-9')
-
-updated_min_utxo=$(${cli} transaction calculate-min-required-utxo \
+min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file tmp/protocol.json \
     --tx-out-inline-datum-file data/reference/updated-reference-datum.json \
     --tx-out="${script_address} + 5000000 + ${asset}" | tr -dc '0-9')
 
-difference=$((${updated_min_utxo} - ${current_min_utxo}))
-
-if [ "$difference" -eq "0" ]; then
-    echo "Minimum ADA is Constant"
-elif [ "$difference" -lt "0" ]; then
-    positive=$(( -1 * ${difference}))
-    echo "Minimum ADA Decreasing by" ${positive}
-else
-    echo "Minimum ADA Increasing by" ${difference}
-fi
-
-# assume the min will always be the updated since updated can just be constant
-min_utxo=${updated_min_utxo}
-
-# update the difference
-variable=${difference}; jq --argjson variable "$variable" '.fields[0].int=$variable' data/reference/petition-redeemer.json > data/reference/petition-redeemer-new.json
-mv data/reference/petition-redeemer-new.json data/reference/petition-redeemer.json
 
 reference_script_out="${script_address} + ${min_utxo} + ${asset}"
 echo "Script OUTPUT: "${reference_script_out}
