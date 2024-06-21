@@ -32,7 +32,7 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **creating the cryptographic proof generation system**
   - [x] **implementing the proof validation system**
 - [ ] **Quality-Control Stage**
-  - [ ] **internal system testing**
+  - [x] **internal system testing**
   - [x] **potential vulnerabilities testing**
   - [ ] **provide detailed documention**
 - [ ] **User Product Testing**
