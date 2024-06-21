@@ -328,7 +328,9 @@ Create these files as they are the last step on the e2e test.
 
 #### Severity: Informational
 
-#### Status:
+#### Status: Completed
+
+https://github.com/projectNEWM/newm-aipoph/pull/50
 
 #### Files Affected: py/
 
@@ -341,7 +343,7 @@ Most of the required python scripts are well documented but some are not.
 As the testing progress, review each file and make sure it has comments describing each funciton.
 
 
-### IA-FINAL: *A complete end-to-end test with links to transactions*
+### IA-17: *A complete end-to-end test with links to transactions*
 
 #### Severity: Informational
 
