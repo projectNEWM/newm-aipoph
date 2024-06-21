@@ -7,7 +7,6 @@
 //// the vault.
 ////
 
-use aiken/cbor
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
@@ -117,9 +116,6 @@ validator(
         // into the test ended state and the user will wait for a threshold
         // actor to verify the result.
         //
-        trace @"ending"
-        trace cbor.diagnostic(this_datum.test_data.validity_range)
-        trace cbor.diagnostic(validity_range)
         and {
           // the test must have been started via minting the poh token
           values.prove_exact_nft(
@@ -201,9 +197,6 @@ validator(
           // The deposit is not taken here and the test utxo goes back to
           // the owner automatically. The incentive is left open for the taking.
           //
-          trace @"passing"
-          trace cbor.diagnostic(this_datum.test_data.validity_range)
-          trace cbor.diagnostic(validity_range)
           and {
             // test needs to be over
             moment.is_after(this_datum.test_data.validity_range, validity_range)?,
@@ -238,9 +231,6 @@ validator(
           // The deposit is taken here and sent to the vault. The test utxo goes back
           // to the owner automatically.
           //
-          trace @"failing"
-          trace cbor.diagnostic(this_datum.test_data.validity_range)
-          trace cbor.diagnostic(validity_range)
           and {
             // test needs to be over
             moment.is_after(this_datum.test_data.validity_range, validity_range)?,

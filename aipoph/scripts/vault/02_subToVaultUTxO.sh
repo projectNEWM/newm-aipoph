@@ -79,8 +79,10 @@ vault_tx_in=$(jq -r 'keys[0]' ../tmp/script_utxo.json)
 # this is not automated
 vault_lovelace_value=$(jq -r '.[].value.lovelace' ../tmp/script_utxo.json)
 
-# add 1 lovelace
-lovelace_value=$((${vault_lovelace_value} - 1000000))
+variable=-10000000; jq --argjson variable "$variable" '.fields[0].list[0].fields[2].int=$variable' ../data/vault/sub-redeemer.json | sponge ../data/vault/sub-redeemer.json
+
+# sub 1 lovelace
+lovelace_value=$((${vault_lovelace_value} + ${variable}))
 vault_script_out="${vault_script_address} + ${lovelace_value}"
 echo "Vault OUTPUT: "${vault_script_out}
 
