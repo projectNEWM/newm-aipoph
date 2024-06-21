@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
@@ -8,13 +8,9 @@ source .env
 ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 
 # genesis contract
-dao_script_path="../contracts/dao_contract.plutus"
-dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
-dao_hash=$(cat ../hashes/reference.hash)
-
-drep_script_path="../contracts/drep_lock_contract.plutus"
-drep_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
-drep_hash=$(cat ../hashes/drep_lock.hash)
+reference_script_path="../contracts/reference_contract.plutus"
+reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
+reference_hash=$(cat ../hashes/reference.hash)
 
 # bundle sale contract
 genesis_script_path="../contracts/genesis_contract.plutus"
@@ -27,13 +23,13 @@ genesis_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/ge
 collat_address=$(cat wallets/collat-wallet/payment.addr)
 collat_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/collat-wallet/payment.vkey)
 
-# return ada address
-change_address="addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+# return leftover ada address
+change_address=$(jq -r '.change_address' ../config.json)
 
 # the minting script policy
 policy_id=$(cat ../hashes/genesis.hash)
 
-echo -e "\033[0;36m Gathering NEWM UTxO Information  \033[0m"
+echo -e "\033[0;36m Gathering Genesis UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
     --address ${genesis_address} \
@@ -50,37 +46,34 @@ genesis_tx_in=${TXIN::-8}
 
 echo "Genesis UTxO:" $genesis_tx_in
 
-# # this is set in the dao data
-petition_amount=$(jq -r '.thresholds.petition_threshold' ../dao_data.json)
-jq --argjson petition_amount "$petition_amount" '.list[0].fields[1].list[0].fields[1].int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+# # this is set in the reference data
+petition_amount=$(jq -r '.thresholds.petition_threshold' ../reference_data.json)
+jq --argjson petition_amount "$petition_amount" '.map[0].v.map[0].v.int=$petition_amount' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg dao_hash "$dao_hash" '.list[1].fields[1].list[0].fields[1].bytes=$dao_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
+jq --arg reference_hash "$reference_hash" '.map[1].v.map[0].v.bytes=$reference_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
 mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
 
-jq --arg drep_hash "$drep_hash" '.list[1].fields[1].list[1].fields[1].bytes=$drep_hash' data/genesis/genesis-datum.json  > data/genesis/genesis-datum-new.json
-mv data/genesis/genesis-datum-new.json data/genesis/genesis-datum.json
+# the locking token information
+tx_id_hash=$(jq -r '.tx_id_hash' ../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../config.json)
 
 # the pointer token
-# the locking token information
-tx_id_hash=$(jq -r '.tx_id_hash' ../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../start_info.json)
-pointer_prefix="5f6169706f70685f"
+pointer_prefix=$(jq -r '.pointer_prefix' ../config.json)
 pointer_pid=$(cat ../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
 mint_asset="1 ${pointer_pid}.${pointer_tkn}"
-
-# echo Minting: ${mint_asset}
+echo Minting: ${mint_asset}
 
 utxo_value=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file tmp/protocol.json \
     --tx-out-inline-datum-file data/genesis/genesis-datum.json \
-    --tx-out="${dao_script_address} + 5000000 + ${mint_asset}" | tr -dc '0-9')
-dao_script_out="${dao_script_address} + ${utxo_value} + ${mint_asset}"
+    --tx-out="${reference_script_address} + 5000000 + ${mint_asset}" | tr -dc '0-9')
+reference_script_out="${reference_script_address} + ${utxo_value} + ${mint_asset}"
 
-echo "Genesis OUTPUT:" ${dao_script_out}
+echo "Genesis OUTPUT:" ${reference_script_out}
 #
 # exit
 #
@@ -106,7 +99,7 @@ FEE=$(${cli} transaction build \
     --change-address ${change_address} \
     --tx-in-collateral="${collat_utxo}" \
     --tx-in ${genesis_tx_in} \
-    --tx-out="${dao_script_out}" \
+    --tx-out="${reference_script_out}" \
     --tx-out-inline-datum-file data/genesis/genesis-datum.json \
     --required-signer-hash ${collat_pkh} \
     --required-signer-hash ${genesis_pkh} \
@@ -142,4 +135,4 @@ ${cli} transaction submit \
 tx=$(cardano-cli transaction txid --tx-file tmp/tx.signed)
 echo "Tx Hash:" $tx
 
-cp data/genesis/genesis-datum.json data/dao/dao-datum.json
+cp data/genesis/genesis-datum.json data/reference/reference-datum.json

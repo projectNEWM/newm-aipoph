@@ -64,11 +64,6 @@ validator(
       reference.find_contract(contract_data, keys.coh_lock_contract)
     // build the lock address
     let coh_lock_addr: Address = credential.from_script(coh_lock_hash)
-    // find the output being sent to the coh lock address
-    let coh_lock_output: Output = find.output_by_addr(outputs, coh_lock_addr)
-    // the coh datum on the output
-    expect coh_lock_datum: CoHDatum = data.output_datum(coh_lock_output)
-    let coh_lock_value: Value = coh_lock_output.value
     // what is being minted or burned in this transaction
     let mint_list: List<(PolicyId, AssetName, Int)> =
       mint
@@ -77,6 +72,12 @@ validator(
     when redeemer is {
       // mint the poh token
       MintCoHToken -> {
+        // find the output being sent to the coh lock address
+        let coh_lock_output: Output =
+          find.output_by_addr(outputs, coh_lock_addr)
+        // the coh datum on the output
+        expect coh_lock_datum: CoHDatum = data.output_datum(coh_lock_output)
+        let coh_lock_value: Value = coh_lock_output.value
         // this is the poh lock hash
         let poh_lock_hash: ValidatorHash =
           reference.find_contract(contract_data, keys.poh_lock_contract)

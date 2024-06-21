@@ -1,12 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
 source .env
 
-# Addresses
+# Sender 
 sender_path="wallets/voter-wallet/"
 sender_address=$(cat ${sender_path}payment.addr)
+
+# Receiver
 # receiver_address=$(cat wallets/seller-wallet/payment.addr)
 # receiver_address=${sender_address}
 receiver_address="addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"

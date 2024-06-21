@@ -2,16 +2,20 @@
   "constructor": 1,
   "fields": [
     {
-      "constructor": 0,
-      "fields": [
+      "list": [
         {
-          "bytes": ""
-        },
-        {
-          "bytes": ""
-        },
-        {
-          "int": -1000000
+          "constructor": 0,
+          "fields": [
+            {
+              "bytes": ""
+            },
+            {
+              "bytes": ""
+            },
+            {
+              "int": -10000000
+            }
+          ]
         }
       ]
     }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
@@ -19,9 +19,6 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/
 voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
 
-# asset to trade
-# the locking token information
-
 min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file ../tmp/protocol.json \
@@ -33,7 +30,6 @@ echo "Oracle OUTPUT: "${oracle_script_out}
 #
 # exit
 #
-# get deleg utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
@@ -49,16 +45,15 @@ alltxin=""
 TXIN=$(jq -r --arg alltxin "" 'keys[] | . + $alltxin + " --tx-in"' ../tmp/voter_utxo.json)
 voter_tx_in=${TXIN::-8}
 
-rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
-rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
+# use randomness to generate new random data
+rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; n = number(); print(n)")
+rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; s = string(); print(s)")
 
 # update the random number
-variable=${rand_num}; jq --argjson variable "$variable" '.fields[0].int=$variable' ../data/oracle/oracle-datum.json > ../data/oracle/oracle-datum-new.json
-mv ../data/oracle/oracle-datum-new.json ../data/oracle/oracle-datum.json
+jq --argjson variable "$rand_num" '.fields[0].int=$variable' ../data/oracle/oracle-datum.json | sponge ../data/oracle/oracle-datum.json
 
 # update the random string
-variable=${rand_str}; jq --arg variable "$variable" '.fields[1].bytes=$variable' ../data/oracle/oracle-datum.json > ../data/oracle/oracle-datum-new.json
-mv ../data/oracle/oracle-datum-new.json ../data/oracle/oracle-datum.json
+jq --arg variable "$rand_str" '.fields[1].bytes=$variable' ../data/oracle/oracle-datum.json | sponge ../data/oracle/oracle-datum.json
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \

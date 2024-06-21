@@ -8,13 +8,11 @@
 use aiken/transaction.{Input, ScriptContext, Spend, Transaction}
 use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{AssetName, PolicyId, Value}
-use aipoph/keys
 use aipoph/query
 use aipoph/token_names
 use aipoph/types/coh.{CoHDatum, CoHLockRedeemer, Revoke, Verify}
-use aipoph/types/poh.{PoHDatum}
 use aipoph/types/prove
-use aipoph/types/reference.{Contracts, ReferenceDatum}
+use aipoph/types/reference.{ReferenceDatum}
 use assist/count
 use assist/data
 use assist/find
@@ -59,17 +57,6 @@ validator(
           find.input_by_addr(reference_inputs, ref_data_addr)
         expect ref_data_datum: ReferenceDatum = data.input_datum(ref_data_input)
         // search the contracts for the poh lock
-        expect contract_data: Contracts =
-          reference.find_data(ref_data_datum, keys.contracts)
-        // this is the poh lock hash
-        let poh_lock_hash: ValidatorHash =
-          reference.find_contract(contract_data, keys.poh_lock_contract)
-        // build the lock address
-        let poh_lock_addr: Address = credential.from_script(poh_lock_hash)
-        // find the input being spent from it
-        let poh_lock_input: Input = find.input_by_addr(inputs, poh_lock_addr)
-        // get the datum from the lock utxo
-        expect poh_lock_datum: PoHDatum = data.input_datum(poh_lock_input)
         // that datum cont must be correct structure
         expect that_datum: CoHDatum =
           find.output_datum_by_addr(outputs, this_addr)
@@ -94,8 +81,8 @@ validator(
           )?,
           // prove that the answer is signed correctly
           prove.correct_signers(
-            poh_lock_datum.test_data.answer,
-            poh_lock_datum.owner.pkh,
+            this_datum.verification.answer,
+            this_datum.public_key,
             query.get_website_hot_key(ref_data_datum),
           )?,
         }

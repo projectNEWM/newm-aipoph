@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
@@ -7,16 +7,13 @@ source ../.env
 # get params
 ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 
-# oracle script
+# poh lock script
 poh_lock_script_path="../../contracts/poh_lock_contract.plutus"
 poh_lock_script_address=$(${cli} address build --payment-script-file ${poh_lock_script_path} ${network})
 
 # user
 user_address=$(cat ../wallets/user-wallet/payment.addr)
 user_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/user-wallet/payment.vkey)
-
-# asset to trade
-# the locking token information
 
 # incentive, deposit, and poh token
 worst_case_tokens="9223372036854775807 632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b.632e50f13ab4e03c7920e16c35e96758abf4ae966e775df5589b162b00000000
@@ -27,9 +24,12 @@ min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --protocol-params-file ../tmp/protocol.json \
     --tx-out-inline-datum-file ../data/poh/worst-case-poh-datum.json \
     --tx-out="${poh_lock_script_address} + 5000000 + ${worst_case_tokens}" | tr -dc '0-9')
-
-# 3 ada for fees and 5 ada for the min utxo for the coh
-required_lovelace=$((${min_utxo} + 5000000 + 5000000))
+# 2 ada for fees; starting and verifying
+incentive_amt=2000000
+deposit=1000000
+total_fees=2000000
+coh_min_lovelace=$(jq -r '.fields[3].int' ../data/poh/poh-datum.json)
+required_lovelace=$((${min_utxo} + ${total_fees} + ${coh_min_lovelace} + ${deposit} + ${incentive_amt}))
 poh_lock_script_out="${poh_lock_script_address} + ${required_lovelace}"
 echo "Proof of Humanity OUTPUT: "${poh_lock_script_out}
 #

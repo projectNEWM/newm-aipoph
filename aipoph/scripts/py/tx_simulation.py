@@ -99,7 +99,7 @@ def query_tx_with_koios(hashes: list[str], network: bool) -> list[dict]:
         'content-type': 'application/json',
     }
 
-    url = 'https://' + subdomain + '.koios.rest/api/v0/tx_info'
+    url = 'https://' + subdomain + '.koios.rest/api/v1/tx_info'
     # return the tx information for a list of transactions, (the inputs)
     return requests.post(url=url, headers=headers, json=json_data).json()
 
@@ -306,7 +306,8 @@ def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: s
                     aiken_path, 'tx', 'simulate',
                     temp_tx_file_path,
                     temp_input_file_path,
-                    temp_output_file_path
+                    temp_output_file_path,
+                    '--zero-time', '1660175881345'
                 ],
                 check=True,
                 capture_output=True,
@@ -318,7 +319,8 @@ def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: s
                     aiken_path, 'tx', 'simulate',
                     temp_tx_file_path,
                     temp_input_file_path,
-                    temp_output_file_path
+                    temp_output_file_path,
+                    '--zero-time', '1660175881345'
                 ],
                 check=True,
                 text=True
@@ -379,9 +381,10 @@ def from_cbor(tx_cbor: str, network: bool, debug: bool = False, aiken_path: str 
 
     # attempt to debug if required
     if debug is True:
-        print(tx_cbor, '\n')
-        print(input_cbor, '\n')
-        print(output_cbor, '\n')
+        # print(tx_cbor, '\n')
+        # print(input_cbor, '\n')
+        # print(output_cbor, '\n')
+        pass
 
     # try to simulate the tx and return the results else return an empty dict
     return simulate_cbor(tx_cbor, input_cbor, output_cbor, aiken_path, debug)

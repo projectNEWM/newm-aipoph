@@ -4,7 +4,7 @@ set -e
 # SET UP VARS HERE
 source .env
 
-# cip 68 contract
+# reference contract
 reference_script_path="../contracts/reference_contract.plutus"
 reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
 
@@ -29,11 +29,11 @@ mkdir -p ./tmp
 ${cli} query protocol-parameters ${network} --out-file ./tmp/protocol.json
 ${cli} query tip ${network} | jq
 
-# dao
+# reference
 echo -e "\033[1;35m Reference Contract Address: \033[0m" 
 echo -e "\n \033[1;35m ${reference_script_address} \033[0m \n";
 ${cli} query utxo --address ${reference_script_address} ${network}
-${cli} query utxo --address ${reference_script_address} ${network} --out-file ./tmp/current_dao.utxo
+${cli} query utxo --address ${reference_script_address} ${network} --out-file ./tmp/current_reference.utxo
 
 # oracle
 echo -e "\033[1;35m Oracle Contract Address: \033[0m" 

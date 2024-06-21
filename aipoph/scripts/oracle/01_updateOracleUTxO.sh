@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
@@ -11,9 +11,9 @@ ${cli} query protocol-parameters ${network} --out-file ../tmp/protocol.json
 oracle_script_path="../../contracts/oracle_contract.plutus"
 oracle_script_address=$(${cli} address build --payment-script-file ${oracle_script_path} ${network})
 
-# dao script
-dao_script_path="../../contracts/dao_contract.plutus"
-dao_script_address=$(${cli} address build --payment-script-file ${dao_script_path} ${network})
+# reference script
+reference_script_path="../../contracts/reference_contract.plutus"
+reference_script_address=$(${cli} address build --payment-script-file ${reference_script_path} ${network})
 
 # collat
 collat_address=$(cat ../wallets/collat-wallet/payment.addr)
@@ -23,11 +23,10 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/
 voter_address=$(cat ../wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file ../wallets/voter-wallet/payment.vkey)
 
-# asset to trade
-# the locking token information
-tx_id_hash=$(jq -r '.tx_id_hash' ../../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../../start_info.json)
-pointer_prefix="5f6169706f70685f"
+# the genesis pointer token information
+tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../../config.json)
+pointer_prefix=$(jq -r '.pointer_prefix' ../../config.json)
 pointer_pid=$(cat ../../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('../py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 
@@ -42,7 +41,6 @@ echo "Oracle OUTPUT: "${oracle_script_out}
 #
 # exit
 #
-# get deleg utxo
 echo -e "\033[0;36m Gathering UTxO Information  \033[0m"
 ${cli} query utxo \
     ${network} \
@@ -58,22 +56,22 @@ alltxin=""
 TXIN=$(jq -r --arg alltxin "" 'keys[] | . + $alltxin + " --tx-in"' ../tmp/voter_utxo.json)
 voter_tx_in=${TXIN::-8}
 
-# get script utxo
-echo -e "\033[0;36m Gathering DAO UTxO Information  \033[0m"
+# get refereence script utxo
+echo -e "\033[0;36m Gathering Reference UTxO Information  \033[0m"
 ${cli} query utxo \
-    --address ${dao_script_address} \
+    --address ${reference_script_address} \
     ${network} \
     --out-file ../tmp/script_utxo.json
 TXNS=$(jq length ../tmp/script_utxo.json)
 if [ "${TXNS}" -eq "0" ]; then
-   echo -e "\n \033[0;31m NO UTxOs Found At ${dao_script_address} \033[0m \n";
+   echo -e "\n \033[0;31m NO UTxOs Found At ${reference_script_address} \033[0m \n";
 .   exit;
 fi
 alltxin=""
 TXIN=$(jq -r --arg alltxin "" --arg policy_id "$pointer_pid" --arg token_name "$pointer_tkn" 'to_entries[] | select(.value.value[$policy_id][$token_name] == 1) | .key | . + $alltxin + " --tx-in"' ../tmp/script_utxo.json)
-dao_tx_in=${TXIN::-8}
+reference_tx_in=${TXIN::-8}
 
-# get script utxo
+# get oracle script utxo
 echo -e "\033[0;36m Gathering Oracle UTxO Information  \033[0m"
 ${cli} query utxo \
     --address ${oracle_script_address} \
@@ -103,23 +101,22 @@ collat_tx_in=$(jq -r 'keys[0]' ../tmp/collat_utxo.json)
 # script reference utxo
 oracle_ref_utxo=$(${cli} transaction txid --tx-file ../tmp/utxo-oracle_contract.plutus.signed )
 
-rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; number()")
-rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; string()")
+# use randomness to generate new random data
+rand_num=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import number; n = number(); print(n)")
+rand_str=$(python3 -c "import sys; sys.path.append('../py/'); from randomness import string; s = string(); print(s)")
 
 # update the random number
-variable=${rand_num}; jq --argjson variable "$variable" '.fields[0].int=$variable' ../data/oracle/updated-oracle-datum.json > ../data/oracle/updated-oracle-datum-new.json
-mv ../data/oracle/updated-oracle-datum-new.json ../data/oracle/updated-oracle-datum.json
+jq --argjson variable "$rand_num" '.fields[0].int=$variable' ../data/oracle/updated-oracle-datum.json | sponge ../data/oracle/updated-oracle-datum.json
 
 # update the random string
-variable=${rand_str}; jq --arg variable "$variable" '.fields[1].bytes=$variable' ../data/oracle/updated-oracle-datum.json > ../data/oracle/updated-oracle-datum-new.json
-mv ../data/oracle/updated-oracle-datum-new.json ../data/oracle/updated-oracle-datum.json
+jq --arg variable "$rand_str" '.fields[1].bytes=$variable' ../data/oracle/updated-oracle-datum.json | sponge ../data/oracle/updated-oracle-datum.json
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \
     --babbage-era \
     --out-file ../tmp/tx.draft \
     --change-address ${voter_address} \
-    --read-only-tx-in-reference ${dao_tx_in} \
+    --read-only-tx-in-reference ${reference_tx_in} \
     --tx-in-collateral ${collat_tx_in} \
     --tx-in ${voter_tx_in} \
     --tx-in ${oracle_tx_in} \

@@ -56,9 +56,9 @@ def write_json_file(data: dict, file_path: str) -> None:
         print(f"Error writing to file: {file_path}")
 
 
-def get_dao_data() -> dict:
+def get_reference_data() -> dict:
     """
-    Reads a dao data from the json file and returns the dict.
+    Reads a reference data from the json file and returns the dict.
 
     Returns:
         dict: Dictionary containing the data
@@ -69,51 +69,42 @@ def get_dao_data() -> dict:
     # Navigate to the parent directory (project folder)
     parent_directory = current_script_path.parent.parent
     # Construct the path to the file in the data folder
-    data_file_path = parent_directory / 'dao_data.json'
+    data_file_path = parent_directory / 'reference_data.json'
 
-    dao_data = read_json_file(data_file_path)
-    return dao_data
+    reference_data = read_json_file(data_file_path)
+    return reference_data
 
 
 def byte_int_element(key: str, value: int) -> dict:
     return {
-        "constructor": 0,
-        "fields": [
-            {
-                "bytes": to_hex(key)
-            },
-            {
-                "int": value
-            }
-        ]
+        "k": {
+            "bytes": to_hex(key)
+        },
+        "v": {
+            "int": value
+        }
     }
 
 
 def byte_byte_element(key: str, value: str) -> dict:
     return {
-        "constructor": 0,
-        "fields": [
-            {
-                "bytes": to_hex(key)
-            },
-            {
-                "bytes": value
-            }
-        ]
+        "k": {
+            "bytes": to_hex(key)
+        },
+        "v": {
+            "bytes": value
+        }
     }
 
 
 def new_data_element(name: str) -> dict:
     return {
-        "constructor": 0,
-        "fields": [
-            {
-                "bytes": to_hex(name)
-            },
-            {
-                "list": []
-            }
-        ]
+        "k": {
+            "bytes": to_hex(name)
+        },
+        "v": {
+            "map": []
+        }
     }
 
 
@@ -133,7 +124,8 @@ def compute_contract_hash(contract_file: str) -> str:
     # Navigate to the parent directory (project folder)
     parent_directory = current_script_path.parent.parent
 
-    data_file_path = parent_directory / 'contracts' / (contract_file + '.plutus')
+    data_file_path = parent_directory / \
+        'contracts' / (contract_file + '.plutus')
 
     try:
         output = subprocess.run(
@@ -155,24 +147,26 @@ def compute_contract_hash(contract_file: str) -> str:
 
 def generate_datum():
     base = {
-        "list": []
+        "map": []
     }
 
-    dao_data = get_dao_data()
-    for counter, outer_key in enumerate(dao_data):
-        base['list'].append(new_data_element(outer_key))
-        for inner_key in dao_data[outer_key]:
-            value = dao_data[outer_key][inner_key]
+    reference_data = get_reference_data()
+    # print(reference_data)
+    for counter, outer_key in enumerate(reference_data):
+        base['map'].append(new_data_element(outer_key))
+        for inner_key in reference_data[outer_key]:
+            value = reference_data[outer_key][inner_key]
             # print(outer_key, inner_key, value, counter)
             if isinstance(value, str):
                 # we need the byte_byte map element
-                base['list'][counter]['fields'][1]['list'].append(byte_byte_element(inner_key, value))
+                base['map'][counter]["v"]["map"].append(byte_byte_element(inner_key, value))
             elif isinstance(value, int):
                 # we need the byte_int map element
-                base['list'][counter]['fields'][1]['list'].append(byte_int_element(inner_key, value))
+                base['map'][counter]["v"]["map"].append(byte_int_element(inner_key, value))
             else:
                 pass
 
+    # print(base)
     # Get the current script's directory (py folder)
     current_script_path = pathlib.Path(__file__).parent
 
@@ -180,7 +174,8 @@ def generate_datum():
     parent_directory = current_script_path.parent
 
     # Construct the path to the file in the data folder
-    data_file_path = parent_directory / 'data' / 'dao' / 'updated-dao-datum.json'
+    data_file_path = parent_directory / 'data' / \
+        'reference' / 'updated-reference-datum.json'
     write_json_file(base, data_file_path)
 
 

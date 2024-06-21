@@ -192,7 +192,7 @@ validator(
               // prove that the answer is signed correctly
               prove.correct_signers(
                 poh_lock_datum.test_data.answer,
-                poh_lock_datum.owner.pkh,
+                poh_lock_datum.public_key,
                 query.get_website_hot_key(ref_data_datum),
               ),
               // test must have ended

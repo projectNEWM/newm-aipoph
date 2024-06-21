@@ -39,11 +39,11 @@ pub fn does_the_intial_state_exist(
   //
   and {
     // addresses has to exist
-    reference_addr == that_reference_addr,
+    (reference_addr == that_reference_addr)?,
     // petition must exist and be positive
-    petition_threshold > 0,
+    (petition_threshold > 0)?,
     // must and less than or equal to the maximum value
-    petition_threshold <= max_petition_threshold,
+    (petition_threshold <= max_petition_threshold)?,
   }
 }
 
