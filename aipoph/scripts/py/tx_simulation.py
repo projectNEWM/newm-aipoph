@@ -307,7 +307,7 @@ def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: s
                     temp_tx_file_path,
                     temp_input_file_path,
                     temp_output_file_path,
-                    '--zero-time', '1660175281345'
+                    '--zero-time', '1660175881345'
                 ],
                 check=True,
                 capture_output=True,
@@ -320,7 +320,7 @@ def simulate_cbor(tx_cbor: str, input_cbor: str, output_cbor: str, aiken_path: s
                     temp_tx_file_path,
                     temp_input_file_path,
                     temp_output_file_path,
-                    '--zero-time', '1660175281345'
+                    '--zero-time', '1660175881345'
                 ],
                 check=True,
                 text=True

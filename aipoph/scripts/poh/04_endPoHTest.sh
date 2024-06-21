@@ -102,6 +102,7 @@ signature = sign(skey_path, '${color_hash}');
 print(signature)
 ")
 
+pkh=$(cat ../wallets/website-wallet/payment.vkey)
 echo Color Pkh: $pkh
 variable=${pkh}; jq --arg variable "$variable" '.fields[0].fields[2].fields[0].bytes=$variable' ../data/poh/end-test-redeemer.json | sponge ../data/poh/end-test-redeemer.json
 variable=${pkh}; jq --arg variable "$variable" '.fields[4].fields[3].fields[2].fields[0].bytes=$variable' ../data/poh/updated-poh-datum.json | sponge ../data/poh/updated-poh-datum.json
@@ -213,7 +214,7 @@ IFS=' ' read -ra FEE <<< "${VALUE[1]}"
 FEE=${FEE[1]}
 echo -e "\033[1;32m Fee: \033[0m" $FEE
 #
-exit
+# exit
 #
 echo -e "\033[0;36m Signing \033[0m"
 ${cli} transaction sign \

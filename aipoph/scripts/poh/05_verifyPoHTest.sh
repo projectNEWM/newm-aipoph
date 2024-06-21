@@ -39,7 +39,7 @@ poh_token="-1 ${poh_policy_id}.${poh_token_name}"
 # coh token information
 coh_policy_id=$(cardano-cli transaction policyid --script-file ../../contracts/coh_mint_contract.plutus)
 coh_token_name=$(jq -r '.coh_token_name' ../../config.json)
-coh_token="1 ${coh_policy_id}.${poh_token_name}"
+coh_token="1 ${coh_policy_id}.${coh_token_name}"
 
 # genesis token information
 tx_id_hash=$(jq -r '.tx_id_hash' ../../config.json)
@@ -232,12 +232,12 @@ graph_sig=$(python -c "
 import sys;
 sys.path.append('../py/data-signing');
 from signature import sign;
-skey_path = '../wallets/website-wallet/payment.skey';
+skey_path = '../wallets/user-wallet/signing.skey';
 signature = sign(skey_path, '${graph_hash}');
 print(signature)
 ")
 
-pkh=$(cat ../wallets/website-wallet/payment.vkey)
+pkh=$(cat ../wallets/user-wallet/signing.vkey)
 echo Graph Pkh: $pkh
 variable=${pkh}; jq --arg variable "$variable" '.fields[1].fields[1].fields[1].fields[0].bytes=$variable' ../data/coh/coh-datum.json | sponge ../data/coh/coh-datum.json
 
@@ -256,6 +256,7 @@ signature = sign(skey_path, '${color_hash}');
 print(signature)
 ")
 
+pkh=$(cat ../wallets/website-wallet/payment.vkey)
 echo Color Pkh: $pkh
 variable=${pkh}; jq --arg variable "$variable" '.fields[1].fields[1].fields[2].fields[0].bytes=$variable' ../data/coh/coh-datum.json | sponge ../data/coh/coh-datum.json
 
@@ -305,48 +306,49 @@ ${cli} transaction build-raw \
     --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee 0
 
-python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=True);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
-exit
+python3 -c "import sys, json; sys.path.append('../py/'); from tx_simulation import from_file; exe_units=from_file('../tmp/tx.draft', False, debug=False);print(json.dumps(exe_units))" > ../data/poh/exe_units.json
 
 cat ../data/poh/exe_units.json
 
-echo ${poh_lock_tx_in}
-echo ${poh_policy_id}
-echo ${coh_policy_id}
+# echo ${poh_lock_tx_in}
+# echo ${poh_policy_id}
+# echo ${coh_policy_id}
 
-exit
+o_index=$(python3 -c "import sys; sys.path.append('../py/'); from lexico_order import compare_strings; x = compare_strings('${poh_policy_id}', '${coh_policy_id}'); print(x)")
+poh_index=$((1 + ${o_index}))
+coh_index=$((2 - ${o_index}))
+
+# exit
 
 plcpu=$(jq -r '.[0].cpu' ../data/poh/exe_units.json)
 plmem=$(jq -r '.[0].mem' ../data/poh/exe_units.json)
 
-ocpu=$(jq -r '.[2].cpu' ../data/poh/exe_units.json)
-omem=$(jq -r '.[2].mem' ../data/poh/exe_units.json)
+pohcpu=$(jq -r --argjson index "$poh_index" '.[$index].cpu' ../data/poh/exe_units.json)
+pohmem=$(jq -r --argjson index "$poh_index" '.[$index].mem' ../data/poh/exe_units.json)
 
-pmcpu=$(jq -r '.[1].cpu' ../data/poh/exe_units.json)
-pmmem=$(jq -r '.[1].mem' ../data/poh/exe_units.json)
+cohcpu=$(jq -r --argjson index "$coh_index" '.[$index].cpu' ../data/poh/exe_units.json)
+cohmem=$(jq -r --argjson index "$coh_index" '.[$index].mem' ../data/poh/exe_units.json)
 
 
-poh_lock_execution_unts="(${plcpu}, ${plmem})"
-oracle_execution_unts="(${ocpu}, ${omem})"
-poh_mint_execution_unts="(${pmcpu}, ${pmmem})"
+poh_lock_execution_units="(${plcpu}, ${plmem})"
+poh_mint_execution_units="(${pohcpu}, ${pohmem})"
+coh_mint_execution_units="(${cohcpu}, ${cohmem})"
 
 
 FEE=$(${cli} transaction calculate-min-fee --tx-body-file ../tmp/tx.draft ${network} --protocol-params-file ../tmp/protocol.json --tx-in-count 3 --tx-out-count 3 --witness-count 3)
 fee=$(echo $FEE | rev | cut -c 9- | rev)
 
 pl_computation_fee=$(echo "0.0000721*${plcpu} + 0.0577*${plmem}" | bc)
-o_computation_fee=$(echo "0.0000721*${ocpu} + 0.0577*${omem}" | bc)
-pm_computation_fee=$(echo "0.0000721*${pmcpu} + 0.0577*${pmmem}" | bc)
+poh_computation_fee=$(echo "0.0000721*${pohcpu} + 0.0577*${pohmem}" | bc)
+coh_computation_fee=$(echo "0.0000721*${cohcpu} + 0.0577*${cohmem}" | bc)
 
 pl_computation_fee_int=$(printf "%.0f" "$pl_computation_fee")
-o_computation_fee_int=$(printf "%.0f" "$o_computation_fee")
-pm_computation_fee_int=$(printf "%.0f" "$pm_computation_fee")
+poh_computation_fee_int=$(printf "%.0f" "$poh_computation_fee")
+coh_computation_fee_int=$(printf "%.0f" "$coh_computation_fee")
 
-total_fee=$((${fee} + ${pl_computation_fee_int} + ${o_computation_fee_int} + ${pm_computation_fee_int}))
+total_fee=$((${fee} + ${pl_computation_fee_int} + ${poh_computation_fee_int} + ${coh_computation_fee_int}))
 echo FEE: $total_fee
 owner_script_out="${user_address} + $((${required_lovelace} - ${incentive_amt} - ${coh_min_lovelace} - ${total_fee}))"
-exit
-
 
 ${cli} transaction build-raw \
     --babbage-era \
@@ -360,7 +362,7 @@ ${cli} transaction build-raw \
     --spending-tx-in-reference="${poh_lock_ref_utxo}#1" \
     --spending-plutus-script-v2 \
     --spending-reference-tx-in-inline-datum-present \
-    --spending-reference-tx-in-execution-units="${poh_lock_execution_unts}" \
+    --spending-reference-tx-in-execution-units="${poh_lock_execution_units}" \
     --spending-reference-tx-in-redeemer-file ../data/poh/verify-test-redeemer.json \
     --tx-out="${owner_script_out}" \
     --tx-out="${coh_lock_script_out}" \
@@ -374,12 +376,12 @@ ${cli} transaction build-raw \
     --mint-tx-in-reference="${poh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${poh_policy_id}" \
-    --mint-reference-tx-in-execution-units="${oracle_execution_unts}" \
+    --mint-reference-tx-in-execution-units="${poh_mint_execution_units}" \
     --mint-reference-tx-in-redeemer-file ../data/poh/burn-redeemer.json \
     --mint-tx-in-reference="${coh_mint_ref_utxo}#1" \
     --mint-plutus-script-v2 \
     --policy-id="${coh_policy_id}" \
-    --mint-reference-tx-in-execution-units="${poh_mint_execution_unts}" \
+    --mint-reference-tx-in-execution-units="${coh_mint_execution_units}" \
     --mint-reference-tx-in-redeemer-file ../data/coh/mint-redeemer.json \
     --fee ${total_fee}
 

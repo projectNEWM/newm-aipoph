@@ -172,7 +172,7 @@ validator(
           // prove that the answer is signed correctly
           prove.correct_signers(
             this_datum.test_data.answer,
-            this_datum.owner.pkh,
+            this_datum.public_key,
             query.get_website_hot_key(ref_data_datum),
           )?,
           // this means the test must have ended
