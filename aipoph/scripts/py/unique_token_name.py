@@ -38,7 +38,3 @@ def token_name(txHash: str, index: int, prefix: str) -> str:
     # Print and return the first 64 characters of the token name
     print(txHash[0:64])
     return txHash[0:64]
-
-# Example usage
-# token_name("your_tx_hash_here", 1, "prefix")
-

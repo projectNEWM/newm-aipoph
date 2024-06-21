@@ -1,4 +1,16 @@
 def compare_strings(x: str, y: str) -> int:
+    """
+    Compare two hex strings, x and y. If x is less than y return 0 else
+    return 1. This should determine if two utxo hashes are in lexicographical
+    order or not.
+
+    Args:
+        x (str): A UTxO hash
+        y (str): A UTxO hash
+
+    Returns:
+        int: If zero then x is first else y is first.
+    """
     if x < y:
         return 0
     else:
