@@ -31,10 +31,10 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [x] **coding the user verification module**
   - [x] **creating the cryptographic proof generation system**
   - [x] **implementing the proof validation system**
-- [ ] **Quality-Control Stage**
+- [x] **Quality-Control Stage**
   - [x] **internal system testing**
   - [x] **potential vulnerabilities testing**
-  - [ ] **provide detailed documention**
+  - [x] **provide detailed documention**
 - [ ] **User Product Testing**
   - [ ] **Collect user feedback regarding usability, performance, and overall UX**
 - [ ] **Bug Fixing & Improvements**
@@ -42,7 +42,7 @@ The research roadmap will align with the Catalyst milestones provided in the pro
   - [ ] **Frontend Changes**
 - [ ] **Catalyst Closeout Video**
 
-All documentation for the roadmap will be in the [docs folder](./docs/).
+All documentation for the roadmap will be in the [docs folder](./docs/). PDfs will be generated into [pdf folder](./pdf/).
 
 ## Goals
 
@@ -58,7 +58,7 @@ The main goals of the Proof-of-Human (PoH) system for smart contracts are:
 
 For questions, suggestions, or concerns, please reach out to `support@logicalmechanism.io`.
 
-### MD2PDF
+### Converting Markdown to PDF
 
 ```bash
 # requires pandoc and texlive to work

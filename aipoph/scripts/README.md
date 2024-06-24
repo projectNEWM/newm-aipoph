@@ -21,6 +21,8 @@ Use the `create_wallet.sh` script to auto create wallets inside the wallets fold
 
 The voter wallet will hold all the action tokens, the user wallet will need enough ADA to pay for the transactions, the collateral wallet needs just 5 ADA, the reference wallet will need enough ADA to hold all the script refererences, and the website wallet is just used for signing. The genesis wallet needs just 5 ADA and that UTxO is used to build the contracts.
 
+The data signing wallet, `website-wallet`, uses the direct elliptical private key that is inside the cbor representation of Cardano s-key. Signing data requires the actual private key and not Cardano's representation of it.
+
 ## Build Setup
 
 The `config.json` file is required for a successful build. Place the action token information and genesis UTxO information inside of it and recompile the contracts using the `complete_build.sh` file. This will auto populate the genesis datum and contract folders with the new versions of the contracts.
