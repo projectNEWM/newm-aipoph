@@ -16,7 +16,10 @@ pub type Answer {
   end: SignedData,
 }
 
-/// This will be the core function for proof of humanity.
+/// This will be the core function for proof of humanity. It checks if the 
+/// Answer is valid for the Question, that the start of the test is signed
+/// correctly, and that the end of the test is signed correctly. These 
+/// validations combined proves someone is very human-like.
 ///
 /// prove.you_are_a_human(question, answer)
 ///
@@ -77,7 +80,14 @@ test yes_you_are_not_a_human() {
   you_are_a_human(q, a)
 }
 
-/// Each signature needs to be signed by specific keys.
+/// Each signature needs to be signed by specific keys. The user signs into the
+/// test with their key from the poh datum and the website signs off on their
+/// answer with their key from the reference data. This makes sure that the
+/// user showed up to the test and that the website watched them take the test.
+///
+/// ```aiken
+/// prove.correct_signers(my_answer, datum.owner.pkh, ref_datum_website_key)
+/// ```
 pub fn correct_signers(
   answer: Answer,
   user: PublicKeyHash,

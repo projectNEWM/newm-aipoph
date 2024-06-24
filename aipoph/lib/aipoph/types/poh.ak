@@ -28,8 +28,19 @@ pub type PoHDatum {
   min_lovelace: Int,
   // the test data 
   test_data: TestData,
+  // this is the publicKey for signing data
+  public_key: ByteArray,
 }
 
+/// Before a test starts the poh datum must be in the correct state. The goal
+/// here is to prevent stuck UTxOs during the VerifyTest endpoint. Besides
+/// obvious datum continuity validation, some logic checks must be done on the
+/// validity range and test data. This prevents illogical testing periods and
+/// forces the random state to not be set by the user.
+///
+/// ```aiken
+/// poh.start_test_datum_validation(this_datum, that_datum)
+/// ```
 pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   // the test_data.question is left to change into whatever here
   and {
@@ -58,6 +69,14 @@ pub fn start_test_datum_validation(a: PoHDatum, b: PoHDatum) -> Bool {
   }
 }
 
+/// This checks for datum continuity when a user submit their Answer to the 
+/// Question. The most important is that the answer is applied to the new datum,
+/// the stage is incremented, and the old data does not change. Perserving the
+/// data is essential to a fair test verification.
+///
+/// ```aiken
+/// poh.end_test_datum_validation(this_datum, that_datum, my_answer)
+/// ```
 pub fn end_test_datum_validation(
   a: PoHDatum,
   b: PoHDatum,
@@ -70,23 +89,21 @@ pub fn end_test_datum_validation(
     a.deposit == b.deposit,
     // incentive cant change
     a.incentive == b.incentive,
+    // this is the minium lovelace required for the coh token
+    (a.min_lovelace == b.min_lovelace)?,
     // the validitiy range cant change
     a.test_data.validity_range == b.test_data.validity_range,
-    // the current stage is zeroth
-    a.test_data.cur_stage == 0,
-    // the next stage is first
-    b.test_data.cur_stage == 1,
+    // the randomness cant change
+    a.test_data.random == b.test_data.random,
     // question cant change
     a.test_data.question == b.test_data.question,
     // the answer has been added to the datum
     (b.test_data.answer == answer)?,
-    // the randomness cant change
-    a.test_data.random == b.test_data.random,
+    // the current stage is zeroth
+    a.test_data.cur_stage == 0,
+    // the next stage is first
+    b.test_data.cur_stage == 1,
   }
-}
-
-pub type AnswerData {
-  answer: Answer,
 }
 
 pub type PoHLockRedeemer {

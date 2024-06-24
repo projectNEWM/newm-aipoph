@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # SET UP VARS HERE
@@ -7,10 +7,10 @@ source .env
 # get params
 ${cli} query protocol-parameters ${network} --out-file tmp/protocol.json
 
-python3 py/generate_dao_datum.py
+python3 py/generate_reference_datum.py
 
-# dao script
-script_path="../contracts/dao_contract.plutus"
+# reference script
+script_path="../contracts/reference_contract.plutus"
 script_address=$(${cli} address build --payment-script-file ${script_path} ${network})
 
 # collat
@@ -21,48 +21,23 @@ collat_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/col
 voter_address=$(cat wallets/voter-wallet/payment.addr)
 voter_pkh=$(${cli} address key-hash --payment-verification-key-file wallets/voter-wallet/payment.vkey)
 
-# asset to trade
-# the locking token information
-tx_id_hash=$(jq -r '.tx_id_hash' ../start_info.json)
-tx_id_idx=$(jq -r '.tx_id_idx' ../start_info.json)
-pointer_prefix="5f6169706f70685f"
+# the genesis pointer token information
+tx_id_hash=$(jq -r '.tx_id_hash' ../config.json)
+tx_id_idx=$(jq -r '.tx_id_idx' ../config.json)
+pointer_prefix=$(jq -r '.pointer_prefix' ../config.json)
 pointer_pid=$(cat ../hashes/genesis.hash)
 pointer_tkn=$(python3 -c "import sys; sys.path.append('py/'); from unique_token_name import token_name; token_name('${tx_id_hash}', ${tx_id_idx}, '${pointer_prefix}')")
 asset="1 ${pointer_pid}.${pointer_tkn}"
 
-current_min_utxo=$(${cli} transaction calculate-min-required-utxo \
+min_utxo=$(${cli} transaction calculate-min-required-utxo \
     --babbage-era \
     --protocol-params-file tmp/protocol.json \
-    --tx-out-inline-datum-file data/dao/dao-datum.json \
+    --tx-out-inline-datum-file data/reference/updated-reference-datum.json \
     --tx-out="${script_address} + 5000000 + ${asset}" | tr -dc '0-9')
 
-updated_min_utxo=$(${cli} transaction calculate-min-required-utxo \
-    --babbage-era \
-    --protocol-params-file tmp/protocol.json \
-    --tx-out-inline-datum-file data/dao/updated-dao-datum.json \
-    --tx-out="${script_address} + 5000000 + ${asset}" | tr -dc '0-9')
 
-difference=$((${updated_min_utxo} - ${current_min_utxo}))
-
-if [ "$difference" -eq "0" ]; then
-    echo "Minimum ADA is Constant"
-elif [ "$difference" -lt "0" ]; then
-    positive=$(( -1 * ${difference}))
-    echo "Minimum ADA Decreasing by" ${positive}
-else
-    echo "Minimum ADA Increasing by" ${difference}
-fi
-
-# assume the min will always be the updated since updated can just be constant
-min_utxo=${updated_min_utxo}
-
-# update the difference
-variable=${difference}; jq --argjson variable "$variable" '.fields[0].int=$variable' data/dao/petition-redeemer.json > data/dao/petition-redeemer-new.json
-mv data/dao/petition-redeemer-new.json data/dao/petition-redeemer.json
-
-
-dao_script_out="${script_address} + ${min_utxo} + ${asset}"
-echo "Script OUTPUT: "${dao_script_out}
+reference_script_out="${script_address} + ${min_utxo} + ${asset}"
+echo "Script OUTPUT: "${reference_script_out}
 #
 # exit
 #
@@ -95,7 +70,7 @@ if [ "${TXNS}" -eq "0" ]; then
 fi
 alltxin=""
 TXIN=$(jq -r --arg alltxin "" --arg policy_id "$pointer_pid" --arg token_name "$pointer_tkn" 'to_entries[] | select(.value.value[$policy_id][$token_name] == 1) | .key | . + $alltxin + " --tx-in"' tmp/script_utxo.json)
-dao_tx_in=${TXIN::-8}
+reference_tx_in=${TXIN::-8}
 
 # collat info
 echo -e "\033[0;36m Gathering Collateral UTxO Information  \033[0m"
@@ -112,7 +87,7 @@ fi
 collat_tx_in=$(jq -r 'keys[0]' tmp/collat_utxo.json)
 
 # script reference utxo
-dao_ref_utxo=$(${cli} transaction txid --tx-file tmp/utxo-dao_contract.plutus.signed )
+reference_ref_utxo=$(${cli} transaction txid --tx-file tmp/utxo-reference_contract.plutus.signed )
 
 echo -e "\033[0;36m Building Tx \033[0m"
 FEE=$(${cli} transaction build \
@@ -121,13 +96,13 @@ FEE=$(${cli} transaction build \
     --change-address ${voter_address} \
     --tx-in-collateral ${collat_tx_in} \
     --tx-in ${voter_tx_in} \
-    --tx-in ${dao_tx_in} \
-    --spending-tx-in-reference="${dao_ref_utxo}#1" \
+    --tx-in ${reference_tx_in} \
+    --spending-tx-in-reference="${reference_ref_utxo}#1" \
     --spending-plutus-script-v2 \
     --spending-reference-tx-in-inline-datum-present \
-    --spending-reference-tx-in-redeemer-file data/dao/petition-redeemer.json \
-    --tx-out="${dao_script_out}" \
-    --tx-out-inline-datum-file data/dao/updated-dao-datum.json \
+    --spending-reference-tx-in-redeemer-file data/reference/petition-redeemer.json \
+    --tx-out="${reference_script_out}" \
+    --tx-out-inline-datum-file data/reference/updated-reference-datum.json \
     --required-signer-hash ${voter_pkh} \
     --required-signer-hash ${collat_pkh} \
     ${network})
@@ -157,4 +132,4 @@ ${cli} transaction submit \
 tx=$(cardano-cli transaction txid --tx-file tmp/tx.signed)
 echo "Tx Hash:" $tx
 
-cp data/dao/updated-dao-datum.json data/dao/dao-datum.json
+cp data/reference/updated-reference-datum.json data/reference/reference-datum.json

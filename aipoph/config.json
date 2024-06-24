@@ -1,0 +1,17 @@
+{
+    "__comment1__": "TxId for Genesis",
+    "tx_id_hash": "f779e215899f1c51e733deb6dd7655afc028c8d7331cbaa119e38ecc17be0b27",
+    "tx_id_idx": 0,
+    "__comment2__": "This will be the action token for voting",
+    "action_pid": "d7904b71609348dfcf165789b6ea07108cfcb73dd85984a7f9e60c8e",
+    "action_tkn": "2834343429002c28bf1cc21d1f70c8d1d60741544cb124387eb039123a05c1f8",
+    "action_max": 100000000,
+    "__comment3__": "Genesis pointer token prefix",
+    "pointer_prefix": "5f6169706f70685f",
+    "__comment4__": "Proof of Humanity token name",
+    "poh_token_name": "426567696e205468652050726f6f66204f662048756d616e6974792054657374",
+    "__comment5__": "Cerificate of Humanity token name",
+    "coh_token_name": "436f6e67726174756c6174696f6e732120596f7527726520612068756d616e2e",
+    "__comment6__": "Genesis change address",
+    "change_address": "addr_test1qrvnxkaylr4upwxfxctpxpcumj0fl6fdujdc72j8sgpraa9l4gu9er4t0w7udjvt2pqngddn6q4h8h3uv38p8p9cq82qav4lmp"
+  }

@@ -1,6 +1,6 @@
-use assist/types/token.{Token}
+use assist/types/token.{Tokens}
 
 pub type VaultRedeemer {
-  AddToVault { incoming: Token }
-  SubFromVault { outgoing: Token }
+  AddToVault { incoming: Tokens }
+  SubFromVault { outgoing: Tokens }
 }
